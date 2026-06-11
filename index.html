@@ -360,34 +360,115 @@
             box-shadow: none !important;
         }
 
-        /* Teacher Portal Table Styles */
-        .teacher-table th, .teacher-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
-        }
-
-        .teacher-table tr:hover {
+        /* Teacher Portal Accordion Styles */
+        .accordion-item {
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
             background: rgba(255, 255, 255, 0.02);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-
-        [data-theme="light"] .teacher-table tr:hover {
+        
+        [data-theme="light"] .accordion-item {
             background: rgba(0, 0, 0, 0.01);
         }
 
-        .btn-table-delete {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.78rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
+        .accordion-item.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.15);
         }
 
-        .btn-table-delete:hover {
-            background: rgba(239, 68, 68, 0.25);
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.01);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .accordion-header:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .accordion-header .student-name {
+            font-size: 1.05rem;
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        .accordion-header .student-total-questions {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-left: auto;
+            margin-right: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        [data-theme="light"] .accordion-header .student-total-questions {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .accordion-header .accordion-icon {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .accordion-item.active .accordion-header .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            display: none;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.15);
+            overflow-x: auto;
+        }
+        
+        [data-theme="light"] .accordion-content {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Accordion Mini Table Styles */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 500px;
+        }
+
+        .history-table th, .history-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .btn-table-delete-small {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            line-height: 1.2;
+        }
+
+        .btn-table-delete-small:hover {
+            background: rgba(239, 68, 68, 0.2);
             border-color: #ef4444;
             color: #ef4444;
         }
@@ -1967,26 +2048,9 @@
                 <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.95rem;">取り組みデータを取得中...</p>
             </div>
 
-            <!-- Table Result Container -->
+            <!-- Accordion Result Container -->
             <div id="teacher-table-container" style="display: none; margin-bottom: 24px;">
-                <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 16px; background: rgba(0,0,0,0.2);">
-                    <table class="teacher-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--border); background: rgba(255,255,255,0.03);">
-                                <th style="padding: 12px; color: var(--text-muted);">日時</th>
-                                <th style="padding: 12px; color: var(--text-muted);">生徒</th>
-                                <th style="padding: 12px; color: var(--text-muted);">形式</th>
-                                <th style="padding: 12px; color: var(--text-muted);">範囲</th>
-                                <th style="padding: 12px; color: var(--text-muted);">結果</th>
-                                <th style="padding: 12px; color: var(--text-muted);">正解率</th>
-                                <th style="padding: 12px; color: var(--text-muted); text-align: center;">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="teacher-table-body">
-                            <!-- Rows will be dynamically loaded here -->
-                        </tbody>
-                    </table>
-                </div>
+                <div id="teacher-accordion-list"></div>
             </div>
 
             <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
@@ -4035,15 +4099,39 @@
             return { grade: 99, clazz: 99, number: 99 };
         }
 
+        // 1-1.1 -> 1年1組1番 に変換
+        function formatStudentKey(key) {
+            if (!key) return "不明な生徒";
+            const match = key.match(/^(\d+)-(\d+)\.(\d+)$/);
+            if (match) {
+                return `${match[1]}年${match[2]}組${match[3]}番`;
+            }
+            return key;
+        }
+
+        function toggleAccordion(header) {
+            const item = header.parentElement;
+            const content = item.querySelector('.accordion-content');
+            const isActive = item.classList.contains('active');
+            
+            if (isActive) {
+                item.classList.remove('active');
+                if (content) content.style.display = 'none';
+            } else {
+                item.classList.add('active');
+                if (content) content.style.display = 'block';
+            }
+        }
+
         function searchTeacherData() {
             const loader = document.getElementById('teacher-loader');
             const container = document.getElementById('teacher-table-container');
-            const tbody = document.getElementById('teacher-table-body');
+            const accordionList = document.getElementById('teacher-accordion-list');
             const downloadBtn = document.getElementById('btn-csv-download');
 
             if (loader) loader.style.display = 'none';
             if (container) container.style.display = 'block';
-            if (!tbody) return;
+            if (!accordionList) return;
 
             const gradeVal = document.getElementById('search-grade').value.trim();
             const classVal = document.getElementById('search-class').value.trim();
@@ -4064,44 +4152,109 @@
                 return true;
             });
 
+            // studentKeyごとにデータをグループ化
+            const studentMap = {};
+            filtered.forEach(item => {
+                const key = item.studentKey;
+                if (!studentMap[key]) {
+                    studentMap[key] = {
+                        key: key,
+                        name: formatStudentKey(key),
+                        totalQuestionsSum: 0,
+                        history: []
+                    };
+                }
+                const qCount = parseInt(item.totalQuestions, 10) || 0;
+                studentMap[key].totalQuestionsSum += qCount;
+                studentMap[key].history.push(item);
+            });
+
+            // 配列化
+            let studentList = Object.values(studentMap);
+
             // 出席番号順（学年・クラス・番号の昇順）にソート
-            filtered.sort((a, b) => {
-                const infoA = parseStudentKey(a.studentKey);
-                const infoB = parseStudentKey(b.studentKey);
+            studentList.sort((a, b) => {
+                const infoA = parseStudentKey(a.key);
+                const infoB = parseStudentKey(b.key);
                 if (infoA.grade !== infoB.grade) return infoA.grade - infoB.grade;
                 if (infoA.clazz !== infoB.clazz) return infoA.clazz - infoB.clazz;
                 return infoA.number - infoB.number;
             });
 
-            // テーブル描画
-            tbody.innerHTML = '';
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 24px;">該当する取り組みデータがありません。</td></tr>`;
+            // 各生徒内の履歴を最新（日付の降順）にソート
+            studentList.forEach(student => {
+                student.history.sort((a, b) => {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                });
+            });
+
+            // 描画
+            accordionList.innerHTML = '';
+            if (studentList.length === 0) {
+                accordionList.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding: 24px;">該当する取り組みデータがありません。</p>`;
                 if (downloadBtn) downloadBtn.disabled = true;
                 return;
             }
 
             if (downloadBtn) downloadBtn.disabled = false;
 
-            filtered.forEach(item => {
-                // 正解率の計算
-                const total = parseInt(item.totalQuestions, 10) || 0;
-                const correct = parseInt(item.correctCount, 10) || 0;
-                const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
+            studentList.forEach(student => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'accordion-item';
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="padding: 12px;">${item.timestamp || ''}</td>
-                    <td style="padding: 12px; font-weight: 600;">${item.studentKey || ''}</td>
-                    <td style="padding: 12px;">${item.quizType || ''}</td>
-                    <td style="padding: 12px;">${item.rangeInfo || ''}</td>
-                    <td style="padding: 12px;">${correct} / ${total}</td>
-                    <td style="padding: 12px; font-weight: bold; color: ${rate >= 80 ? 'var(--success)' : rate >= 50 ? 'var(--secondary)' : 'var(--error)'}">${rate}%</td>
-                    <td style="padding: 12px; text-align: center;">
-                        <button class="btn-table-delete" onclick="confirmDeleteRecord('${item.timestamp}', '${item.studentKey}')">削除</button>
-                    </td>
+                // ヘッダー (左: 生徒名, 右: 総解答問題数)
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'accordion-header';
+                headerDiv.onclick = function() { toggleAccordion(this); };
+                headerDiv.innerHTML = `
+                    <span class="student-name">${student.name}</span>
+                    <span class="student-total-questions">総解答問題数: ${student.totalQuestionsSum}問</span>
+                    <span class="accordion-icon">▼</span>
                 `;
-                tbody.appendChild(tr);
+
+                // コンテンツ (詳細履歴テーブル)
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'accordion-content';
+
+                const table = document.createElement('table');
+                table.className = 'history-table';
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>日時</th>
+                            <th>形式</th>
+                            <th>範囲</th>
+                            <th>結果</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                `;
+
+                const tbody = table.querySelector('tbody');
+                student.history.forEach(item => {
+                    const total = parseInt(item.totalQuestions, 10) || 0;
+                    const correct = parseInt(item.correctCount, 10) || 0;
+                    const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.timestamp || ''}</td>
+                        <td>${item.quizType || ''}</td>
+                        <td>${item.rangeInfo || ''}</td>
+                        <td>${correct} / ${total} <span style="font-weight: bold; color: ${rate >= 80 ? 'var(--success)' : rate >= 50 ? 'var(--secondary)' : 'var(--error)'}; margin-left: 4px;">(${rate}%)</span></td>
+                        <td>
+                            <button class="btn-table-delete-small" onclick="confirmDeleteRecord('${item.timestamp}', '${item.studentKey}')">削除</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                contentDiv.appendChild(table);
+                itemDiv.appendChild(headerDiv);
+                itemDiv.appendChild(contentDiv);
+                accordionList.appendChild(itemDiv);
             });
         }
 
