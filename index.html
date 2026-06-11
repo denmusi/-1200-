@@ -2039,7 +2039,7 @@
 
             <div class="row" style="gap: 12px; margin-bottom: 24px; display: flex; margin-top: 18px;">
                 <button class="btn btn-primary" onclick="searchTeacherData()" style="flex: 2; margin: 0; min-height: 50px; font-size: 1rem;">🔍 検索する</button>
-                <button class="btn btn-secondary" onclick="downloadCSV()" id="btn-csv-download" style="flex: 1; margin: 0; min-height: 50px; font-size: 1rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;" disabled>📥 CSV出力</button>
+                <button class="btn btn-secondary" onclick="toggleAllAccordions()" id="btn-accordion-toggle" style="flex: 1; margin: 0; min-height: 50px; font-size: 1rem; border-color: var(--primary); color: var(--primary);" disabled>🔓 全て展開</button>
             </div>
 
             <!-- Loader Spinner -->
@@ -3926,6 +3926,7 @@
         // 1234567 の SHA-256 ハッシュ値
         const TEACHER_HASH = "8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414";
         let cachedTeacherData = [];
+        let allAccordionsExpanded = false;
         let recordToDelete = null;
 
         // SHA-256 ハッシュ化関数 (標準的なピュアJavaScript実装 - HTTPSでない環境やfile:///環境でも確実に動作します)
@@ -4058,11 +4059,14 @@
 
             const loader = document.getElementById('teacher-loader');
             const container = document.getElementById('teacher-table-container');
-            const downloadBtn = document.getElementById('btn-csv-download');
+            const toggleBtn = document.getElementById('btn-accordion-toggle');
 
             if (loader) loader.style.display = 'block';
             if (container) container.style.display = 'none';
-            if (downloadBtn) downloadBtn.disabled = true;
+            if (toggleBtn) {
+                toggleBtn.disabled = true;
+                toggleBtn.innerHTML = "🔓 全て展開";
+            }
 
             fetch(GAS_WEBAPP_URL, {
                 method: 'GET',
@@ -4130,7 +4134,7 @@
             const loader = document.getElementById('teacher-loader');
             const container = document.getElementById('teacher-table-container');
             const accordionList = document.getElementById('teacher-accordion-list');
-            const downloadBtn = document.getElementById('btn-csv-download');
+            const toggleBtn = document.getElementById('btn-accordion-toggle');
 
             if (loader) loader.style.display = 'none';
             if (container) container.style.display = 'block';
@@ -4195,11 +4199,18 @@
             accordionList.innerHTML = '';
             if (studentList.length === 0) {
                 accordionList.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding: 24px;">該当する取り組みデータがありません。</p>`;
-                if (downloadBtn) downloadBtn.disabled = true;
+                if (toggleBtn) {
+                    toggleBtn.disabled = true;
+                    toggleBtn.innerHTML = "🔓 全て展開";
+                }
                 return;
             }
 
-            if (downloadBtn) downloadBtn.disabled = false;
+            if (toggleBtn) {
+                toggleBtn.disabled = false;
+                allAccordionsExpanded = false;
+                toggleBtn.innerHTML = "🔓 全て展開";
+            }
 
             studentList.forEach(student => {
                 const itemDiv = document.createElement('div');
@@ -4261,76 +4272,28 @@
             });
         }
 
-        // CSV出力処理
-        function downloadCSV() {
-            const gradeVal = document.getElementById('search-grade').value.trim();
-            const classVal = document.getElementById('search-class').value.trim();
-            const numberVal = document.getElementById('search-number').value.trim();
+        // アコーディオンの全展開/全折りたたみ処理
+        function toggleAllAccordions() {
+            const items = document.querySelectorAll('.accordion-item');
+            const toggleBtn = document.getElementById('btn-accordion-toggle');
+            if (items.length === 0) return;
 
-            const gradeInt = gradeVal ? parseInt(gradeVal, 10) : null;
-            const classInt = classVal ? parseInt(classVal, 10) : null;
-            const numberInt = numberVal ? parseInt(numberVal, 10) : null;
+            allAccordionsExpanded = !allAccordionsExpanded;
 
-            // 現在の検索条件でフィルタリングしてCSVに変換
-            let filtered = cachedTeacherData.filter(item => {
-                const info = parseStudentKey(item.studentKey);
-                if (gradeInt !== null && info.grade !== gradeInt) return false;
-                if (classInt !== null && info.clazz !== classInt) return false;
-                if (numberInt !== null && info.number !== numberInt) return false;
-                return true;
+            items.forEach(item => {
+                const content = item.querySelector('.accordion-content');
+                if (allAccordionsExpanded) {
+                    item.classList.add('active');
+                    if (content) content.style.display = 'block';
+                } else {
+                    item.classList.remove('active');
+                    if (content) content.style.display = 'none';
+                }
             });
 
-            // 出席番号順にソート
-            filtered.sort((a, b) => {
-                const infoA = parseStudentKey(a.studentKey);
-                const infoB = parseStudentKey(b.studentKey);
-                if (infoA.grade !== infoB.grade) return infoA.grade - infoB.grade;
-                if (infoA.clazz !== infoB.clazz) return infoA.clazz - infoB.clazz;
-                return infoA.number - infoB.number;
-            });
-
-            // CSV文字列作成
-            let csvContent = "\uFEFF"; // Excel用のBOM
-            csvContent += "日時,生徒キー(学年-組.番号),クイズ形式,出題範囲,正解数,問題数,正解率\r\n";
-
-            filtered.forEach(item => {
-                const total = parseInt(item.totalQuestions, 10) || 0;
-                const correct = parseInt(item.correctCount, 10) || 0;
-                const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
-
-                const row = [
-                    `"${item.timestamp || ''}"`,
-                    `"${item.studentKey || ''}"`,
-                    `"${item.quizType || ''}"`,
-                    `"${item.rangeInfo || ''}"`,
-                    correct,
-                    total,
-                    `"${rate}%"`
-                ];
-                csvContent += row.join(",") + "\r\n";
-            });
-
-            // ダウンロード処理
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            
-            // ファイル名の決定
-            let filename = "生徒取り組み結果_全データ.csv";
-            if (gradeVal || classVal || numberVal) {
-                const parts = [];
-                if (gradeVal) parts.push(`${gradeVal}年`);
-                if (classVal) parts.push(`${classVal}組`);
-                if (numberVal) parts.push(`${numberVal}番`);
-                filename = `生徒取り組み結果_${parts.join("")}.csv`;
+            if (toggleBtn) {
+                toggleBtn.innerHTML = allAccordionsExpanded ? "🔒 全て閉じる" : "🔓 全て展開";
             }
-
-            link.setAttribute("href", url);
-            link.setAttribute("download", filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
 
         // 削除確認モーダルの制御
