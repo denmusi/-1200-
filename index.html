@@ -1578,6 +1578,172 @@
             margin-bottom: 0 !important;
             border-radius: 10px !important;
         }
+
+        /* Bug Report Modal & Teacher View Styles */
+        .bug-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .bug-modal {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .bug-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bug-form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .bug-form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .bug-form-group input,
+        .bug-form-group select,
+        .bug-form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.4);
+            color: var(--text);
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="light"] .bug-form-group input,
+        [data-theme="light"] .bug-form-group select,
+        [data-theme="light"] .bug-form-group textarea {
+            background: #ffffff;
+            color: #0f172a;
+            border-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .bug-form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .bug-form-group input:focus,
+        .bug-form-group select:focus,
+        .bug-form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .bug-modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .bug-modal-buttons button {
+            flex: 1;
+            min-height: 44px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-bug-submit {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+        }
+
+        .btn-bug-submit:hover:not(:disabled) {
+            filter: brightness(1.1);
+        }
+
+        .btn-bug-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-bug-cancel {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-bug-cancel:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+
+        [data-theme="light"] .btn-bug-cancel:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Teacher Bug List Section */
+        .teacher-bug-section {
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 2px dashed var(--border);
+            text-align: left;
+        }
+
+        .teacher-bug-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bug-table-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: rgba(30, 41, 59, 0.2);
+            margin-bottom: 24px;
+        }
+
+        [data-theme="light"] .bug-table-container {
+            background: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -1806,7 +1972,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-secondary" style="font-size:0.85rem; color:var(--text-muted); min-height: 44px; margin-top: 10px;" onclick="resetExcelData()">単語データを再ロードする</button>
+            <button class="btn btn-secondary" style="font-size:0.9rem; color:var(--text); border-color: rgba(99, 102, 241, 0.4); min-height: 48px; margin-top: 10px;" onclick="openBugReportModal()">🐞 バグがある場合、要望がある場合はこちら</button>
             <button class="btn btn-secondary" style="font-size: 0.9rem; color: var(--secondary); border-color: rgba(139, 92, 246, 0.3); min-height: 48px; margin-top: 24px;" onclick="showTeacherPasswordScreen()">👤 先生用ポータル</button>
         </div>
 
@@ -2053,6 +2219,27 @@
                 <div id="teacher-accordion-list"></div>
             </div>
 
+            <!-- Bug Reports & Feature Requests Section (For Teachers) -->
+            <div class="teacher-bug-section" style="margin-bottom: 32px;">
+                <div class="teacher-bug-title">🐞 受信したバグ報告・改善要望</div>
+                <div class="bug-table-container">
+                    <table class="history-table" id="teacher-bug-table">
+                        <thead>
+                            <tr>
+                                <th>日時</th>
+                                <th>報告者</th>
+                                <th>種類</th>
+                                <th>内容</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-bug-list">
+                            <!-- JSで挿入されます -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
         </div>
 
@@ -2070,6 +2257,39 @@
             <div class="teacher-modal-buttons">
                 <button class="btn-modal btn-modal-confirm" id="btn-modal-delete-confirm">削除する</button>
                 <button class="btn-modal btn-modal-cancel" onclick="closeTeacherDeleteModal()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bug Report & Request Modal -->
+    <div id="bug-report-modal" class="bug-modal-overlay" style="display: none;" onclick="handleBugModalOutsideClick(event)">
+        <div class="bug-modal">
+            <div class="bug-modal-title">🐞 バグ報告・改善要望</div>
+            
+            <div class="bug-form-group">
+                <label for="bug-reporter-type">あなたについて</label>
+                <select id="bug-reporter-type">
+                    <option value="生徒">生徒</option>
+                    <option value="先生">先生</option>
+                </select>
+            </div>
+
+            <div class="bug-form-group">
+                <label for="bug-category">報告の種類</label>
+                <select id="bug-category">
+                    <option value="バグ報告">バグ報告 (動かない、表示が崩れるなど)</option>
+                    <option value="改善要望">改善要望 (こんな機能がほしいなど)</option>
+                </select>
+            </div>
+
+            <div class="bug-form-group">
+                <label for="bug-content">内容 (できるだけ詳しくご記入ください)</label>
+                <textarea id="bug-content" placeholder="例：〇〇画面でボタンを押しても反応しません。/ クイズに〇〇という単語を追加してほしいです。"></textarea>
+            </div>
+
+            <div class="bug-modal-buttons">
+                <button class="btn-bug-submit" id="btn-bug-submit" onclick="submitBugReport()">送信する</button>
+                <button class="btn-bug-cancel" onclick="closeBugReportModal()">キャンセル</button>
             </div>
         </div>
     </div>
@@ -4050,7 +4270,7 @@
             }
         });
 
-        // GASから生徒取り組みデータを全件取得する
+        // GASから生徒取り組みデータおよびバグ・改善要望データを全件取得する
         function fetchTeacherData() {
             if (!GAS_WEBAPP_URL) {
                 showToast("GASのWebアプリURLが設定されていません。", true);
@@ -4068,28 +4288,42 @@
                 toggleBtn.innerHTML = "🔓 全て展開";
             }
 
-            fetch(GAS_WEBAPP_URL, {
+            // 取り組みデータ取得とバグ報告データ取得を並行実行
+            const fetchHistory = fetch(GAS_WEBAPP_URL, {
                 method: 'GET',
                 mode: 'cors',
                 redirect: 'follow'
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
+            }).then(res => res.json());
+
+            const fetchBugs = fetch(GAS_WEBAPP_URL + "?action=getReports", {
+                method: 'GET',
+                mode: 'cors',
+                redirect: 'follow'
+            }).then(res => res.json());
+
+            Promise.all([fetchHistory, fetchBugs])
+            .then(([historyData, bugReports]) => {
+                if (historyData.error) {
+                    throw new Error(historyData.error);
                 }
-                cachedTeacherData = data;
+                
+                cachedTeacherData = Array.isArray(historyData) ? historyData : [];
                 searchTeacherData();
+                
+                const bugList = Array.isArray(bugReports) ? bugReports : [];
+                renderBugReports(bugList);
             })
             .catch(err => {
                 console.error(err);
                 showToast("データ取得に失敗しました。", true);
                 if (loader) loader.style.display = 'none';
-                const tbody = document.getElementById('teacher-table-body');
-                if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--error); padding: 24px;">データの読み込みに失敗しました。接続状況を確認してください。</td></tr>`;
-                }
                 if (container) container.style.display = 'block';
+                
+                // バグ・要望リストのエラー表示
+                const bugListEl = document.getElementById('teacher-bug-list');
+                if (bugListEl) {
+                    bugListEl.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--error); padding:16px;">データの読み込みに失敗しました。</td></tr>`;
+                }
             });
         }
 
@@ -4362,6 +4596,157 @@
                 console.error(err);
                 showToast("データの削除に失敗しました。", true);
                 fetchTeacherData(); // エラーであっても読み直す
+            });
+        }
+
+        // --- Bug Report & Feature Request Functions ---
+        function openBugReportModal() {
+            const modal = document.getElementById('bug-report-modal');
+            const contentArea = document.getElementById('bug-content');
+            const submitBtn = document.getElementById('btn-bug-submit');
+            
+            if (contentArea) contentArea.value = '';
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = '送信する';
+            }
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeBugReportModal() {
+            const modal = document.getElementById('bug-report-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function handleBugModalOutsideClick(event) {
+            const modal = document.getElementById('bug-report-modal');
+            if (event.target === modal) {
+                closeBugReportModal();
+            }
+        }
+
+        function submitBugReport() {
+            const reporterType = document.getElementById('bug-reporter-type').value;
+            const category = document.getElementById('bug-category').value;
+            const content = document.getElementById('bug-content').value.trim();
+            const submitBtn = document.getElementById('btn-bug-submit');
+
+            if (!content) {
+                showToast("報告内容を入力してください。", true);
+                return;
+            }
+
+            if (!GAS_WEBAPP_URL) {
+                showToast("GASのWebアプリURLが設定されていません。", true);
+                return;
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = '送信中...';
+            }
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'cors',
+                redirect: 'follow',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify({
+                    action: 'bugReport',
+                    timestamp: getJstTimestamp(),
+                    reporter: reporterType,
+                    category: category,
+                    content: content
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    showToast("ご報告ありがとうございました！");
+                    closeBugReportModal();
+                } else {
+                    throw new Error(res.message || "送信エラー");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("送信に失敗しました。時間をおいて再度お試しください。", true);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = '送信する';
+                }
+            });
+        }
+
+        // バグ報告の削除処理
+        function deleteBugReport(timestamp, contentSnippet) {
+            if (!confirm(`この報告を削除しますか？\n"${contentSnippet}"`)) {
+                return;
+            }
+
+            const loader = document.getElementById('teacher-loader');
+            const container = document.getElementById('teacher-table-container');
+            if (loader) loader.style.display = 'block';
+            if (container) container.style.display = 'none';
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'cors',
+                redirect: 'follow',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify({
+                    action: 'deleteBugReport',
+                    timestamp: timestamp
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    showToast("報告データを削除しました。");
+                } else {
+                    throw new Error(res.message || "削除エラー");
+                }
+                fetchTeacherData(); // 再読み込み
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("削除に失敗しました。", true);
+                fetchTeacherData();
+            });
+        }
+
+        // バグ一覧をテーブルに描画する
+        function renderBugReports(reports) {
+            const listEl = document.getElementById('teacher-bug-list');
+            if (!listEl) return;
+            
+            listEl.innerHTML = '';
+            
+            if (!reports || reports.length === 0) {
+                listEl.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:16px;">受信したバグ報告や改善要望はありません。</td></tr>`;
+                return;
+            }
+
+            // 新しい報告が上に来るようにソート
+            reports.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            reports.forEach(r => {
+                const tr = document.createElement('tr');
+                const contentSnippet = r.content && r.content.length > 25 ? r.content.substring(0, 25) + '...' : r.content;
+                tr.innerHTML = `
+                    <td style="white-space: nowrap;">${r.timestamp || ''}</td>
+                    <td style="white-space: nowrap;"><span style="padding:4px 8px; border-radius:8px; font-size:0.8rem; background:${r.reporter === '先生' ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; color:#fff;">${r.reporter || ''}</span></td>
+                    <td style="white-space: nowrap;"><span style="color:${r.category === 'バグ報告' ? 'var(--error)' : 'var(--success)'}; font-weight:bold;">${r.category || ''}</span></td>
+                    <td style="max-width: 300px; word-break: break-all;" title="${r.content}">${r.content || ''}</td>
+                    <td>
+                        <button class="btn-table-delete-small" onclick="deleteBugReport('${r.timestamp}', '${contentSnippet.replace(/'/g, "\\'")}')">削除</button>
+                    </td>
+                `;
+                listEl.appendChild(tr);
             });
         }
 
