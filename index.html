@@ -360,6 +360,139 @@
             box-shadow: none !important;
         }
 
+        /* Teacher Portal Table Styles */
+        .teacher-table th, .teacher-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .teacher-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        [data-theme="light"] .teacher-table tr:hover {
+            background: rgba(0, 0, 0, 0.01);
+        }
+
+        .btn-table-delete {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-table-delete:hover {
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        /* Teacher Delete Modal styles */
+        .teacher-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .teacher-modal {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            padding: 30px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .teacher-modal-icon {
+            font-size: 2.5rem;
+            margin-bottom: 14px;
+        }
+
+        .teacher-modal-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .teacher-modal-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .teacher-modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-modal-confirm {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-modal-confirm:hover {
+            background: #dc2626;
+        }
+
+        .btn-modal-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .btn-modal-cancel:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        [data-theme="light"] .btn-modal-cancel {
+            background: rgba(0, 0, 0, 0.02);
+            color: #0f172a;
+        }
+        [data-theme="light"] .btn-modal-cancel:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
         /* Inputs & Switches */
         .input-group {
             margin-bottom: 24px;
@@ -1421,6 +1554,9 @@
                 <span style="color: var(--primary); margin-left: 4px; font-size: 0.68rem; text-decoration: underline;">[変更]</span>
             </div>
 
+            <h1>ターゲット1200クイズメーカー</h1>
+            <p class="subtitle" style="margin-bottom: 24px;">出題範囲とオプションを設定して開始してください</p>
+
             <!-- Range Pickers -->
             <div class="row">
                 <div class="input-group">
@@ -1528,10 +1664,10 @@
                 <div class="toggle-card">
                     <div class="toggle-label">
                         <span class="toggle-title">画面レイアウト</span>
-                        <span class="toggle-desc" id="toggle-landscape-desc">縦画面モード（縦1列表示）</span>
+                        <span class="toggle-desc" id="toggle-landscape-desc">横画面モード（上部問題・下部2x2選択肢）</span>
                     </div>
                     <label class="switch">
-                        <input type="checkbox" id="setting-landscape" onchange="updateSettingLabels()">
+                        <input type="checkbox" id="setting-landscape" checked onchange="updateSettingLabels()">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -1590,6 +1726,7 @@
             </div>
 
             <button class="btn btn-secondary" style="font-size:0.85rem; color:var(--text-muted); min-height: 44px; margin-top: 10px;" onclick="resetExcelData()">単語データを再ロードする</button>
+            <button class="btn btn-secondary" style="font-size: 0.9rem; color: var(--secondary); border-color: rgba(139, 92, 246, 0.3); min-height: 48px; margin-top: 24px;" onclick="showTeacherPasswordScreen()">👤 先生用ポータル</button>
         </div>
 
         <!-- SCREEN 2: Quiz Screen -->
@@ -1772,6 +1909,105 @@
             <button class="btn btn-secondary" onclick="exitToHome()" style="margin-top:14px;">ホームに戻る</button>
         </div>
 
+        <!-- SCREEN 7: Teacher Password Screen -->
+        <div id="screen-teacher-password" class="screen">
+            <div class="list-header-bar">
+                <button class="btn-icon-circle" onclick="exitToHome()" title="戻る">
+                    <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <h1>管理者認証</h1>
+            </div>
+            <p class="subtitle" style="margin-bottom: 24px;">先生用ポータルに入るため、パスワードを入力してください</p>
+
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label for="teacher-password-input">パスワード</label>
+                <input type="password" id="teacher-password-input" placeholder="パスワードを入力してください" autocomplete="off" style="text-align: center; font-size: 1.2rem; tracking: 2px;">
+            </div>
+            
+            <div id="teacher-login-error" style="color: var(--error); font-size: 0.9rem; font-weight: 600; text-align: center; display: none; min-height: 20px; margin-bottom: 15px;"></div>
+
+            <button class="btn btn-primary" onclick="verifyTeacherPassword()">認証する</button>
+            <button class="btn btn-secondary" onclick="exitToHome()" style="margin-top:10px;">キャンセル</button>
+        </div>
+
+        <!-- SCREEN 8: Teacher Portal Screen -->
+        <div id="screen-teacher-portal" class="screen">
+            <div class="list-header-bar">
+                <button class="btn-icon-circle" onclick="exitToHome()" title="ホームに戻る">
+                    <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <h1>生徒取り組み確認</h1>
+            </div>
+            <p class="subtitle" style="margin-bottom: 20px;">学年、クラス、出席番号で絞り込んで検索できます（空欄で全員表示）</p>
+
+            <!-- Search Filters -->
+            <div class="row" style="margin-bottom: 18px; display: flex; gap: 12px;">
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="search-grade">学年</label>
+                    <input type="number" id="search-grade" min="1" max="9" placeholder="例: 2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="search-class">組</label>
+                    <input type="number" id="search-class" min="1" max="99" placeholder="例: 1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label for="search-number">出席番号</label>
+                    <input type="number" id="search-number" min="1" max="999" placeholder="例: 5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+            </div>
+
+            <div class="row" style="gap: 12px; margin-bottom: 24px; display: flex; margin-top: 18px;">
+                <button class="btn btn-primary" onclick="searchTeacherData()" style="flex: 2; margin: 0; min-height: 50px; font-size: 1rem;">🔍 検索する</button>
+                <button class="btn btn-secondary" onclick="downloadCSV()" id="btn-csv-download" style="flex: 1; margin: 0; min-height: 50px; font-size: 1rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;" disabled>📥 CSV出力</button>
+            </div>
+
+            <!-- Loader Spinner -->
+            <div id="teacher-loader" style="display: none; text-align: center; margin: 40px 0;">
+                <span class="spinner" style="display:inline-block; width:36px; height:36px; border:3.5px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle;"></span>
+                <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.95rem;">取り組みデータを取得中...</p>
+            </div>
+
+            <!-- Table Result Container -->
+            <div id="teacher-table-container" style="display: none; margin-bottom: 24px;">
+                <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 16px; background: rgba(0,0,0,0.2);">
+                    <table class="teacher-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border); background: rgba(255,255,255,0.03);">
+                                <th style="padding: 12px; color: var(--text-muted);">日時</th>
+                                <th style="padding: 12px; color: var(--text-muted);">生徒</th>
+                                <th style="padding: 12px; color: var(--text-muted);">形式</th>
+                                <th style="padding: 12px; color: var(--text-muted);">範囲</th>
+                                <th style="padding: 12px; color: var(--text-muted);">結果</th>
+                                <th style="padding: 12px; color: var(--text-muted);">正解率</th>
+                                <th style="padding: 12px; color: var(--text-muted); text-align: center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-table-body">
+                            <!-- Rows will be dynamically loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
+        </div>
+
+    </div>
+
+    <!-- Teacher Custom Delete Modal -->
+    <div id="teacher-delete-modal" class="teacher-modal-overlay" style="display: none;">
+        <div class="teacher-modal">
+            <div class="teacher-modal-icon">⚠️</div>
+            <div class="teacher-modal-title">データの削除確認</div>
+            <div class="teacher-modal-desc">
+                この生徒の取り組みデータを削除しますか？<br>
+                <strong style="color: var(--error); margin-top: 8px; display: inline-block;">※スプレッドシートから完全に削除され、元に戻せません。</strong>
+            </div>
+            <div class="teacher-modal-buttons">
+                <button class="btn-modal btn-modal-confirm" id="btn-modal-delete-confirm">削除する</button>
+                <button class="btn-modal btn-modal-cancel" onclick="closeTeacherDeleteModal()">キャンセル</button>
+            </div>
+        </div>
     </div>
 
     <!-- Toast Overlay -->
@@ -1876,12 +2112,13 @@
             // Load and apply Landscape optimized settings
             const savedLandscape = localStorage.getItem('setting_landscape_mode');
             const landscapeInput = document.getElementById('setting-landscape');
-            if (savedLandscape === 'true') {
-                if (landscapeInput) landscapeInput.checked = true;
-                document.body.classList.add('landscape-optimized');
-            } else {
+            // デフォルトは横画面（true）とするため、保存データが 'false' の場合のみOFFにする
+            if (savedLandscape === 'false') {
                 if (landscapeInput) landscapeInput.checked = false;
                 document.body.classList.remove('landscape-optimized');
+            } else {
+                if (landscapeInput) landscapeInput.checked = true;
+                document.body.classList.add('landscape-optimized');
             }
 
             const localNotes = localStorage.getItem('vocab_word_notes');
@@ -2136,12 +2373,27 @@
                 renderWeakWords();
             } else if (screenId === 'screen-bookmarks') {
                 renderBookmarks();
+            } else if (screenId === 'screen-teacher-portal') {
+                fetchTeacherData();
             }
             
             window.scrollTo(0, 0);
         }
 
         function exitToHome() {
+            // Reset teacher portal forms
+            const passInput = document.getElementById('teacher-password-input');
+            const errorEl = document.getElementById('teacher-login-error');
+            const gradeSearch = document.getElementById('search-grade');
+            const classSearch = document.getElementById('search-class');
+            const numberSearch = document.getElementById('search-number');
+            
+            if (passInput) passInput.value = '';
+            if (errorEl) errorEl.style.display = 'none';
+            if (gradeSearch) gradeSearch.value = '';
+            if (classSearch) classSearch.value = '';
+            if (numberSearch) numberSearch.value = '';
+
             showScreen('screen-setup');
         }
 
@@ -3602,6 +3854,321 @@
             saveBookmarks();
             showToast("ブックマーク解除", false);
             renderBookmarks();
+        }
+
+        // --- Teacher Portal Logic ---
+        // admin123 の SHA-256 ハッシュ値
+        const TEACHER_HASH = "240a8e3ee40b54f81f1d2f9592272d01416be247b0e1112ced504627d315c139";
+        let cachedTeacherData = [];
+        let recordToDelete = null;
+
+        // SHA-256 ハッシュ化関数
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function showTeacherPasswordScreen() {
+            showScreen('screen-teacher-password');
+            const passInput = document.getElementById('teacher-password-input');
+            if (passInput) {
+                passInput.value = '';
+                passInput.focus();
+            }
+            document.getElementById('teacher-login-error').style.display = 'none';
+        }
+
+        async function verifyTeacherPassword() {
+            const passInput = document.getElementById('teacher-password-input');
+            const errorEl = document.getElementById('teacher-login-error');
+            if (!passInput) return;
+
+            const password = passInput.value.trim();
+            if (!password) {
+                errorEl.innerText = "パスワードを入力してください。";
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const inputHash = await sha256(password);
+            if (inputHash === TEACHER_HASH) {
+                errorEl.style.display = 'none';
+                showScreen('screen-teacher-portal');
+            } else {
+                errorEl.innerText = "パスワードが正しくありません。";
+                errorEl.style.display = 'block';
+            }
+        }
+
+        // Enterキーでパスワード送信
+        document.getElementById('teacher-password-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                verifyTeacherPassword();
+            }
+        });
+
+        // GASから生徒取り組みデータを全件取得する
+        function fetchTeacherData() {
+            if (!GAS_WEBAPP_URL) {
+                showToast("GASのWebアプリURLが設定されていません。", true);
+                return;
+            }
+
+            const loader = document.getElementById('teacher-loader');
+            const container = document.getElementById('teacher-table-container');
+            const downloadBtn = document.getElementById('btn-csv-download');
+
+            if (loader) loader.style.display = 'block';
+            if (container) container.style.display = 'none';
+            if (downloadBtn) downloadBtn.disabled = true;
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'GET',
+                mode: 'cors'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                cachedTeacherData = data;
+                searchTeacherData();
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("データ取得に失敗しました。", true);
+                if (loader) loader.style.display = 'none';
+                const tbody = document.getElementById('teacher-table-body');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--error); padding: 24px;">データの読み込みに失敗しました。接続状況を確認してください。</td></tr>`;
+                }
+                if (container) container.style.display = 'block';
+            });
+        }
+
+        function parseStudentKey(key) {
+            if (!key) return { grade: 0, clazz: 0, number: 0 };
+            const match = key.match(/^(\d+)-(\d+)\.(\d+)$/);
+            if (match) {
+                return {
+                    grade: parseInt(match[1], 10),
+                    clazz: parseInt(match[2], 10),
+                    number: parseInt(match[3], 10)
+                };
+            }
+            return { grade: 99, clazz: 99, number: 99 };
+        }
+
+        function searchTeacherData() {
+            const loader = document.getElementById('teacher-loader');
+            const container = document.getElementById('teacher-table-container');
+            const tbody = document.getElementById('teacher-table-body');
+            const downloadBtn = document.getElementById('btn-csv-download');
+
+            if (loader) loader.style.display = 'none';
+            if (container) container.style.display = 'block';
+            if (!tbody) return;
+
+            const gradeVal = document.getElementById('search-grade').value.trim();
+            const classVal = document.getElementById('search-class').value.trim();
+            const numberVal = document.getElementById('search-number').value.trim();
+
+            const gradeInt = gradeVal ? parseInt(gradeVal, 10) : null;
+            const classInt = classVal ? parseInt(classVal, 10) : null;
+            const numberInt = numberVal ? parseInt(numberVal, 10) : null;
+
+            // フィルタリング処理
+            let filtered = cachedTeacherData.filter(item => {
+                const info = parseStudentKey(item.studentKey);
+                
+                if (gradeInt !== null && info.grade !== gradeInt) return false;
+                if (classInt !== null && info.clazz !== classInt) return false;
+                if (numberInt !== null && info.number !== numberInt) return false;
+                
+                return true;
+            });
+
+            // 出席番号順（学年・クラス・番号の昇順）にソート
+            filtered.sort((a, b) => {
+                const infoA = parseStudentKey(a.studentKey);
+                const infoB = parseStudentKey(b.studentKey);
+                if (infoA.grade !== infoB.grade) return infoA.grade - infoB.grade;
+                if (infoA.clazz !== infoB.clazz) return infoA.clazz - infoB.clazz;
+                return infoA.number - infoB.number;
+            });
+
+            // テーブル描画
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 24px;">該当する取り組みデータがありません。</td></tr>`;
+                if (downloadBtn) downloadBtn.disabled = true;
+                return;
+            }
+
+            if (downloadBtn) downloadBtn.disabled = false;
+
+            filtered.forEach(item => {
+                // 正解率の計算
+                const total = parseInt(item.totalQuestions, 10) || 0;
+                const correct = parseInt(item.correctCount, 10) || 0;
+                const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding: 12px;">${item.timestamp || ''}</td>
+                    <td style="padding: 12px; font-weight: 600;">${item.studentKey || ''}</td>
+                    <td style="padding: 12px;">${item.quizType || ''}</td>
+                    <td style="padding: 12px;">${item.rangeInfo || ''}</td>
+                    <td style="padding: 12px;">${correct} / ${total}</td>
+                    <td style="padding: 12px; font-weight: bold; color: ${rate >= 80 ? 'var(--success)' : rate >= 50 ? 'var(--secondary)' : 'var(--error)'}">${rate}%</td>
+                    <td style="padding: 12px; text-align: center;">
+                        <button class="btn-table-delete" onclick="confirmDeleteRecord('${item.timestamp}', '${item.studentKey}')">削除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // CSV出力処理
+        function downloadCSV() {
+            const gradeVal = document.getElementById('search-grade').value.trim();
+            const classVal = document.getElementById('search-class').value.trim();
+            const numberVal = document.getElementById('search-number').value.trim();
+
+            const gradeInt = gradeVal ? parseInt(gradeVal, 10) : null;
+            const classInt = classVal ? parseInt(classVal, 10) : null;
+            const numberInt = numberVal ? parseInt(numberVal, 10) : null;
+
+            // 現在の検索条件でフィルタリングしてCSVに変換
+            let filtered = cachedTeacherData.filter(item => {
+                const info = parseStudentKey(item.studentKey);
+                if (gradeInt !== null && info.grade !== gradeInt) return false;
+                if (classInt !== null && info.clazz !== classInt) return false;
+                if (numberInt !== null && info.number !== numberInt) return false;
+                return true;
+            });
+
+            // 出席番号順にソート
+            filtered.sort((a, b) => {
+                const infoA = parseStudentKey(a.studentKey);
+                const infoB = parseStudentKey(b.studentKey);
+                if (infoA.grade !== infoB.grade) return infoA.grade - infoB.grade;
+                if (infoA.clazz !== infoB.clazz) return infoA.clazz - infoB.clazz;
+                return infoA.number - infoB.number;
+            });
+
+            // CSV文字列作成
+            let csvContent = "\uFEFF"; // Excel用のBOM
+            csvContent += "日時,生徒キー(学年-組.番号),クイズ形式,出題範囲,正解数,問題数,正解率\r\n";
+
+            filtered.forEach(item => {
+                const total = parseInt(item.totalQuestions, 10) || 0;
+                const correct = parseInt(item.correctCount, 10) || 0;
+                const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+                const row = [
+                    `"${item.timestamp || ''}"`,
+                    `"${item.studentKey || ''}"`,
+                    `"${item.quizType || ''}"`,
+                    `"${item.rangeInfo || ''}"`,
+                    correct,
+                    total,
+                    `"${rate}%"`
+                ];
+                csvContent += row.join(",") + "\r\n";
+            });
+
+            // ダウンロード処理
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            // ファイル名の決定
+            let filename = "生徒取り組み結果_全データ.csv";
+            if (gradeVal || classVal || numberVal) {
+                const parts = [];
+                if (gradeVal) parts.push(`${gradeVal}年`);
+                if (classVal) parts.push(`${classVal}組`);
+                if (numberVal) parts.push(`${numberVal}番`);
+                filename = `生徒取り組み結果_${parts.join("")}.csv`;
+            }
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 削除確認モーダルの制御
+        function confirmDeleteRecord(timestamp, studentKey) {
+            recordToDelete = { timestamp, studentKey };
+            const modal = document.getElementById('teacher-delete-modal');
+            const confirmBtn = document.getElementById('btn-modal-delete-confirm');
+            
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+
+            // 新しくクリックリスナーを設定（古いものを置き換えるため一度クローンする）
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            newConfirmBtn.addEventListener('click', executeDeleteRecord);
+        }
+
+        function closeTeacherDeleteModal() {
+            const modal = document.getElementById('teacher-delete-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            recordToDelete = null;
+        }
+
+        // 削除の実行
+        function executeDeleteRecord() {
+            if (!recordToDelete || !GAS_WEBAPP_URL) {
+                closeTeacherDeleteModal();
+                return;
+            }
+
+            closeTeacherDeleteModal();
+
+            // 通信中のため、ローダーを一時的に表示
+            const loader = document.getElementById('teacher-loader');
+            const container = document.getElementById('teacher-table-container');
+            if (loader) loader.style.display = 'block';
+            if (container) container.style.display = 'none';
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: JSON.stringify({
+                    action: 'delete',
+                    timestamp: recordToDelete.timestamp,
+                    studentKey: recordToDelete.studentKey
+                })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    showToast("取り組みデータを削除しました。");
+                } else {
+                    throw new Error(res.message || "削除処理エラー");
+                }
+                // 再度データを読み込み直して表示を更新
+                fetchTeacherData();
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("データの削除に失敗しました。", true);
+                fetchTeacherData(); // エラーであっても読み直す
+            });
         }
 
         // --- Keyboard Support (1-4, Space, Enter) ---
