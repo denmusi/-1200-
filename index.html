@@ -3503,6 +3503,7 @@
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 mode: 'cors',
+                redirect: 'follow',
                 headers: {
                     'Content-Type': 'text/plain'
                 },
@@ -3536,6 +3537,7 @@
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 mode: 'cors',
+                redirect: 'follow',
                 headers: {
                     'Content-Type': 'text/plain'
                 },
@@ -4064,7 +4066,8 @@
 
             fetch(GAS_WEBAPP_URL, {
                 method: 'GET',
-                mode: 'cors'
+                mode: 'cors',
+                redirect: 'follow'
             })
             .then(res => res.json())
             .then(data => {
@@ -4372,6 +4375,7 @@
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 mode: 'cors',
+                redirect: 'follow',
                 headers: {
                     'Content-Type': 'text/plain'
                 },
