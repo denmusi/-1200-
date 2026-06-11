@@ -2326,11 +2326,16 @@
 
         <!-- SCREEN 8: Teacher Portal Screen -->
         <div id="screen-teacher-portal" class="screen">
-            <div class="list-header-bar">
-                <button class="btn-icon-circle" onclick="exitToHome()" title="ホームに戻る">
-                    <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                </button>
-                <h1>生徒取り組み確認</h1>
+            <div class="list-header-bar" style="justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button class="btn-icon-circle" onclick="exitToHome()" title="ホームに戻る">
+                        <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <h1>生徒取り組み確認</h1>
+                </div>
+                <a href="https://docs.google.com/spreadsheets/d/1ySVEcSNq4_3HXp9PkmLBVCeB3KDvWljqT0zQiaiBjl0/edit?usp=sharing" target="_blank" class="btn btn-secondary" style="margin: 0; padding: 8px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 20px;">
+                    📊 スプレッドシートを開く
+                </a>
             </div>
             <p class="subtitle" style="margin-bottom: 20px;">学年、クラス、出席番号で絞り込んで検索できます（空欄で全員表示）</p>
 
