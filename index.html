@@ -1340,6 +1340,83 @@
             cursor: pointer;
         }
 
+        @keyframes highlightJump {
+            0% { background: rgba(139, 92, 246, 0.35); border-color: var(--primary); }
+            100% { background: rgba(255, 255, 255, 0.01); border-color: transparent; }
+        }
+        .word-list-item.highlight-jump {
+            animation: highlightJump 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Suggest Box Styles */
+        .suggest-box {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 100%;
+            background: rgba(18, 18, 24, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            z-index: 200;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 6px;
+        }
+
+        [data-theme="light"] .suggest-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggest-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .suggest-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .suggest-item:hover, .suggest-item.active {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--primary);
+        }
+
+        .suggest-item .suggest-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-right: 10px;
+            font-weight: 500;
+        }
+
+        .suggest-item .suggest-word {
+            font-weight: 600;
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .suggest-item .suggest-trans {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: right;
+            max-width: 50%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .word-list-item:hover {
             background: rgba(255, 255, 255, 0.03);
             border-color: var(--border);
@@ -2270,9 +2347,11 @@
             </div>
 
             <!-- Search Area -->
-            <div class="list-search-container input-group">
+            <div class="list-search-container input-group" style="position: relative;">
                 <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="wordbook-search-input" placeholder="英単語、日本語、メモ、または単語番号(No.)で検索..." autocomplete="off" oninput="handleWordbookSearch()">
+                <input type="text" id="wordbook-search-input" placeholder="英単語、日本語、メモ、またはNo.を入力して検索・ジャンプ..." autocomplete="off" oninput="handleWordbookSearch(false)" onkeydown="handleWordbookSearchKeydown(event)">
+                <!-- Suggestion List Container -->
+                <div id="wordbook-suggest-box" class="suggest-box" style="display: none;"></div>
             </div>
 
             <!-- Word List Area with Lazy Loading -->
@@ -2902,8 +2981,35 @@
             const minId = Math.min(...ids);
             const maxId = Math.max(...ids);
 
-            document.getElementById('range-from').value = minId;
-            document.getElementById('range-to').value = maxId;
+            // localStorage から記憶された範囲を読み込む
+            const savedFrom = localStorage.getItem('vocab_range_from');
+            const savedTo = localStorage.getItem('vocab_range_to');
+
+            let fromValue = minId;
+            let toValue = maxId;
+
+            // 保存された値が存在し、かつ有効な範囲内にあるか検証
+            if (savedFrom) {
+                const parsedFrom = parseInt(savedFrom);
+                if (!isNaN(parsedFrom) && parsedFrom >= minId && parsedFrom <= maxId) {
+                    fromValue = parsedFrom;
+                }
+            }
+            if (savedTo) {
+                const parsedTo = parseInt(savedTo);
+                if (!isNaN(parsedTo) && parsedTo >= minId && parsedTo <= maxId) {
+                    toValue = parsedTo;
+                }
+            }
+
+            // 範囲の逆転を防ぐ簡易チェック
+            if (fromValue > toValue) {
+                fromValue = minId;
+                toValue = maxId;
+            }
+
+            document.getElementById('range-from').value = fromValue;
+            document.getElementById('range-to').value = toValue;
             document.getElementById('range-from').min = minId;
             document.getElementById('range-from').max = maxId;
             document.getElementById('range-to').min = minId;
@@ -3129,6 +3235,10 @@
                 showSetupError("正しい範囲の番号を入力してください。");
                 return;
             }
+
+            // 出題範囲の設定をローカルストレージに記憶
+            localStorage.setItem('vocab_range_from', from);
+            localStorage.setItem('vocab_range_to', to);
 
             let filtered = wordData.filter(w => w.id >= from && w.id <= to);
             if(filtered.length === 0) {
@@ -4024,34 +4134,190 @@
         // --- Wordbook Mode (Search & Lazy scroll) ---
         function initWordbook() {
             document.getElementById('wordbook-search-input').value = '';
+            const suggestBox = document.getElementById('wordbook-suggest-box');
+            if (suggestBox) suggestBox.style.display = 'none';
             wordbookFilteredList = [...wordData];
             wordbookDisplayCount = 50;
             renderWordbookList(false);
         }
 
-        function handleWordbookSearch() {
-            const query = document.getElementById('wordbook-search-input').value.toLowerCase().trim();
-            if (query === '') {
-                wordbookFilteredList = [...wordData];
-            } else {
-                // Strip "no." or "no " or "no" prefixes if any, to search pure numbers
-                const numQuery = query.replace(/^no\.?\s*/i, '');
-                const isNumeric = /^\d+$/.test(numQuery);
-                
-                wordbookFilteredList = wordData.filter(w => {
-                    const matchEn = w.en.toLowerCase().includes(query);
-                    const matchJa = w.ja.includes(query);
-                    const matchIdExact = String(w.id) === query || String(w.id) === numQuery;
-                    const matchIdPartial = isNumeric && String(w.id).includes(numQuery);
-                    
-                    const note = wordNotes[w.id] || '';
-                    const matchNote = note.toLowerCase().includes(query);
-                    
-                    return matchEn || matchJa || matchIdExact || matchIdPartial || matchNote;
-                });
+        let wordbookSearchTimeout = null;
+
+        let wordbookSearchTimeout = null;
+        let wordbookSuggestList = [];
+        let wordbookSuggestActiveIndex = -1;
+
+        function handleWordbookSearch(immediate = false) {
+            if (wordbookSearchTimeout) {
+                clearTimeout(wordbookSearchTimeout);
             }
-            wordbookDisplayCount = 50;
-            renderWordbookList(false);
+
+            // サジェストをリアルタイムに更新
+            updateWordbookSuggestions();
+
+            if (immediate) {
+                executeWordbookJump();
+            } else {
+                wordbookSearchTimeout = setTimeout(executeWordbookJump, 500);
+            }
+        }
+
+        function updateWordbookSuggestions() {
+            const suggestBox = document.getElementById('wordbook-suggest-box');
+            const query = document.getElementById('wordbook-search-input').value.toLowerCase().trim();
+
+            if (query === '') {
+                suggestBox.style.display = 'none';
+                wordbookSuggestList = [];
+                wordbookSuggestActiveIndex = -1;
+                return;
+            }
+
+            const numQuery = query.replace(/^no\.?\s*/i, '');
+            const isNumeric = /^\d+$/.test(numQuery);
+
+            // 最大6件のサジェストをフィルタリング
+            wordbookSuggestList = wordData.filter(w => {
+                const matchEn = w.en.toLowerCase().includes(query);
+                const matchJa = w.ja.includes(query);
+                const matchIdExact = String(w.id) === query || String(w.id) === numQuery;
+                const matchIdPartial = isNumeric && String(w.id).includes(numQuery);
+                const note = wordNotes[w.id] || '';
+                const matchNote = note.toLowerCase().includes(query);
+                return matchEn || matchJa || matchIdExact || matchIdPartial || matchNote;
+            }).slice(0, 6);
+
+            if (wordbookSuggestList.length === 0) {
+                suggestBox.style.display = 'none';
+                wordbookSuggestActiveIndex = -1;
+                return;
+            }
+
+            suggestBox.innerHTML = '';
+            wordbookSuggestList.forEach((w, idx) => {
+                const item = document.createElement('div');
+                item.className = 'suggest-item';
+                item.innerHTML = `
+                    <span class="suggest-meta">No. ${w.id}</span>
+                    <span class="suggest-word">${w.en}</span>
+                    <span class="suggest-trans">${w.ja}</span>
+                `;
+                item.onclick = (e) => {
+                    e.stopPropagation();
+                    selectWordbookSuggest(idx);
+                };
+                suggestBox.appendChild(item);
+            });
+
+            suggestBox.style.display = 'block';
+            wordbookSuggestActiveIndex = -1;
+        }
+
+        function selectWordbookSuggest(index) {
+            if (index < 0 || index >= wordbookSuggestList.length) return;
+            const selectedWord = wordbookSuggestList[index];
+            document.getElementById('wordbook-search-input').value = selectedWord.en;
+            document.getElementById('wordbook-suggest-box').style.display = 'none';
+            wordbookSuggestList = [];
+            wordbookSuggestActiveIndex = -1;
+            
+            executeWordbookJumpToWord(selectedWord);
+        }
+
+        function executeWordbookJumpToWord(word) {
+            const targetWordIndex = wordData.findIndex(w => w.id === word.id);
+            if (targetWordIndex === -1) return;
+
+            wordbookFilteredList = [...wordData];
+
+            if (targetWordIndex >= wordbookDisplayCount) {
+                wordbookDisplayCount = targetWordIndex + 20;
+                renderWordbookList(false);
+            }
+
+            setTimeout(() => {
+                const container = document.getElementById('wordbook-list-container');
+                const targetEl = container.querySelector(`.word-list-item[data-word-id="${word.id}"]`);
+                if (targetEl) {
+                    container.querySelectorAll('.word-list-item.highlight-jump').forEach(el => {
+                        el.classList.remove('highlight-jump');
+                    });
+                    
+                    targetEl.classList.add('highlight-jump');
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 50);
+        }
+
+        function executeWordbookJump() {
+            const query = document.getElementById('wordbook-search-input').value.toLowerCase().trim();
+            if (query === '') return;
+
+            const numQuery = query.replace(/^no\.?\s*/i, '');
+            const isNumeric = /^\d+$/.test(numQuery);
+
+            const targetWordIndex = wordData.findIndex(w => {
+                const matchEn = w.en.toLowerCase().includes(query);
+                const matchJa = w.ja.includes(query);
+                const matchIdExact = String(w.id) === query || String(w.id) === numQuery;
+                const matchIdPartial = isNumeric && String(w.id).includes(numQuery);
+                const note = wordNotes[w.id] || '';
+                const matchNote = note.toLowerCase().includes(query);
+                return matchEn || matchJa || matchIdExact || matchIdPartial || matchNote;
+            });
+
+            if (targetWordIndex === -1) return;
+
+            const targetWord = wordData[targetWordIndex];
+            executeWordbookJumpToWord(targetWord);
+            
+            // ジャンプした後はサジェストボックスを閉じる
+            document.getElementById('wordbook-suggest-box').style.display = 'none';
+        }
+
+        function handleWordbookSearchKeydown(event) {
+            const suggestBox = document.getElementById('wordbook-suggest-box');
+            if (suggestBox.style.display === 'none') {
+                if (event.key === 'Enter') {
+                    handleWordbookSearch(true);
+                    event.preventDefault();
+                }
+                return;
+            }
+
+            const items = suggestBox.querySelectorAll('.suggest-item');
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                wordbookSuggestActiveIndex = (wordbookSuggestActiveIndex + 1) % wordbookSuggestList.length;
+                updateSuggestActiveStyle(items);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                wordbookSuggestActiveIndex = (wordbookSuggestActiveIndex - 1 + wordbookSuggestList.length) % wordbookSuggestList.length;
+                updateSuggestActiveStyle(items);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                if (wordbookSuggestActiveIndex >= 0 && wordbookSuggestActiveIndex < wordbookSuggestList.length) {
+                    selectWordbookSuggest(wordbookSuggestActiveIndex);
+                } else {
+                    handleWordbookSearch(true);
+                }
+            } else if (event.key === 'Escape') {
+                suggestBox.style.display = 'none';
+                wordbookSuggestList = [];
+                wordbookSuggestActiveIndex = -1;
+            }
+        }
+
+        function updateSuggestActiveStyle(items) {
+            items.forEach((item, idx) => {
+                if (idx === wordbookSuggestActiveIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
         }
 
         function renderWordbookList(append = false) {
@@ -4976,6 +5242,17 @@
                 listEl.appendChild(itemDiv);
             });
         }
+
+        // 外部クリックで単語帳のサジェストボックスを閉じる
+        document.addEventListener('click', (e) => {
+            const searchInput = document.getElementById('wordbook-search-input');
+            const suggestBox = document.getElementById('wordbook-suggest-box');
+            if (suggestBox && searchInput && e.target !== searchInput && !suggestBox.contains(e.target)) {
+                suggestBox.style.display = 'none';
+                wordbookSuggestList = [];
+                wordbookSuggestActiveIndex = -1;
+            }
+        });
 
         // --- Keyboard Support (1-4, Space, Enter) ---
         window.addEventListener('keydown', (e) => {
