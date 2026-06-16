@@ -986,11 +986,15 @@
             font-weight: 700;
             letter-spacing: -0.5px;
             margin-bottom: 12px;
-            line-height: 1.2;
-            white-space: nowrap;
+            line-height: 1.25;
+            white-space: normal;
             overflow: hidden;
             text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             word-break: keep-all;
+            overflow-wrap: anywhere;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -2590,6 +2594,9 @@
             setupWelcomeScreen();
             updateSettingLabels();
             
+            // 画面リサイズ（回転等）時にフォントサイズを動的に追従させる
+            window.addEventListener('resize', adjustQuizWordFontSize);
+            
             // 適切な初期画面へ遷移（単語データが無い場合は読み込み画面へ、ある場合は必ず生徒情報確認画面から開始）
             if (wordData.length === 0) {
                 showScreen('screen-data-load');
@@ -3411,28 +3418,59 @@
             loadQuizQuestion();
         }
 
-        // 見出し語の文字数に応じた動的フォントサイズ調整 (2行以上の折り返し防止)
+        // 見出し語が枠に収まりきるようにフォントサイズを動的に縮小する (2行までのまたがりを許可)
         function adjustQuizWordFontSize() {
             const promptBox = document.getElementById('quiz-word-text');
-            if (!promptBox) return;
+            if (!promptBox || promptBox.clientWidth === 0) return;
 
-            const textLen = promptBox.innerText.length;
+            // アニメーション（transition）を一時的にオフにして、即座に正確なサイズ測定ができるようにする
+            const origTransition = promptBox.style.transition;
+            promptBox.style.transition = 'none';
+
+            // リセット：初期サイズを設定
             let baseSize = 4.2; // 通常時の rem
-
-            // 解答済みの状態（bodyに quiz-answered クラスがある場合）
             if (document.body.classList.contains('quiz-answered')) {
                 baseSize = 3.6;
             }
+            promptBox.style.fontSize = `${baseSize}rem`;
 
-            if (textLen <= 10) {
-                promptBox.style.fontSize = `${baseSize}rem`;
-            } else if (textLen <= 15) {
-                promptBox.style.fontSize = `${baseSize * 0.76}rem`;
-            } else if (textLen <= 20) {
-                promptBox.style.fontSize = `${baseSize * 0.62}rem`;
-            } else {
-                promptBox.style.fontSize = `${baseSize * 0.48}rem`;
+            // text-overflow を一時的に clip にして ellipsis が高さの測定を邪魔しないようにする
+            const origTextOverflow = promptBox.style.textOverflow;
+            promptBox.style.textOverflow = 'clip';
+
+            // ループで縮小（最小サイズは 1.5rem とし、無限ループ防止のため最大50回で制限）
+            let currentSizeRem = baseSize;
+            const minSizeRem = 1.5;
+            let iterations = 0;
+
+            // 2行の限界高さを超えているかを判定するヘルパー関数
+            // 2行の高さ = font-size (px) * line-height (1.25) * 2
+            function isOverTwoLines() {
+                const style = window.getComputedStyle(promptBox);
+                const fontSizePx = parseFloat(style.fontSize);
+                let lhPx = parseFloat(style.lineHeight);
+                if (isNaN(lhPx)) {
+                    lhPx = fontSizePx * 1.25; // CSSの line-height: 1.25 と同期
+                }
+                const maxTwoLineHeight = lhPx * 2.05; // 2行分（わずかな端数誤差を考慮）
+                
+                // 実際のスクロール高さが2行分の高さを超えている場合は3行目に入っている
+                return promptBox.scrollHeight > maxTwoLineHeight;
             }
+
+            // 2行の限界高さを超えている間、フォントサイズを 0.1rem 刻みで下げる
+            while (isOverTwoLines() && currentSizeRem > minSizeRem && iterations < 50) {
+                currentSizeRem -= 0.1;
+                promptBox.style.fontSize = `${currentSizeRem}rem`;
+                iterations++;
+            }
+
+            // 元の状態に戻す
+            promptBox.style.textOverflow = origTextOverflow;
+            
+            // レイアウトを強制的にフラッシュさせてから transition を戻す（即時適用のバグ防止）
+            promptBox.offsetHeight; 
+            promptBox.style.transition = origTransition;
         }
 
         function loadQuizQuestion() {
