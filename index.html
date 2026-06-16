@@ -987,7 +987,10 @@
             letter-spacing: -0.5px;
             margin-bottom: 12px;
             line-height: 1.2;
-            word-break: break-word;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-break: keep-all;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -1006,6 +1009,7 @@
         }
 
         .choice-btn {
+            position: relative;
             min-height: 80px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
@@ -1020,6 +1024,21 @@
             display: flex;
             align-items: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .choice-btn.answered-state {
+            padding-bottom: 32px;
+        }
+
+        .choice-translation {
+            position: absolute;
+            bottom: 4px;
+            right: 20px;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            opacity: 0.8;
+            pointer-events: none;
         }
 
         .choice-btn:hover:not(:disabled) {
@@ -3253,6 +3272,30 @@
             loadQuizQuestion();
         }
 
+        // 見出し語の文字数に応じた動的フォントサイズ調整 (2行以上の折り返し防止)
+        function adjustQuizWordFontSize() {
+            const promptBox = document.getElementById('quiz-word-text');
+            if (!promptBox) return;
+
+            const textLen = promptBox.innerText.length;
+            let baseSize = 4.2; // 通常時の rem
+
+            // 解答済みの状態（bodyに quiz-answered クラスがある場合）
+            if (document.body.classList.contains('quiz-answered')) {
+                baseSize = 3.6;
+            }
+
+            if (textLen <= 10) {
+                promptBox.style.fontSize = `${baseSize}rem`;
+            } else if (textLen <= 15) {
+                promptBox.style.fontSize = `${baseSize * 0.76}rem`;
+            } else if (textLen <= 20) {
+                promptBox.style.fontSize = `${baseSize * 0.62}rem`;
+            } else {
+                promptBox.style.fontSize = `${baseSize * 0.48}rem`;
+            }
+        }
+
         function loadQuizQuestion() {
             if (activeQuizType === 'ja-en-spelling') {
                 document.body.classList.add('spelling-mode');
@@ -3398,6 +3441,9 @@
 
             document.getElementById('quiz-feedback-box').className = 'answer-feedback';
 
+            // 動的フォントサイズ調整を適用
+            adjustQuizWordFontSize();
+
             // Start countdown timer
             startCountdownTimer();
         }
@@ -3505,6 +3551,7 @@
             currentQuestionState.answered = true;
             currentQuestionState.allowNextAt = Date.now() + 500; // 500ms cooldown to prevent accidental skips
             document.body.classList.add('quiz-answered');
+            adjustQuizWordFontSize(); // 解答後の縮小表示に合わせ再調整
 
             // Stop timer instantly
             clearInterval(timerInterval);
@@ -3537,7 +3584,25 @@
             const buttons = document.querySelectorAll('#quiz-choices-container .choice-btn');
             buttons.forEach((btn, idx) => {
                 btn.disabled = true;
+                btn.classList.add('answered-state');
                 const btnText = currentQuestionState.choices[idx];
+                
+                // 対訳の検索と追加 (日本語→英語なら日本語、英語→日本語なら英語)
+                let translation = "";
+                if (activeQuizType === 'ja-en') {
+                    const found = wordData.find(w => w.en.trim() === btnText.trim());
+                    if (found) translation = found.ja;
+                } else if (activeQuizType === 'en-ja') {
+                    const found = wordData.find(w => w.ja.trim() === btnText.trim());
+                    if (found) translation = found.en;
+                }
+
+                if (translation) {
+                    const transSpan = document.createElement('span');
+                    transSpan.className = 'choice-translation';
+                    transSpan.innerText = translation;
+                    btn.appendChild(transSpan);
+                }
                 
                 if (btnText === correctText) {
                     btn.classList.add('correct');
@@ -3616,6 +3681,7 @@
             currentQuestionState.answered = true;
             currentQuestionState.allowNextAt = Date.now() + 500; // 500ms cooldown to prevent accidental skips
             document.body.classList.add('quiz-answered');
+            adjustQuizWordFontSize(); // 解答後の縮小表示に合わせ再調整
             spellingInputField.disabled = true;
             document.getElementById('spelling-input-container').style.display = 'none';
             
