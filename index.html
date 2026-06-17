@@ -4220,10 +4220,9 @@
             // サジェストをリアルタイムに更新
             updateWordbookSuggestions();
 
+            // 入力中の自動ジャンプは廃止し、確定時（immediate === true）のみ即座にジャンプを実行する
             if (immediate) {
                 executeWordbookJump();
-            } else {
-                wordbookSearchTimeout = setTimeout(executeWordbookJump, 500);
             }
         }
 
