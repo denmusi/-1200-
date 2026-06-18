@@ -28,6 +28,18 @@
             --glow: rgba(99, 102, 241, 0.15);
             --accent-yellow: #fbbf24;
             --timer-color: #f43f5e;
+
+            /* Rank Colors (Dark Mode) */
+            --rank-s-color: #fbbf24;
+            --rank-s-bg: rgba(251, 191, 36, 0.15);
+            --rank-a-color: #34d399;
+            --rank-a-bg: rgba(52, 211, 153, 0.15);
+            --rank-b-color: #60a5fa;
+            --rank-b-bg: rgba(96, 165, 250, 0.15);
+            --rank-c-color: #fb923c;
+            --rank-c-bg: rgba(251, 146, 60, 0.15);
+            --rank-d-color: #f87171;
+            --rank-d-bg: rgba(248, 113, 113, 0.15);
         }
 
         @keyframes spin {
@@ -46,6 +58,18 @@
             --glow: rgba(99, 102, 241, 0.03);
             --success-bg: rgba(16, 185, 129, 0.1);
             --error-bg: rgba(239, 68, 68, 0.1);
+
+            /* Rank Colors (Light Mode) */
+            --rank-s-color: #b45309;
+            --rank-s-bg: rgba(251, 191, 36, 0.15);
+            --rank-a-color: #047857;
+            --rank-a-bg: rgba(16, 185, 129, 0.12);
+            --rank-b-color: #1d4ed8;
+            --rank-b-bg: rgba(59, 130, 246, 0.12);
+            --rank-c-color: #c2410c;
+            --rank-c-bg: rgba(249, 115, 22, 0.12);
+            --rank-d-color: #b91c1c;
+            --rank-d-bg: rgba(239, 68, 68, 0.12);
         }
         
         [data-theme="light"] body {
@@ -670,11 +694,17 @@
             box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
         }
 
-                /* Spelling Form Styles */
+        /* Spelling Form Styles */
         .spelling-form {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            width: 100%;
+        }
+        .spelling-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
             width: 100%;
         }
         .spelling-input {
@@ -682,10 +712,10 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 16px 20px;
-            font-size: 1.4rem;
+            padding: 18px 60px 18px 24px;
+            font-size: 1.6rem;
             color: var(--text-main);
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .spelling-input:focus {
@@ -694,6 +724,48 @@
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
             background: rgba(255, 255, 255, 0.08);
         }
+        .btn-backspace {
+            position: absolute;
+            right: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 2;
+        }
+        .btn-backspace:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .btn-backspace:active:not(:disabled) {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .btn-backspace:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        [data-theme="light"] .btn-backspace {
+            background: rgba(0, 0, 0, 0.06);
+            color: #0f172a;
+        }
+        [data-theme="light"] .btn-backspace:hover:not(:disabled) {
+            background: rgba(0, 0, 0, 0.12);
+        }
+        [data-theme="light"] .btn-backspace:active:not(:disabled) {
+            background: rgba(0, 0, 0, 0.18);
+        }
+
         .btn-spelling-submit {
             width: 100%;
             min-height: 58px;
@@ -708,8 +780,14 @@
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         body.landscape-optimized .spelling-input {
-            font-size: 1.6rem;
-            padding: 18px 24px;
+            font-size: 1.8rem;
+            padding: 20px 64px 20px 28px;
+        }
+        body.landscape-optimized .btn-backspace {
+            right: 14px;
+            width: 48px;
+            height: 48px;
+            font-size: 1.45rem;
         }
         body.landscape-optimized .btn-spelling-submit {
             min-height: 64px;
@@ -721,8 +799,14 @@
             margin-bottom: 12px;
         }
         body.quiz-answered.landscape-optimized .spelling-input {
-            font-size: 1.35rem;
-            padding: 12px 18px;
+            font-size: 1.45rem;
+            padding: 14px 54px 14px 20px;
+        }
+        body.quiz-answered.landscape-optimized .btn-backspace {
+            right: 10px;
+            width: 36px;
+            height: 36px;
+            font-size: 1.15rem;
         }
         body.quiz-answered.landscape-optimized .btn-spelling-submit {
             min-height: 50px;
@@ -2026,6 +2110,80 @@
         .scroll-top-btn:active {
             transform: translateY(0);
         }
+
+        /* Rank & Rate Badges styling */
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid transparent;
+        }
+        
+        .rank-badge.rank-s {
+            color: var(--rank-s-color);
+            background-color: var(--rank-s-bg);
+            border-color: rgba(251, 191, 36, 0.25);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.1);
+        }
+        
+        .rank-badge.rank-a {
+            color: var(--rank-a-color);
+            background-color: var(--rank-a-bg);
+            border-color: rgba(52, 211, 153, 0.25);
+        }
+        
+        .rank-badge.rank-b {
+            color: var(--rank-b-color);
+            background-color: var(--rank-b-bg);
+            border-color: rgba(96, 165, 250, 0.25);
+        }
+        
+        .rank-badge.rank-c {
+            color: var(--rank-c-color);
+            background-color: var(--rank-c-bg);
+            border-color: rgba(251, 146, 60, 0.25);
+        }
+        
+        .rank-badge.rank-d {
+            color: var(--rank-d-color);
+            background-color: var(--rank-d-bg);
+            border-color: rgba(248, 113, 113, 0.25);
+        }
+
+        /* Rate badge in teacher view history table */
+        .rate-badge {
+            display: inline-block;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.85rem;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+        .rate-badge.rate-high {
+            color: var(--rank-a-color);
+            background-color: var(--rank-a-bg);
+            border-color: rgba(52, 211, 153, 0.25);
+        }
+
+        .rate-badge.rate-mid {
+            color: var(--rank-b-color);
+            background-color: var(--rank-b-bg);
+            border-color: rgba(96, 165, 250, 0.25);
+        }
+
+        .rate-badge.rate-low {
+            color: var(--rank-d-color);
+            background-color: var(--rank-d-bg);
+            border-color: rgba(248, 113, 113, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -2306,7 +2464,10 @@
             <!-- Spelling Input Field -->
             <div id="spelling-input-container" style="display: none; margin-bottom: 20px;">
                 <form class="spelling-form" onsubmit="event.preventDefault(); event.stopPropagation(); submitSpellingAnswer();">
-                    <input type="text" id="spelling-input-field" class="spelling-input" placeholder="英単語を入力" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleSpellingKeydown(event)">
+                    <div class="spelling-input-wrapper">
+                        <input type="text" id="spelling-input-field" class="spelling-input" placeholder="英単語を入力" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleSpellingKeydown(event)">
+                        <button type="button" id="btn-spelling-backspace" class="btn-backspace" onclick="handleSpellingBackspace()" title="一文字消去">⌫</button>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-spelling-submit">回答する</button>
                 </form>
             </div>
@@ -3630,6 +3791,8 @@
                 // Reset text field
                 spellingInputField.value = '';
                 spellingInputField.disabled = false;
+                const backspaceBtn = document.getElementById('btn-spelling-backspace');
+                if (backspaceBtn) backspaceBtn.disabled = false;
                 spellingInputField.style.borderColor = '';
                 spellingInputField.style.boxShadow = '';
                 spellingInputField.classList.remove('correct', 'incorrect');
@@ -3908,6 +4071,13 @@
             }
         }
 
+        function handleSpellingBackspace() {
+            const input = document.getElementById('spelling-input-field');
+            if (!input || input.disabled) return;
+            input.value = input.value.slice(0, -1);
+            input.focus();
+        }
+
         function handleSpellingKeydown(event) {
             const key = event.key || event.code;
             const keyCode = event.keyCode || event.which;
@@ -3935,6 +4105,8 @@
             document.body.classList.add('quiz-answered');
             adjustQuizWordFontSize(); // 解答後の縮小表示に合わせ再調整
             spellingInputField.disabled = true;
+            const backspaceBtn = document.getElementById('btn-spelling-backspace');
+            if (backspaceBtn) backspaceBtn.disabled = true;
             document.getElementById('spelling-input-container').style.display = 'none';
             
             // Stop timer instantly
@@ -4041,19 +4213,14 @@
             
             // Determine evaluation rank
             let rank = 'D';
-            let rankColor = '#f87171'; // D: light red
             if (pointPct === 100) {
                 rank = 'S';
-                rankColor = '#fbbf24'; // S: Gold
             } else if (pointPct >= 80) {
                 rank = 'A';
-                rankColor = '#34d399'; // A: Emerald
             } else if (pointPct >= 60) {
                 rank = 'B';
-                rankColor = '#60a5fa'; // B: Blue
             } else if (pointPct >= 40) {
                 rank = 'C';
-                rankColor = '#fb923c'; // C: Orange
             }
             
             document.getElementById('result-score').innerText = `${pct}%`;
@@ -4062,7 +4229,9 @@
             
             const rankEl = document.getElementById('result-rank');
             rankEl.innerText = rank;
-            rankEl.style.color = rankColor;
+            rankEl.className = 'stat-val rank-badge';
+            rankEl.classList.add(`rank-${rank.toLowerCase()}`);
+            rankEl.style.color = '';
             
             const rangeInfo = document.getElementById('result-range-info');
             if (sourceListType === 'range') {
