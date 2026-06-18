@@ -1991,6 +1991,41 @@
             display: flex;
             justify-content: flex-end;
         }
+
+        /* Page Top Scroll Button */
+        .scroll-top-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            display: none; /* JSで動的に表示 */
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .scroll-top-btn.visible {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .scroll-top-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+            background: var(--primary-hover);
+        }
+        .scroll-top-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -2482,6 +2517,13 @@
             </div>
 
             <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
+
+            <!-- Page Top Scroll Button -->
+            <button id="btn-teacher-scroll-top" class="scroll-top-btn" onclick="scrollToTeacherPortalTop()" title="ページ最上部へ">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+            </button>
         </div>
 
     </div>
@@ -2596,6 +2638,21 @@
             
             // 画面リサイズ（回転等）時にフォントサイズを動的に追従させる
             window.addEventListener('resize', adjustQuizWordFontSize);
+
+            // 先生ポータルのスクロール監視
+            window.addEventListener('scroll', () => {
+                const scrollTopBtn = document.getElementById('btn-teacher-scroll-top');
+                if (!scrollTopBtn) return;
+
+                const portalScreen = document.getElementById('screen-teacher-portal');
+                const isPortalActive = portalScreen && portalScreen.classList.contains('active');
+
+                if (isPortalActive && window.scrollY > 300) {
+                    scrollTopBtn.classList.add('visible');
+                } else {
+                    scrollTopBtn.classList.remove('visible');
+                }
+            });
             
             // 適切な初期画面へ遷移（単語データが無い場合は読み込み画面へ、ある場合は必ず生徒情報確認画面から開始）
             if (wordData.length === 0) {
@@ -2604,6 +2661,13 @@
                 showScreen('screen-student-login');
             }
         });
+
+        function scrollToTeacherPortalTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
 
         // --- Load & Save Data ---
         function loadPersistedData() {
@@ -2952,6 +3016,11 @@
             if (gradeSearch) gradeSearch.value = '';
             if (classSearch) classSearch.value = '';
             if (numberSearch) numberSearch.value = '';
+
+            // スクロールトップボタンを非表示にし、最上部へスクロール
+            const scrollTopBtn = document.getElementById('btn-teacher-scroll-top');
+            if (scrollTopBtn) scrollTopBtn.classList.remove('visible');
+            window.scrollTo(0, 0);
 
             showScreen('screen-setup');
         }
@@ -4240,7 +4309,7 @@
             const numQuery = query.replace(/^no\.?\s*/i, '');
             const isNumeric = /^\d+$/.test(numQuery);
 
-            // 最大6件のサジェストをフィルタリング
+            // 最大30件のサジェストをフィルタリング
             wordbookSuggestList = wordData.filter(w => {
                 const matchEn = w.en.toLowerCase().includes(query);
                 const matchJa = w.ja.includes(query);
@@ -4249,7 +4318,7 @@
                 const note = wordNotes[w.id] || '';
                 const matchNote = note.toLowerCase().includes(query);
                 return matchEn || matchJa || matchIdExact || matchIdPartial || matchNote;
-            }).slice(0, 6);
+            }).slice(0, 30);
 
             if (wordbookSuggestList.length === 0) {
                 suggestBox.style.display = 'none';
@@ -4908,6 +4977,33 @@
             return key;
         }
 
+        function updateAccordionToggleButtonState() {
+            const toggleBtn = document.getElementById('btn-accordion-toggle');
+            if (!toggleBtn) return;
+
+            const items = document.querySelectorAll('.accordion-item');
+            if (items.length === 0) {
+                toggleBtn.disabled = true;
+                toggleBtn.innerHTML = "🔓 全て展開";
+                return;
+            }
+
+            let hasAnyExpanded = false;
+            items.forEach(item => {
+                if (item.classList.contains('active')) {
+                    hasAnyExpanded = true;
+                }
+            });
+
+            if (hasAnyExpanded) {
+                allAccordionsExpanded = true;
+                toggleBtn.innerHTML = "🔒 全て閉じる";
+            } else {
+                allAccordionsExpanded = false;
+                toggleBtn.innerHTML = "🔓 全て展開";
+            }
+        }
+
         function toggleAccordion(header) {
             const item = header.parentElement;
             const content = item.querySelector('.accordion-content');
@@ -4920,6 +5016,8 @@
                 item.classList.add('active');
                 if (content) content.style.display = 'block';
             }
+
+            updateAccordionToggleButtonState();
         }
 
         function searchTeacherData() {
@@ -5000,8 +5098,6 @@
 
             if (toggleBtn) {
                 toggleBtn.disabled = false;
-                allAccordionsExpanded = false;
-                toggleBtn.innerHTML = "🔓 全て展開";
             }
 
             studentList.forEach(student => {
@@ -5058,19 +5154,21 @@
                 itemDiv.appendChild(contentDiv);
                 accordionList.appendChild(itemDiv);
             });
+
+            // 初期表示状態（全て閉じている状態）に合わせてボタン状態を更新
+            updateAccordionToggleButtonState();
         }
 
         // アコーディオンの全展開/全折りたたみ処理
         function toggleAllAccordions() {
             const items = document.querySelectorAll('.accordion-item');
-            const toggleBtn = document.getElementById('btn-accordion-toggle');
             if (items.length === 0) return;
 
-            allAccordionsExpanded = !allAccordionsExpanded;
+            const isCollapse = allAccordionsExpanded;
 
             items.forEach(item => {
                 const content = item.querySelector('.accordion-content');
-                if (allAccordionsExpanded) {
+                if (!isCollapse) {
                     item.classList.add('active');
                     if (content) content.style.display = 'block';
                 } else {
@@ -5079,9 +5177,7 @@
                 }
             });
 
-            if (toggleBtn) {
-                toggleBtn.innerHTML = allAccordionsExpanded ? "🔒 全て閉じる" : "🔓 全て展開";
-            }
+            updateAccordionToggleButtonState();
         }
 
         // (削除モーダル制御関数は撤去されました)
