@@ -18,7 +18,7 @@
             --card-bg: rgba(22, 28, 45, 0.65);
             --card-hover: rgba(30, 41, 59, 0.8);
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --text-muted: #cbd5e1;
             --success: #10b981;
             --success-bg: rgba(16, 185, 129, 0.15);
             --error: #ef4444;
@@ -1125,7 +1125,7 @@
             font-size: 1.2rem;
             color: var(--text-muted);
             font-weight: 400;
-            opacity: 0.8;
+            opacity: 1;
             pointer-events: none;
         }
 
@@ -2650,6 +2650,15 @@
                 <div class="input-group" style="flex: 1; margin-bottom: 0;">
                     <label for="search-number">出席番号</label>
                     <input type="number" id="search-number" min="1" max="999" placeholder="例: 5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+            </div>
+
+            <!-- Sort Selector -->
+            <div class="sort-selector-container" style="margin-top: 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: flex-start; gap: 10px; background: rgba(255, 255, 255, 0.02); padding: 8px 14px; border-radius: 12px; border: 1px solid var(--border);">
+                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">並び順:</span>
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" id="btn-sort-number" class="btn btn-primary active" onclick="setTeacherSortOrder('number')" style="padding: 6px 14px; font-size: 0.85rem; min-height: auto; width: auto; margin: 0; border-radius: 8px;">👤 出席番号順</button>
+                    <button type="button" id="btn-sort-newest" class="btn btn-secondary" onclick="setTeacherSortOrder('newest')" style="padding: 6px 14px; font-size: 0.85rem; min-height: auto; width: auto; margin: 0; border-radius: 8px;">📅 新着順</button>
                 </div>
             </div>
 
@@ -4928,6 +4937,53 @@
         const TEACHER_HASH = "8bb0cf6eb9b17d0f7d22b456f121257dc1254e1f01665370476383ea776df414";
         let cachedTeacherData = [];
         let allAccordionsExpanded = false;
+        let teacherSortOrder = 'number'; // 'number' or 'newest'
+
+        function setTeacherSortOrder(order) {
+            if (teacherSortOrder === order) return;
+            teacherSortOrder = order;
+
+            const btnNumber = document.getElementById('btn-sort-number');
+            const btnNewest = document.getElementById('btn-sort-newest');
+
+            if (btnNumber && btnNewest) {
+                if (order === 'number') {
+                    btnNumber.className = 'btn btn-primary active';
+                    btnNumber.style.padding = '6px 14px';
+                    btnNumber.style.fontSize = '0.85rem';
+                    btnNumber.style.minHeight = 'auto';
+                    btnNumber.style.width = 'auto';
+                    btnNumber.style.margin = '0';
+                    btnNumber.style.borderRadius = '8px';
+
+                    btnNewest.className = 'btn btn-secondary';
+                    btnNewest.style.padding = '6px 14px';
+                    btnNewest.style.fontSize = '0.85rem';
+                    btnNewest.style.minHeight = 'auto';
+                    btnNewest.style.width = 'auto';
+                    btnNewest.style.margin = '0';
+                    btnNewest.style.borderRadius = '8px';
+                } else {
+                    btnNewest.className = 'btn btn-primary active';
+                    btnNewest.style.padding = '6px 14px';
+                    btnNewest.style.fontSize = '0.85rem';
+                    btnNewest.style.minHeight = 'auto';
+                    btnNewest.style.width = 'auto';
+                    btnNewest.style.margin = '0';
+                    btnNewest.style.borderRadius = '8px';
+
+                    btnNumber.className = 'btn btn-secondary';
+                    btnNumber.style.padding = '6px 14px';
+                    btnNumber.style.fontSize = '0.85rem';
+                    btnNumber.style.minHeight = 'auto';
+                    btnNumber.style.width = 'auto';
+                    btnNumber.style.margin = '0';
+                    btnNumber.style.borderRadius = '8px';
+                }
+            }
+
+            searchTeacherData();
+        }
 
         // SHA-256 ハッシュ化関数 (標準的なピュアJavaScript実装 - HTTPSでない環境やfile:///環境でも確実に動作します)
         function sha256(ascii) {
@@ -5244,21 +5300,31 @@
             // 配列化
             let studentList = Object.values(studentMap);
 
-            // 出席番号順（学年・クラス・番号の昇順）にソート
-            studentList.sort((a, b) => {
-                const infoA = parseStudentKey(a.key);
-                const infoB = parseStudentKey(b.key);
-                if (infoA.grade !== infoB.grade) return infoA.grade - infoB.grade;
-                if (infoA.clazz !== infoB.clazz) return infoA.clazz - infoB.clazz;
-                return infoA.number - infoB.number;
-            });
-
-            // 各生徒内の履歴を最新（日付の降順）にソート
+            // 先に各生徒内の履歴を最新（日付の降順）にソート
             studentList.forEach(student => {
                 student.history.sort((a, b) => {
                     return new Date(b.timestamp) - new Date(a.timestamp);
                 });
             });
+
+            // 表示順（出席番号順 または 新着順）に全体をソート
+            if (teacherSortOrder === 'number') {
+                // 出席番号順（学年・クラス・番号の昇順）
+                studentList.sort((a, b) => {
+                    const infoA = parseStudentKey(a.key);
+                    const infoB = parseStudentKey(b.key);
+                    if (infoA.grade !== infoB.grade) return infoA.grade - infoB.grade;
+                    if (infoA.clazz !== infoB.clazz) return infoA.clazz - infoB.clazz;
+                    return infoA.number - infoB.number;
+                });
+            } else {
+                // 新着順（最も新しい取り組み日時の降順）
+                studentList.sort((a, b) => {
+                    const dateA = a.history.length > 0 && a.history[0].timestamp ? new Date(a.history[0].timestamp) : new Date(0);
+                    const dateB = b.history.length > 0 && b.history[0].timestamp ? new Date(b.history[0].timestamp) : new Date(0);
+                    return dateB - dateA; // 新しい順 (降順)
+                });
+            }
 
             // 描画
             accordionList.innerHTML = '';
