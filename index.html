@@ -2581,18 +2581,23 @@
                 <div id="wordbook-suggest-box" class="suggest-box" style="display: none;"></div>
             </div>
 
-            <!-- SeekBar Container -->
-            <div class="seekbar-container" id="wordbook-seekbar-container" style="padding: 0 16px 12px 16px; display: flex; flex-direction: column; gap: 6px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
-                    <span id="wordbook-seekbar-label-id">No. ---</span>
-                    <span id="wordbook-seekbar-label-progress">0 / 0</span>
-                </div>
-                <input type="range" id="wordbook-seekbar" min="1" max="100" value="1" style="width: 100%; accent-color: #818cf8; cursor: pointer; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);" oninput="handleWordbookSeek(this.value)">
+            <!-- Progress Label Area -->
+            <div id="wordbook-progress-panel" style="padding: 0 16px 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                <span id="wordbook-seekbar-label-id">No. ---</span>
+                <span id="wordbook-seekbar-label-progress">0 / 0</span>
             </div>
 
-            <!-- Word List Area with Lazy Loading -->
-            <div class="list-scroll-area" id="wordbook-list-container" onscroll="handleWordbookScroll()">
-                <!-- Word list items -->
+            <!-- Flex container for Word List and Vertical Seekbar -->
+            <div style="display: flex; gap: 8px; align-items: stretch; flex: 1; min-height: 0; margin-bottom: 16px; position: relative;">
+                <!-- Word List Area with Lazy Loading -->
+                <div class="list-scroll-area" id="wordbook-list-container" onscroll="handleWordbookScroll()" style="flex: 1; margin-bottom: 0;">
+                    <!-- Word list items -->
+                </div>
+                
+                <!-- Vertical SeekBar Container -->
+                <div id="wordbook-seekbar-container" style="display: flex; align-items: center; justify-content: center; width: 28px; position: relative; padding: 0;">
+                    <input type="range" id="wordbook-seekbar" min="1" max="100" value="1" style="position: absolute; width: 100px; height: 6px; transform: rotate(90deg); transform-origin: center; accent-color: #818cf8; cursor: pointer; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);" oninput="handleWordbookSeek(this.value)">
+                </div>
             </div>
 
             <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
@@ -4479,12 +4484,23 @@
             
             const labelId = document.getElementById('wordbook-seekbar-label-id');
             const labelProgress = document.getElementById('wordbook-seekbar-label-progress');
+            const container = document.getElementById('wordbook-list-container');
+            const seekbarContainer = document.getElementById('wordbook-seekbar-container');
+            const progressPanel = document.getElementById('wordbook-progress-panel');
             
             if (wordbookFilteredList.length === 0) {
-                document.getElementById('wordbook-seekbar-container').style.display = 'none';
+                if (seekbarContainer) seekbarContainer.style.visibility = 'hidden';
+                if (progressPanel) progressPanel.style.display = 'none';
                 return;
             }
-            document.getElementById('wordbook-seekbar-container').style.display = 'flex';
+            if (seekbarContainer) seekbarContainer.style.visibility = 'visible';
+            if (progressPanel) progressPanel.style.display = 'flex';
+            
+            // Adjust slider visual length (width because of rotate) to match list container height
+            if (container) {
+                const height = container.clientHeight;
+                seekbar.style.width = `${Math.max(100, height - 32)}px`;
+            }
             
             // Sync with first word initially
             const currentWord = wordbookFilteredList[0];
@@ -5782,6 +5798,13 @@
                 if (buttons && buttons[index] && !buttons[index].disabled) {
                     selectChoice(index);
                 }
+            }
+        });
+        // Resize observer to sync vertical seekbar size on window resize
+        window.addEventListener('resize', () => {
+            const wordbookScreen = document.getElementById('screen-wordbook');
+            if (wordbookScreen && wordbookScreen.classList.contains('active')) {
+                syncWordbookSeekBar();
             }
         });
     </script>
