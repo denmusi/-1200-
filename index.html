@@ -2189,6 +2189,28 @@
             background-color: var(--rank-d-bg);
             border-color: rgba(248, 113, 113, 0.25);
         }
+
+        /* Customize wordbook seekbar range input */
+        #wordbook-seekbar {
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--border) !important;
+            transition: opacity .2s;
+        }
+        #wordbook-seekbar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(129, 140, 248, 0.5);
+            transition: transform 0.1s ease;
+        }
+        #wordbook-seekbar::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -2557,6 +2579,15 @@
                 <input type="text" id="wordbook-search-input" placeholder="英単語、日本語、メモ、またはNo.を入力して検索・ジャンプ..." autocomplete="off" oninput="handleWordbookSearch(false)" onkeydown="handleWordbookSearchKeydown(event)">
                 <!-- Suggestion List Container -->
                 <div id="wordbook-suggest-box" class="suggest-box" style="display: none;"></div>
+            </div>
+
+            <!-- SeekBar Container -->
+            <div class="seekbar-container" id="wordbook-seekbar-container" style="padding: 0 16px 12px 16px; display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                    <span id="wordbook-seekbar-label-id">No. ---</span>
+                    <span id="wordbook-seekbar-label-progress">0 / 0</span>
+                </div>
+                <input type="range" id="wordbook-seekbar" min="1" max="100" value="1" style="width: 100%; accent-color: #818cf8; cursor: pointer; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);" oninput="handleWordbookSeek(this.value)">
             </div>
 
             <!-- Word List Area with Lazy Loading -->
@@ -4437,6 +4468,67 @@
             }
         }
 
+        // --- Wordbook SeekBar Control (Global Variables & Functions) ---
+        let isWordbookSeeking = false;
+        let wordbookSeekTimeout = null;
+
+        function syncWordbookSeekBar() {
+            const seekbar = document.getElementById('wordbook-seekbar');
+            if (!seekbar) return;
+            seekbar.max = wordbookFilteredList.length;
+            
+            const labelId = document.getElementById('wordbook-seekbar-label-id');
+            const labelProgress = document.getElementById('wordbook-seekbar-label-progress');
+            
+            if (wordbookFilteredList.length === 0) {
+                document.getElementById('wordbook-seekbar-container').style.display = 'none';
+                return;
+            }
+            document.getElementById('wordbook-seekbar-container').style.display = 'flex';
+            
+            // Sync with first word initially
+            const currentWord = wordbookFilteredList[0];
+            seekbar.value = 1;
+            labelId.innerText = currentWord ? `No. ${currentWord.id} ${currentWord.en}` : 'No. ---';
+            labelProgress.innerText = `1 / ${wordbookFilteredList.length}`;
+        }
+
+        function handleWordbookSeek(value) {
+            isWordbookSeeking = true;
+            if (wordbookSeekTimeout) clearTimeout(wordbookSeekTimeout);
+            
+            const targetIdx = parseInt(value) - 1;
+            if (targetIdx < 0 || targetIdx >= wordbookFilteredList.length) return;
+            
+            const container = document.getElementById('wordbook-list-container');
+            
+            // Auto expand display count if seeking beyond rendered elements
+            if (targetIdx >= container.children.length) {
+                wordbookDisplayCount = targetIdx + 25;
+                renderWordbookList(false); // Render completely up to targetIdx + 25
+            }
+            
+            // Instant label update during seek drag
+            const currentWord = wordbookFilteredList[targetIdx];
+            const labelId = document.getElementById('wordbook-seekbar-label-id');
+            const labelProgress = document.getElementById('wordbook-seekbar-label-progress');
+            if (currentWord) {
+                labelId.innerText = `No. ${currentWord.id} ${currentWord.en}`;
+                labelProgress.innerText = `${value} / ${wordbookFilteredList.length}`;
+            }
+            
+            // Scroll to the targeted word container element
+            const targetEl = container.children[targetIdx];
+            if (targetEl) {
+                container.scrollTop = targetEl.offsetTop - container.offsetTop;
+            }
+            
+            // Release lock after short delay to prevent event loop racing
+            wordbookSeekTimeout = setTimeout(() => {
+                isWordbookSeeking = false;
+            }, 300);
+        }
+
         // --- Wordbook Mode (Search & Lazy scroll) ---
         function initWordbook() {
             document.getElementById('wordbook-search-input').value = '';
@@ -4445,6 +4537,7 @@
             wordbookFilteredList = [...wordData];
             wordbookDisplayCount = 50;
             renderWordbookList(false);
+            syncWordbookSeekBar();
         }
 
         let wordbookSearchTimeout = null;
@@ -4688,6 +4781,35 @@
             if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
                 if (container.children.length < wordbookFilteredList.length) {
                     renderWordbookList(true);
+                }
+            }
+
+            // Sync seekbar to current scroll position if not actively seeking
+            if (!isWordbookSeeking && wordbookFilteredList.length > 0) {
+                const items = container.querySelectorAll('.word-list-item');
+                const containerTop = container.getBoundingClientRect().top;
+                let visibleIdx = -1;
+
+                for (let i = 0; i < items.length; i++) {
+                    const rect = items[i].getBoundingClientRect();
+                    // Identify the first item that is currently partially or fully visible in viewport
+                    if (rect.bottom >= containerTop + 10) {
+                        visibleIdx = i;
+                        break;
+                    }
+                }
+
+                if (visibleIdx !== -1) {
+                    const seekbar = document.getElementById('wordbook-seekbar');
+                    const labelId = document.getElementById('wordbook-seekbar-label-id');
+                    const labelProgress = document.getElementById('wordbook-seekbar-label-progress');
+
+                    const currentWord = wordbookFilteredList[visibleIdx];
+                    if (currentWord && seekbar) {
+                        seekbar.value = visibleIdx + 1;
+                        labelId.innerText = `No. ${currentWord.id} ${currentWord.en}`;
+                        labelProgress.innerText = `${visibleIdx + 1} / ${wordbookFilteredList.length}`;
+                    }
                 }
             }
         }
