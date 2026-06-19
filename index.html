@@ -2123,6 +2123,10 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             border: 1px solid transparent;
+            /* 文字グラデーションをリセットして個別のカラーコードを適用 */
+            -webkit-text-fill-color: initial !important;
+            background-clip: border-box !important;
+            -webkit-background-clip: border-box !important;
         }
         
         .rank-badge.rank-s {
