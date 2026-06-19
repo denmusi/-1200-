@@ -2127,6 +2127,7 @@
             -webkit-text-fill-color: initial !important;
             background-clip: border-box !important;
             -webkit-background-clip: border-box !important;
+            background-image: none !important; /* 親の紫グラデーション背景を強制リセット */
         }
         
         .rank-badge.rank-s {
@@ -3533,8 +3534,8 @@
 
             filtered = filterPhrasesIfNeeded(filtered);
 
-            if(filtered.length < 4) {
-                showSetupError("四択肢を生成するため、範囲内に最低4つ以上の単語が含まれるように設定してください。");
+            if(filtered.length < 1) {
+                showSetupError("出題可能な単語が範囲内にありません。");
                 return;
             }
 
@@ -3571,8 +3572,8 @@
 
             pool = filterPhrasesIfNeeded(pool);
 
-            if(pool.length < 4) {
-                showSetupError("四択肢を生成するため、リストに最低4つ以上の単語が必要です。");
+            if(pool.length < 1) {
+                showSetupError("テストを開始するためには、リストに最低1つの単語が必要です。");
                 return;
             }
 
@@ -3599,35 +3600,16 @@
             clearSetupError();
             let mistakes = quizHistory.filter(h => !h.isCorrect).map(h => h.word);
             
-            if (mistakes.length < 4) {
-                const uniqueIds = new Set(mistakes.map(m => m.id));
-                const candidates = wordData.filter(w => {
-                    if (sourceListType === 'range') {
-                        return w.id >= sessionRange.from && w.id <= sessionRange.to && !uniqueIds.has(w.id);
-                    } else if (sourceListType === 'weak') {
-                        return (wrongCounts[w.id] || 0) >= 4 && !uniqueIds.has(w.id);
-                    } else if (sourceListType === 'bookmark') {
-                        return bookmarks.has(w.id) && !uniqueIds.has(w.id);
-                    }
-                    return !uniqueIds.has(w.id);
-                });
-
-                while (mistakes.length < 4 && candidates.length > 0) {
-                    const idx = Math.floor(Math.random() * candidates.length);
-                    mistakes.push(candidates.splice(idx, 1)[0]);
-                }
-            }
-
             mistakes = filterPhrasesIfNeeded(mistakes);
 
-            if (mistakes.length < 4) {
-                showSetupError("復習テストを生成するために十分な単語データがありません。");
+            if (mistakes.length < 1) {
+                showSetupError("復習テストを開始するための間違え履歴がありません。");
                 return;
             }
 
             sourceListType = 'review_mistakes';
             isInfiniteMode = false;
-            targetQuestionCount = quizHistory.filter(h => !h.isCorrect).length;
+            targetQuestionCount = mistakes.length;
 
             initQuizQueue(mistakes);
         }
@@ -4806,9 +4788,9 @@
             infoEl.innerText = `累積4回以上間違えた苦手単語リスト (${weakWords.length} 語)`;
 
             const startQuizBtn = document.getElementById('btn-start-weak-quiz');
-            if (weakWords.length < 4) {
+            if (weakWords.length < 1) {
                 startQuizBtn.disabled = true;
-                startQuizBtn.innerText = "テスト開始には最低4語必要です";
+                startQuizBtn.innerText = "テスト開始には最低1語必要です";
             } else {
                 startQuizBtn.disabled = false;
                 startQuizBtn.innerText = "このリストで復習テストを開始";
@@ -4891,9 +4873,9 @@
             infoEl.innerText = `ブックマークに登録された単語リスト (${bookmarkedWords.length} 語)`;
 
             const startQuizBtn = document.getElementById('btn-start-bookmark-quiz');
-            if (bookmarkedWords.length < 4) {
+            if (bookmarkedWords.length < 1) {
                 startQuizBtn.disabled = true;
-                startQuizBtn.innerText = "テスト開始には最低4語必要です";
+                startQuizBtn.innerText = "テスト開始には最低1語必要です";
             } else {
                 startQuizBtn.disabled = false;
                 startQuizBtn.innerText = "このリストで復習テストを開始";
