@@ -712,7 +712,7 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 18px 60px 18px 24px;
+            padding: 18px 180px 18px 24px;
             font-size: 1.6rem;
             color: var(--text-main);
             font-weight: 600;
@@ -726,7 +726,7 @@
         }
         .btn-backspace {
             position: absolute;
-            right: 12px;
+            right: 130px;
             width: 44px;
             height: 44px;
             border-radius: 12px;
@@ -766,6 +766,42 @@
             background: rgba(0, 0, 0, 0.18);
         }
 
+        .btn-show-keyboard {
+            position: absolute;
+            right: 12px;
+            width: 110px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 2;
+        }
+        .btn-show-keyboard:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+        .btn-show-keyboard:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        .btn-show-keyboard:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        [data-theme="light"] .btn-show-keyboard {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
         .btn-spelling-submit {
             width: 100%;
             min-height: 58px;
@@ -781,13 +817,18 @@
         }
         body.landscape-optimized .spelling-input {
             font-size: 1.8rem;
-            padding: 20px 64px 20px 28px;
+            padding: 20px 180px 20px 28px;
         }
         body.landscape-optimized .btn-backspace {
-            right: 14px;
+            right: 130px;
             width: 48px;
             height: 48px;
             font-size: 1.45rem;
+        }
+        body.landscape-optimized .btn-show-keyboard {
+            right: 12px;
+            width: 110px;
+            height: 48px;
         }
         body.landscape-optimized .btn-spelling-submit {
             min-height: 64px;
@@ -1677,19 +1718,26 @@
         }
 
         .feedback-note-inline {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed rgba(255, 255, 255, 0.2);
-            text-align: left;
-            font-size: 0.92rem;
+            margin-top: 12px;
+            padding: 10px 16px;
+            background: rgba(129, 140, 248, 0.08);
+            border: 1px dashed rgba(129, 140, 248, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 500;
             color: #a5b4fc;
             white-space: pre-wrap;
             word-break: break-all;
             line-height: 1.4;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         [data-theme="light"] .feedback-note-inline {
-            border-top-color: rgba(0, 0, 0, 0.1);
+            background: rgba(79, 70, 229, 0.05);
+            border-color: rgba(79, 70, 229, 0.25);
             color: #4f46e5;
         }
 
@@ -2211,6 +2259,98 @@
         #wordbook-seekbar::-webkit-slider-thumb:hover {
             transform: scale(1.2);
         }
+
+        /* Wordbook Filter Chips Styles */
+        .filter-chips-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 0 16px 12px 16px;
+        }
+        .filter-chip {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+        .filter-chip.active {
+            background: rgba(129, 140, 248, 0.15);
+            border-color: #818cf8;
+            color: #a5b4fc;
+            box-shadow: 0 0 10px rgba(129, 140, 248, 0.2);
+        }
+        [data-theme="light"] .filter-chip.active {
+            background: rgba(79, 70, 229, 0.08);
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+
+        /* Inline editing styles inside quiz feedback box */
+        .feedback-note-edit-container {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+            animation: slideDownFast 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .feedback-note-edit-textarea {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            outline: none;
+            resize: vertical;
+        }
+        .feedback-note-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        .btn-inline-action {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            transition: opacity 0.2s;
+        }
+        .btn-inline-action.btn-save {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-inline-action.btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+        .btn-note-toggle-edit {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.82rem;
+            cursor: pointer;
+            margin-top: 6px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .btn-note-toggle-edit:hover {
+            text-decoration: underline;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -2492,8 +2632,9 @@
             <div id="spelling-input-container" style="display: none; margin-bottom: 20px;">
                 <form class="spelling-form" onsubmit="event.preventDefault(); event.stopPropagation(); submitSpellingAnswer();">
                     <div class="spelling-input-wrapper">
-                        <input type="text" id="spelling-input-field" class="spelling-input" placeholder="英単語を入力" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleSpellingKeydown(event)">
+                        <input type="text" id="spelling-input-field" class="spelling-input" placeholder="英単語を入力" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleSpellingKeydown(event)" oninput="this.value = this.value.toLowerCase();">
                         <button type="button" id="btn-spelling-backspace" class="btn-backspace" onclick="handleSpellingBackspace()" title="一文字消去">⌫</button>
+                        <button type="button" id="btn-spelling-keyboard" class="btn-show-keyboard" onclick="focusSpellingInput()" title="キーボードを表示">キーボードを表示</button>
                     </div>
                     <button type="submit" class="btn btn-primary btn-spelling-submit">回答する</button>
                 </form>
@@ -2512,7 +2653,7 @@
 
             <!-- Navigation Buttons -->
             <div style="display: flex; gap: 14px; margin-top: 14px; position: relative; z-index: 60;">
-                <button class="btn btn-primary" id="btn-next-word" onclick="loadNextQuestion(); event.preventDefault();" ontouchend="loadNextQuestion(); event.preventDefault();" style="width:100%; display:none; touch-action: manipulation;">次の問題へ</button>
+                <button class="btn btn-primary" id="btn-next-word" onclick="loadNextQuestion();" style="width:100%; display:none; touch-action: manipulation;">次の問題へ</button>
             </div>
         </div>
 
@@ -2579,6 +2720,13 @@
                 <input type="text" id="wordbook-search-input" placeholder="英単語、日本語、メモ、またはNo.を入力して検索・ジャンプ..." autocomplete="off" oninput="handleWordbookSearch(false)" onkeydown="handleWordbookSearchKeydown(event)">
                 <!-- Suggestion List Container -->
                 <div id="wordbook-suggest-box" class="suggest-box" style="display: none;"></div>
+            </div>
+
+            <!-- Filter Chips Container -->
+            <div class="filter-chips-container">
+                <button class="filter-chip" id="filter-chip-bookmark" onclick="toggleWordbookFilter('bookmark')">★ ブックマーク</button>
+                <button class="filter-chip" id="filter-chip-note" onclick="toggleWordbookFilter('note')">📝 メモあり</button>
+                <button class="filter-chip" id="filter-chip-weak" onclick="toggleWordbookFilter('weak')">⚠️ 間違えやすい</button>
             </div>
 
             <!-- Progress Label Area -->
@@ -3170,6 +3318,72 @@
             localStorage.setItem('vocab_word_notes', JSON.stringify(wordNotes));
         }
 
+        // --- In-Quiz Inline Note Editing Control ---
+        let isQuizNoteEditing = false;
+
+        function generateQuizFeedbackNoteHtml(wordId) {
+            const note = wordNotes[wordId] || '';
+            const hasNote = !!note;
+            
+            let html = '<div id="quiz-note-wrapper">';
+            if (hasNote) {
+                html += `<div class="feedback-note-inline" id="quiz-note-display-${wordId}">📝 自分用メモ:<br>${escapeHtml(note)}</div>`;
+                html += `<button class="btn-note-toggle-edit" onclick="showQuizNoteInlineEdit(${wordId})">📝 メモを編集する</button>`;
+            } else {
+                html += `<div class="feedback-note-inline" id="quiz-note-display-${wordId}" style="display:none;"></div>`;
+                html += `<button class="btn-note-toggle-edit" onclick="showQuizNoteInlineEdit(${wordId})">➕ メモを追加する</button>`;
+            }
+            
+            // Inline edit form
+            html += `
+                <div class="feedback-note-edit-container" id="quiz-note-edit-container-${wordId}" style="display: none;">
+                    <textarea class="feedback-note-edit-textarea" id="quiz-note-textarea-${wordId}" rows="2" placeholder="この単語に関する覚え方やメモを入力..." onfocus="isQuizNoteEditing = true;" onblur="setTimeout(() => { isQuizNoteEditing = false; }, 150);">${escapeHtml(note)}</textarea>
+                    <div class="feedback-note-edit-actions">
+                        <button class="btn-inline-action btn-cancel" onclick="hideQuizNoteInlineEdit(${wordId})">キャンセル</button>
+                        <button class="btn-inline-action btn-save" onclick="saveQuizNoteInline(${wordId})">保存</button>
+                    </div>
+                </div>
+            `;
+            html += '</div>';
+            return html;
+        }
+
+        function showQuizNoteInlineEdit(wordId) {
+            isQuizNoteEditing = true;
+            document.getElementById(`quiz-note-edit-container-${wordId}`).style.display = 'flex';
+            const textarea = document.getElementById(`quiz-note-textarea-${wordId}`);
+            textarea.focus();
+            
+            const val = textarea.value;
+            textarea.value = '';
+            textarea.value = val;
+        }
+
+        function hideQuizNoteInlineEdit(wordId) {
+            isQuizNoteEditing = false;
+            document.getElementById(`quiz-note-edit-container-${wordId}`).style.display = 'none';
+        }
+
+        function saveQuizNoteInline(wordId) {
+            const textarea = document.getElementById(`quiz-note-textarea-${wordId}`);
+            const value = textarea.value.trim();
+            
+            if (value === "") {
+                delete wordNotes[wordId];
+            } else {
+                wordNotes[wordId] = value;
+            }
+            saveWordNotes();
+            showToast("メモを保存しました");
+            
+            isQuizNoteEditing = false;
+            
+            const wrapper = document.getElementById('quiz-note-wrapper');
+            if (wrapper) {
+                wrapper.outerHTML = generateQuizFeedbackNoteHtml(wordId);
+            }
+        }
+
         function resetExcelData() {
             if(confirm("Excel単語データをリセットして、再アップロード画面に戻りますか？\n（履歴やブックマークは消去されません）")) {
                 localStorage.removeItem('vocab_words_data');
@@ -3677,10 +3891,18 @@
             loadQuizQuestion();
         }
 
+        let lastLoadQuestionTime = 0;
+
         function loadNextQuestion() {
-            if (currentQuestionState && currentQuestionState.allowNextAt && Date.now() < currentQuestionState.allowNextAt) {
+            const now = Date.now();
+            if (now - lastLoadQuestionTime < 300) {
                 return;
             }
+            if (currentQuestionState && currentQuestionState.allowNextAt && now < currentQuestionState.allowNextAt) {
+                return;
+            }
+            lastLoadQuestionTime = now;
+
             quizIndex++;
             loadQuizQuestion();
         }
@@ -3738,6 +3960,34 @@
             // レイアウトを強制的にフラッシュさせてから transition を戻す（即時適用のバグ防止）
             promptBox.offsetHeight; 
             promptBox.style.transition = origTransition;
+        }
+
+        function adjustChoiceButtonFontSizes() {
+            const buttons = document.querySelectorAll('#quiz-choices-container .choice-btn');
+            buttons.forEach(btn => {
+                const textSpan = btn.querySelector('.choice-text-span');
+                if (!textSpan) return;
+
+                const text = textSpan.innerText.trim();
+                let baseSize = 1.65; // rem
+                let minSize = 1.15; // rem
+                let currentSize = baseSize;
+
+                // Adjust based on text length and character type
+                const isEnglish = /[a-zA-Z]/.test(text);
+                const limit = isEnglish ? 16 : 9;
+
+                if (text.length > limit) {
+                    const over = text.length - limit;
+                    currentSize = Math.max(minSize, baseSize - (over * (isEnglish ? 0.025 : 0.045)));
+                }
+
+                if (btn.classList.contains('answered-state')) {
+                    currentSize = Math.min(currentSize, 1.45);
+                }
+
+                btn.style.fontSize = `${currentSize}rem`;
+            });
         }
 
         function loadQuizQuestion() {
@@ -3824,6 +4074,8 @@
                 spellingInputField.disabled = false;
                 const backspaceBtn = document.getElementById('btn-spelling-backspace');
                 if (backspaceBtn) backspaceBtn.disabled = false;
+                const keyboardBtn = document.getElementById('btn-spelling-keyboard');
+                if (keyboardBtn) keyboardBtn.disabled = false;
                 spellingInputField.style.borderColor = '';
                 spellingInputField.style.boxShadow = '';
                 spellingInputField.classList.remove('correct', 'incorrect');
@@ -3858,10 +4110,6 @@
                 
                 hintBox.innerText = `スペルヒント: ${hintStr} (${cleanWord.length}文字)`;
 
-                // Auto-focus input field
-                setTimeout(() => {
-                    spellingInputField.focus();
-                }, 100);
             }
 
             updateQuizBookmarkBtnState(currentWord.id);
@@ -3879,7 +4127,7 @@
                 choices.forEach((choice, index) => {
                     const choiceBtn = document.createElement('button');
                     choiceBtn.className = 'choice-btn';
-                    choiceBtn.innerHTML = `<span class="choice-index">${index + 1}</span><span style="flex-grow:1;">${choice}</span>`;
+                    choiceBtn.innerHTML = `<span class="choice-index">${index + 1}</span><span class="choice-text-span" style="flex-grow:1;">${choice}</span>`;
                     choiceBtn.onclick = () => selectChoice(index);
                     choicesContainer.appendChild(choiceBtn);
                 });
@@ -3889,6 +4137,7 @@
 
             // 動的フォントサイズ調整を適用
             adjustQuizWordFontSize();
+            adjustChoiceButtonFontSizes();
 
             // Start countdown timer
             startCountdownTimer();
@@ -3998,6 +4247,7 @@
             currentQuestionState.allowNextAt = Date.now() + 500; // 500ms cooldown to prevent accidental skips
             document.body.classList.add('quiz-answered');
             adjustQuizWordFontSize(); // 解答後の縮小表示に合わせ再調整
+            adjustChoiceButtonFontSizes();
 
             // Stop timer instantly
             clearInterval(timerInterval);
@@ -4057,6 +4307,8 @@
                 }
             });
 
+            adjustChoiceButtonFontSizes();
+
             const fbBox = document.getElementById('quiz-feedback-box');
             const fbTitle = document.getElementById('quiz-feedback-title');
             const fbDesc = document.getElementById('quiz-feedback-desc');
@@ -4064,7 +4316,7 @@
             fbBox.className = 'answer-feedback active ' + (isCorrect ? 'correct' : 'incorrect');
             
             const correctWord = currentQuestionState.word;
-            const noteHtml = wordNotes[correctWord.id] ? `<div class="feedback-note-inline">📝 自分用メモ:<br>${escapeHtml(wordNotes[correctWord.id])}</div>` : '';
+            const noteHtml = generateQuizFeedbackNoteHtml(correctWord.id);
 
             const displayCorrect = (activeQuizType === 'en-ja') ? correctWord.ja : correctWord.en;
 
@@ -4119,6 +4371,13 @@
             }
         }
 
+        function focusSpellingInput() {
+            const input = document.getElementById('spelling-input-field');
+            if (input && !input.disabled) {
+                input.focus();
+            }
+        }
+
         function submitSpellingAnswer() {
             if (!currentQuestionState || currentQuestionState.answered) return;
             
@@ -4138,6 +4397,8 @@
             spellingInputField.disabled = true;
             const backspaceBtn = document.getElementById('btn-spelling-backspace');
             if (backspaceBtn) backspaceBtn.disabled = true;
+            const keyboardBtn = document.getElementById('btn-spelling-keyboard');
+            if (keyboardBtn) keyboardBtn.disabled = true;
             document.getElementById('spelling-input-container').style.display = 'none';
             
             // Stop timer instantly
@@ -4178,7 +4439,7 @@
             spellingInputField.classList.remove('correct', 'incorrect');
             const rawDisplayInput = spellingInputField.value;
             const correctWord = currentQuestionState.word;
-            const noteHtml = wordNotes[correctWord.id] ? `<div class="feedback-note-inline">📝 自分用メモ:<br>${escapeHtml(wordNotes[correctWord.id])}</div>` : '';
+            const noteHtml = generateQuizFeedbackNoteHtml(correctWord.id);
 
             if (isCorrect) {
                 spellingInputField.classList.add('correct');
@@ -4336,8 +4597,12 @@
             return '不明な範囲';
         }
 
+        let isSubmittingToGAS = false;
+
         function submitQuizResultToGAS() {
             if (!GAS_WEBAPP_URL) return; // Silent skip if URL is not configured
+            if (isSubmittingToGAS) return;
+            isSubmittingToGAS = true;
 
             const panel = document.getElementById('gas-submit-panel');
             const textEl = document.getElementById('gas-submit-text');
@@ -4390,6 +4655,7 @@
             })
             .then(response => response.json())
             .then(res => {
+                isSubmittingToGAS = false;
                 if (res.status === 'success') {
                     if (textEl) textEl.innerHTML = '<span style="color:var(--success); font-weight:bold;">✓ 送信完了</span>';
                 } else {
@@ -4397,6 +4663,7 @@
                 }
             })
             .catch(err => {
+                isSubmittingToGAS = false;
                 console.error(err);
                 if (textEl) textEl.innerHTML = '<span style="color:var(--error); font-weight:bold;">⚠ 送信失敗</span>';
                 if (resubmitBtn) resubmitBtn.style.display = 'block';
@@ -4405,6 +4672,8 @@
 
         function resubmitQuizData() {
             if (!lastSubmissionData || !GAS_WEBAPP_URL) return;
+            if (isSubmittingToGAS) return;
+            isSubmittingToGAS = true;
             
             const textEl = document.getElementById('gas-submit-text');
             const resubmitBtn = document.getElementById('btn-gas-resubmit');
@@ -4424,6 +4693,7 @@
             })
             .then(response => response.json())
             .then(res => {
+                isSubmittingToGAS = false;
                 if (res.status === 'success') {
                     if (textEl) textEl.innerHTML = '<span style="color:var(--success); font-weight:bold;">✓ 送信完了</span>';
                 } else {
@@ -4431,6 +4701,7 @@
                 }
             })
             .catch(err => {
+                isSubmittingToGAS = false;
                 console.error(err);
                 if (textEl) textEl.innerHTML = '<span style="color:var(--error); font-weight:bold;">⚠ 送信失敗</span>';
                 if (resubmitBtn) resubmitBtn.style.display = 'block';
@@ -4471,6 +4742,51 @@
             } else {
                 showToast("すべての間違えた単語はすでに登録されています");
             }
+        }
+
+        // --- Wordbook Filter State & Handler ---
+        let activeWordbookFilters = { bookmark: false, note: false, weak: false };
+
+        function toggleWordbookFilter(type) {
+            activeWordbookFilters[type] = !activeWordbookFilters[type];
+            
+            const chip = document.getElementById(`filter-chip-${type}`);
+            if (chip) {
+                if (activeWordbookFilters[type]) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            }
+            
+            applyWordbookFiltering();
+        }
+
+        function applyWordbookFiltering() {
+            const query = document.getElementById('wordbook-search-input').value.toLowerCase().trim();
+            const numQuery = query.replace(/^no\.?\s*/i, '');
+            const isNumeric = /^\d+$/.test(numQuery);
+            
+            wordbookFilteredList = wordData.filter(w => {
+                if (activeWordbookFilters.bookmark && !bookmarks.has(w.id)) return false;
+                if (activeWordbookFilters.note && !wordNotes[w.id]) return false;
+                if (activeWordbookFilters.weak && (wrongCounts[w.id] || 0) < 4) return false;
+                
+                if (query !== '') {
+                    const matchEn = w.en.toLowerCase().includes(query);
+                    const matchJa = w.ja.includes(query);
+                    const matchIdExact = String(w.id) === query || String(w.id) === numQuery;
+                    const matchIdPartial = isNumeric && String(w.id).includes(numQuery);
+                    const note = wordNotes[w.id] || '';
+                    const matchNote = note.toLowerCase().includes(query);
+                    return matchEn || matchJa || matchIdExact || matchIdPartial || matchNote;
+                }
+                return true;
+            });
+            
+            wordbookDisplayCount = 50;
+            renderWordbookList(false);
+            syncWordbookSeekBar();
         }
 
         // --- Wordbook SeekBar Control (Global Variables & Functions) ---
@@ -4550,6 +4866,11 @@
             document.getElementById('wordbook-search-input').value = '';
             const suggestBox = document.getElementById('wordbook-suggest-box');
             if (suggestBox) suggestBox.style.display = 'none';
+            
+            // Reset active filters
+            activeWordbookFilters = { bookmark: false, note: false, weak: false };
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+
             wordbookFilteredList = [...wordData];
             wordbookDisplayCount = 50;
             renderWordbookList(false);
@@ -4568,8 +4889,14 @@
             // サジェストをリアルタイムに更新
             updateWordbookSuggestions();
 
+            // リアルタイムにリストをフィルタリングする（自動スクロールジャンプはせず、リストの中身のみ絞り込む）
+            wordbookSearchTimeout = setTimeout(() => {
+                applyWordbookFiltering();
+            }, 250);
+
             // 入力中の自動ジャンプは廃止し、確定時（immediate === true）のみ即座にジャンプを実行する
             if (immediate) {
+                if (wordbookSearchTimeout) clearTimeout(wordbookSearchTimeout);
                 executeWordbookJump();
             }
         }
@@ -5781,6 +6108,11 @@
 
         // --- Keyboard Support (1-4, Space, Enter) ---
         window.addEventListener('keydown', (e) => {
+            // Check if user is typing in the inline note textarea or any other input
+            if (isQuizNoteEditing || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') {
+                return;
+            }
+
             const quizScreen = document.getElementById('screen-quiz');
             if (!quizScreen.classList.contains('active')) return;
 
