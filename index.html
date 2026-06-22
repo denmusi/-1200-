@@ -2729,7 +2729,7 @@
             <div id="ranking-nickname-setup" class="card" style="padding: 24px; margin-bottom: 20px; display: none;">
                 <h3 style="margin-bottom: 12px; font-weight:700; text-align: center;">ニックネームを登録</h3>
                 <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom: 18px; line-height:1.5; text-align: center;">
-                    学年・クラス・出席番号と紐付けて同一人物として記録されます。<br>他の端末でも同じ設定値にすれば問題数が合算されます。
+                    他の端末でも同じ設定値（学年クラス出席番号）にすれば問題数が合算されます。
                 </p>
                 <div class="input-group" style="margin-bottom: 20px;">
                     <label for="ranking-nickname-input">ニックネーム (最大12文字)</label>
@@ -2781,10 +2781,9 @@
                     <table class="ranking-table">
                         <thead>
                             <tr>
-                                <th style="width: 60px; text-align: center;">順位</th>
-                                <th style="width: 100px;">クラス</th>
+                                <th style="width: 70px; text-align: center;">順位</th>
                                 <th>ニックネーム</th>
-                                <th style="width: 90px; text-align: right;">問題数</th>
+                                <th style="width: 100px; text-align: right;">問題数</th>
                             </tr>
                         </thead>
                         <tbody id="ranking-table-body">
@@ -3627,7 +3626,7 @@
             const currentStudentKey = `${studentGrade}-${studentClass}.${studentNumber}`;
             
             if (top50.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:30px;">この条件のランキングデータはまだありません</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:30px;">この条件のランキングデータはまだありません</td></tr>`;
             } else {
                 top50.forEach(row => {
                     const tr = document.createElement('tr');
@@ -3647,15 +3646,8 @@
                         rankContent = `<span style="padding-left:8px; font-weight:600;">${row.rank}</span>`;
                     }
                     
-                    let classDisplay = "不明";
-                    const match = row.studentKey.match(/^(\d+)-(\d+)\.(\d+)$/);
-                    if (match) {
-                        classDisplay = `${match[1]}年${match[2]}組`;
-                    }
-                    
                     tr.innerHTML = `
                         <td style="text-align:center; vertical-align:middle;">${rankContent}</td>
-                        <td style="vertical-align:middle;">${classDisplay}</td>
                         <td style="vertical-align:middle;">${escapeHtml(row.nickname)}</td>
                         <td style="text-align:right; font-weight:700; vertical-align:middle;">${row.count}問</td>
                     `;
