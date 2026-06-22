@@ -5373,21 +5373,15 @@
 
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
-                mode: 'cors',
-                redirect: 'follow',
+                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
-            .then(res => {
+            .then(() => {
                 isSubmittingToGAS = false;
-                if (res.status === 'success') {
-                    if (textEl) textEl.innerHTML = '<span style="color:var(--success); font-weight:bold;">✓ 送信完了</span>';
-                } else {
-                    throw new Error(res.message || 'Server error');
-                }
+                if (textEl) textEl.innerHTML = '<span style="color:var(--success); font-weight:bold;">✓ 送信完了</span>';
             })
             .catch(err => {
                 isSubmittingToGAS = false;
@@ -5411,26 +5405,20 @@
 
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
-                mode: 'cors',
-                redirect: 'follow',
+                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8'
                 },
                 body: JSON.stringify(lastSubmissionData)
             })
-            .then(response => response.json())
-            .then(res => {
+            .then(() => {
                 isSubmittingToGAS = false;
-                if (res.status === 'success') {
-                    if (textEl) textEl.innerHTML = '<span style="color:var(--success); font-weight:bold;">✓ 送信完了</span>';
-                } else {
-                    throw new Error(res.message || 'Server error');
-                }
+                if (textEl) textEl.innerHTML = '<span style="color:var(--success); font-weight:bold;">✓ 送信完了</span>';
             })
             .catch(err => {
                 isSubmittingToGAS = false;
                 console.error(err);
-                if (textEl) textEl.innerHTML = '<span style="color:var(--error); font-weight:bold;">⚠ 送信失敗</span>';
+                if (textEl) textEl.innerHTML = '<span style="color:var(--error); font-weight:bold;">⚠ 再送信失敗</span>';
                 if (resubmitBtn) resubmitBtn.style.display = 'block';
             });
         }
