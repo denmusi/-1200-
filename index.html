@@ -2844,8 +2844,9 @@
                 <div class="quiz-word-id" id="quiz-word-id">No. ---</div>
                 
                 <!-- Spelling Hint Toggle Button -->
-                <button class="btn-icon-circle" id="btn-quiz-spelling-hint" onclick="toggleSpellingHintInline()" title="ヒントの表示/非表示を切り替え" style="position: absolute; top: 12px; right: 12px; z-index: 10; display: none; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%;">
-                    <span id="quiz-spelling-hint-icon" style="font-size: 1.1rem; line-height: 1;">💡</span>
+                <button id="btn-quiz-spelling-hint" onclick="toggleSpellingHintInline()" title="ヒントの表示/非表示を切り替え" style="position: absolute; top: 12px; right: 12px; z-index: 10; display: none; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 5px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; cursor: pointer; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease;">
+                    <span id="quiz-spelling-hint-icon" style="font-size: 0.85rem; line-height: 1;">💡</span>
+                    <span id="quiz-spelling-hint-text">スペリングヒントを表示しない</span>
                 </button>
                 
                 <div class="quiz-word" id="quiz-word-text">Loading...</div>
@@ -4187,18 +4188,21 @@
         function updateSpellingHintBtnStyle() {
             const btn = document.getElementById('btn-quiz-spelling-hint');
             const icon = document.getElementById('quiz-spelling-hint-icon');
+            const text = document.getElementById('quiz-spelling-hint-text');
             if (btn && icon) {
                 if (isSpellingHint) {
                     btn.style.background = 'rgba(255, 193, 7, 0.2)';
                     btn.style.borderColor = 'rgba(255, 193, 7, 0.4)';
                     btn.style.color = '#ffc107';
                     icon.innerText = '💡';
+                    if (text) text.innerText = 'スペリングヒントを表示しない';
                     btn.title = "ヒント非表示（文字数のみ表示）に切り替え";
                 } else {
                     btn.style.background = 'rgba(255,255,255,0.05)';
                     btn.style.borderColor = 'rgba(255,255,255,0.1)';
                     btn.style.color = 'var(--text-muted)';
                     icon.innerText = '🔌';
+                    if (text) text.innerText = 'スペリングヒントを表示する';
                     btn.title = "ヒント表示（頭文字を表示）に切り替え";
                 }
             }
