@@ -1257,6 +1257,7 @@
             background: rgba(11, 15, 25, 0.2);
             cursor: pointer;
             display: none;
+            pointer-events: none;
         }
 
         .tap-anywhere-hint {
@@ -2568,7 +2569,7 @@
         <!-- SCREEN 2: Quiz Screen -->
         <div id="screen-quiz" class="screen" style="position: relative;">
             <!-- Screen absolute Tap Overlay to skip to next question -->
-            <div id="quiz-tap-overlay" class="tap-overlay" onclick="loadNextQuestion()"></div>
+            <div id="quiz-tap-overlay" class="tap-overlay"></div>
             
             <!-- Visual Countdown Timer Bar -->
             <div class="timer-bar-container">
@@ -6101,6 +6102,33 @@
                 suggestBox.style.display = 'none';
                 wordbookSuggestList = [];
                 wordbookSuggestActiveIndex = -1;
+            }
+        });
+
+        // クイズ解答後のタップ進行（余白タップで次へ）の制御
+        document.addEventListener('click', (e) => {
+            const quizScreen = document.getElementById('screen-quiz');
+            if (!quizScreen || !quizScreen.classList.contains('active')) return;
+
+            const overlay = document.getElementById('quiz-tap-overlay');
+            if (overlay && overlay.style.display === 'block') {
+                const noteWrapper = document.getElementById('quiz-note-wrapper');
+                const bookmarkBtn = document.getElementById('btn-quiz-bookmark');
+                const ttsBtn = document.getElementById('btn-quiz-tts');
+                
+                // メモ入力中の場合は進行しない
+                if (isQuizNoteEditing) return;
+
+                // メモ関連・ブックマーク・音声ボタンのクリック時は無視
+                if (noteWrapper && noteWrapper.contains(e.target)) return;
+                if (bookmarkBtn && bookmarkBtn.contains(e.target)) return;
+                if (ttsBtn && ttsBtn.contains(e.target)) return;
+
+                // バグ報告モーダルを開くボタンも無視
+                const bugBtn = document.querySelector('button[onclick="openBugReportModal()"]');
+                if (bugBtn && bugBtn.contains(e.target)) return;
+
+                loadNextQuestion();
             }
         });
 
