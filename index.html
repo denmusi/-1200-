@@ -366,6 +366,53 @@
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
         }
 
+        /* デフォルト（スマートフォン等の狭い画面幅）でのメインメニューヘッダー被り対策 */
+        #screen-setup {
+            padding-top: 85px;
+        }
+        #screen-setup h1 {
+            font-size: 1.5rem !important;
+            margin-top: 15px !important;
+            padding: 0 10px;
+        }
+        .student-info-badge {
+            top: 15px;
+            font-size: 0.65rem;
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #btn-ranking-nav {
+            top: 15px !important;
+            width: 72px !important;
+            height: 72px !important;
+            font-size: 0.6rem !important;
+        }
+
+        /* 画面幅が十分に広い（PCやタブレット等）場合 */
+        @media (min-width: 600px) {
+            #screen-setup {
+                padding-top: 38px;
+            }
+            #screen-setup h1 {
+                font-size: 2.3rem !important;
+                margin-top: 40px !important;
+                padding: 0;
+            }
+            .student-info-badge {
+                top: -20px;
+                font-size: 0.72rem;
+                max-width: none;
+            }
+            #btn-ranking-nav {
+                top: -20px !important;
+                width: 80px !important;
+                height: 80px !important;
+                font-size: 0.65rem !important;
+            }
+        }
+
         .btn-danger {
             background-color: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.2);
