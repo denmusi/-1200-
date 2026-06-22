@@ -712,7 +712,7 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 18px 180px 18px 24px;
+            padding: 18px 60px 18px 24px;
             font-size: 1.6rem;
             color: var(--text-main);
             font-weight: 600;
@@ -726,7 +726,7 @@
         }
         .btn-backspace {
             position: absolute;
-            right: 130px;
+            right: 12px;
             width: 44px;
             height: 44px;
             border-radius: 12px;
@@ -766,42 +766,6 @@
             background: rgba(0, 0, 0, 0.18);
         }
 
-        .btn-show-keyboard {
-            position: absolute;
-            right: 12px;
-            width: 110px;
-            height: 44px;
-            border-radius: 12px;
-            background: var(--primary);
-            color: #ffffff;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            font-weight: 700;
-            transition: all 0.2s ease;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            z-index: 2;
-        }
-        .btn-show-keyboard:hover:not(:disabled) {
-            background: var(--primary-hover);
-        }
-        .btn-show-keyboard:active:not(:disabled) {
-            transform: scale(0.95);
-        }
-        .btn-show-keyboard:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        [data-theme="light"] .btn-show-keyboard {
-            background: var(--primary);
-            color: #ffffff;
-        }
-
         .btn-spelling-submit {
             width: 100%;
             min-height: 58px;
@@ -817,18 +781,13 @@
         }
         body.landscape-optimized .spelling-input {
             font-size: 1.8rem;
-            padding: 20px 180px 20px 28px;
+            padding: 20px 64px 20px 28px;
         }
         body.landscape-optimized .btn-backspace {
-            right: 130px;
+            right: 14px;
             width: 48px;
             height: 48px;
             font-size: 1.45rem;
-        }
-        body.landscape-optimized .btn-show-keyboard {
-            right: 12px;
-            width: 110px;
-            height: 48px;
         }
         body.landscape-optimized .btn-spelling-submit {
             min-height: 64px;
@@ -852,6 +811,25 @@
         body.quiz-answered.landscape-optimized .btn-spelling-submit {
             min-height: 50px;
             font-size: 1.1rem;
+        }
+
+        .spelling-char-counter {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            margin-bottom: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            padding-right: 8px;
+        }
+        .spelling-char-counter.match {
+            color: var(--primary);
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+        }
+        [data-theme="light"] .spelling-char-counter.match {
+            color: #4f46e5;
         }
 
         /* Settings Grid & Toggles */
@@ -2351,6 +2329,10 @@
             text-decoration: underline;
             opacity: 0.9;
         }
+        #quiz-note-wrapper {
+            position: relative;
+            z-index: 65;
+        }
     </style>
 </head>
 <body>
@@ -2632,10 +2614,10 @@
             <div id="spelling-input-container" style="display: none; margin-bottom: 20px;">
                 <form class="spelling-form" onsubmit="event.preventDefault(); event.stopPropagation(); submitSpellingAnswer();">
                     <div class="spelling-input-wrapper">
-                        <input type="text" id="spelling-input-field" class="spelling-input" placeholder="英単語を入力" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleSpellingKeydown(event)" oninput="this.value = this.value.toLowerCase();">
+                        <input type="text" id="spelling-input-field" class="spelling-input" placeholder="英単語を入力" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleSpellingKeydown(event)" oninput="this.value = this.value.toLowerCase(); updateSpellingCharCounter();">
                         <button type="button" id="btn-spelling-backspace" class="btn-backspace" onclick="handleSpellingBackspace()" title="一文字消去">⌫</button>
-                        <button type="button" id="btn-spelling-keyboard" class="btn-show-keyboard" onclick="focusSpellingInput()" title="キーボードを表示">キーボードを表示</button>
                     </div>
+                    <div id="spelling-char-counter" class="spelling-char-counter">0 / 0 文字</div>
                     <button type="submit" class="btn btn-primary btn-spelling-submit">回答する</button>
                 </form>
             </div>
@@ -4074,8 +4056,6 @@
                 spellingInputField.disabled = false;
                 const backspaceBtn = document.getElementById('btn-spelling-backspace');
                 if (backspaceBtn) backspaceBtn.disabled = false;
-                const keyboardBtn = document.getElementById('btn-spelling-keyboard');
-                if (keyboardBtn) keyboardBtn.disabled = false;
                 spellingInputField.style.borderColor = '';
                 spellingInputField.style.boxShadow = '';
                 spellingInputField.classList.remove('correct', 'incorrect');
@@ -4110,6 +4090,10 @@
                 
                 hintBox.innerText = `スペルヒント: ${hintStr} (${cleanWord.length}文字)`;
 
+                // Auto-focus input field
+                setTimeout(() => {
+                    spellingInputField.focus();
+                }, 100);
             }
 
             updateQuizBookmarkBtnState(currentWord.id);
@@ -4122,6 +4106,10 @@
                 choices: choices,
                 answered: false
             };
+
+            if (activeQuizType === 'ja-en-spelling') {
+                updateSpellingCharCounter();
+            }
 
             if (activeQuizType !== 'ja-en-spelling') {
                 choices.forEach((choice, index) => {
@@ -4359,6 +4347,7 @@
             if (!input || input.disabled) return;
             input.value = input.value.slice(0, -1);
             input.focus();
+            updateSpellingCharCounter();
         }
 
         function handleSpellingKeydown(event) {
@@ -4371,10 +4360,21 @@
             }
         }
 
-        function focusSpellingInput() {
-            const input = document.getElementById('spelling-input-field');
-            if (input && !input.disabled) {
-                input.focus();
+        function updateSpellingCharCounter() {
+            const inputField = document.getElementById('spelling-input-field');
+            const counter = document.getElementById('spelling-char-counter');
+            if (!inputField || !counter || !currentQuestionState || !currentQuestionState.word) return;
+            
+            const currentLen = inputField.value.length;
+            const baseText = currentQuestionState.word.en.replace(/\(.*?\)/g, '');
+            const cleanWord = baseText.replace(/\s+/g, '');
+            const targetLen = cleanWord.length;
+            
+            counter.innerText = `${currentLen} / ${targetLen} 文字`;
+            if (currentLen === targetLen) {
+                counter.classList.add('match');
+            } else {
+                counter.classList.remove('match');
             }
         }
 
@@ -4397,8 +4397,6 @@
             spellingInputField.disabled = true;
             const backspaceBtn = document.getElementById('btn-spelling-backspace');
             if (backspaceBtn) backspaceBtn.disabled = true;
-            const keyboardBtn = document.getElementById('btn-spelling-keyboard');
-            if (keyboardBtn) keyboardBtn.disabled = true;
             document.getElementById('spelling-input-container').style.display = 'none';
             
             // Stop timer instantly
