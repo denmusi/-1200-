@@ -424,6 +424,12 @@
             border-color: rgba(239, 68, 68, 0.4);
         }
 
+        .btn-delete-record:hover {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+            border-color: rgba(239, 68, 68, 0.6) !important;
+            transform: scale(1.08);
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -3173,7 +3179,21 @@
         </div>
     </div>
 
-    <!-- Removed Teacher Custom Delete Modal -->
+    <!-- Teacher Student History Delete Confirm Modal -->
+    <div id="history-delete-confirm-modal" class="teacher-modal-overlay" style="display: none;">
+        <div class="teacher-modal">
+            <div class="teacher-modal-icon">⚠️</div>
+            <div class="teacher-modal-title">取り組み履歴の削除確認</div>
+            <div class="teacher-modal-desc" id="history-delete-modal-desc">
+                この取り組み履歴を削除しますか？<br>
+                <strong style="color: var(--error); margin-top: 8px; display: inline-block;">※スプレッドシートから完全に削除され、元に戻せません。</strong>
+            </div>
+            <div class="teacher-modal-buttons">
+                <button class="btn-modal btn-modal-confirm" onclick="executeHistoryDelete()">削除する</button>
+                <button class="btn-modal btn-modal-cancel" onclick="closeHistoryDeleteModal()">キャンセル</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Bug Report & Request Modal -->
     <div id="bug-report-modal" class="bug-modal-overlay" style="display: none;" onclick="handleBugModalOutsideClick(event)">
@@ -6417,6 +6437,68 @@
             updateAccordionToggleButtonState();
         }
 
+        let pendingDeleteStudentKey = null;
+        let pendingDeleteTimestamp = null;
+
+        function deleteStudentHistoryRecord(studentKey, timestamp) {
+            pendingDeleteStudentKey = studentKey;
+            pendingDeleteTimestamp = timestamp;
+
+            const modal = document.getElementById('history-delete-confirm-modal');
+            const desc = document.getElementById('history-delete-modal-desc');
+            if (desc) {
+                desc.innerHTML = `
+                    生徒 <strong>${formatStudentKey(studentKey)}</strong> の <strong>${timestamp}</strong> の取り組みデータを削除しますか？<br>
+                    <strong style="color: var(--error); margin-top: 8px; display: inline-block;">※スプレッドシートから完全に削除され、元に戻せません。</strong>
+                `;
+            }
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeHistoryDeleteModal() {
+            const modal = document.getElementById('history-delete-confirm-modal');
+            if (modal) modal.style.display = 'none';
+            pendingDeleteStudentKey = null;
+            pendingDeleteTimestamp = null;
+        }
+
+        function executeHistoryDelete() {
+            if (!pendingDeleteStudentKey || !pendingDeleteTimestamp) return;
+
+            const studentKey = pendingDeleteStudentKey;
+            const timestamp = pendingDeleteTimestamp;
+
+            closeHistoryDeleteModal();
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify({
+                    action: 'delete',
+                    studentKey: studentKey,
+                    timestamp: timestamp
+                })
+            })
+            .then(() => {
+                // キャッシュデータから該当レコードを除外
+                cachedTeacherData = cachedTeacherData.filter(item => {
+                    return !(item.studentKey === studentKey && item.timestamp === timestamp);
+                });
+                
+                // UIをリアルタイムで再描画
+                searchTeacherData();
+                
+                showToast("取り組みデータを削除しました");
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("削除処理中にエラーが発生しました", true);
+            });
+        }
+
         function searchTeacherData() {
             const loader = document.getElementById('teacher-loader');
             const container = document.getElementById('teacher-table-container');
@@ -6534,6 +6616,7 @@
                             <th>形式</th>
                             <th>範囲</th>
                             <th>結果</th>
+                            <th style="text-align: center; width: 60px;">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -6552,6 +6635,11 @@
                         <td>${item.quizType || ''}</td>
                         <td>${item.rangeInfo || ''}</td>
                         <td>${correct} / ${total} <span style="font-weight: bold; color: ${rate >= 80 ? 'var(--success)' : rate >= 50 ? 'var(--secondary)' : 'var(--error)'}; margin-left: 4px;">(${rate}%)</span></td>
+                        <td style="text-align: center;">
+                            <button class="btn-delete-record" onclick="deleteStudentHistoryRecord('${item.studentKey}', '${item.timestamp}')" title="この取り組み履歴を削除" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--error); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                                🗑️
+                            </button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 });
