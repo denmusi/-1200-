@@ -6439,10 +6439,12 @@
 
         let pendingDeleteStudentKey = null;
         let pendingDeleteTimestamp = null;
+        let pendingDeleteRow = null;
 
-        function deleteStudentHistoryRecord(studentKey, timestamp) {
+        function deleteStudentHistoryRecord(studentKey, timestamp, row) {
             pendingDeleteStudentKey = studentKey;
             pendingDeleteTimestamp = timestamp;
+            pendingDeleteRow = row;
 
             const modal = document.getElementById('history-delete-confirm-modal');
             const desc = document.getElementById('history-delete-modal-desc');
@@ -6460,6 +6462,7 @@
             if (modal) modal.style.display = 'none';
             pendingDeleteStudentKey = null;
             pendingDeleteTimestamp = null;
+            pendingDeleteRow = null;
         }
 
         function executeHistoryDelete() {
@@ -6467,6 +6470,7 @@
 
             const studentKey = pendingDeleteStudentKey;
             const timestamp = pendingDeleteTimestamp;
+            const row = pendingDeleteRow;
 
             closeHistoryDeleteModal();
 
@@ -6479,14 +6483,27 @@
                 body: JSON.stringify({
                     action: 'delete',
                     studentKey: studentKey,
-                    timestamp: timestamp
+                    timestamp: timestamp,
+                    row: row
                 })
             })
             .then(() => {
-                // キャッシュデータから該当レコードを除外
+                // キャッシュデータから該当レコードを除外 (row情報も含めてピンポイント判定)
                 cachedTeacherData = cachedTeacherData.filter(item => {
+                    if (row !== null && row !== undefined) {
+                        return !(item.studentKey === studentKey && item.timestamp === timestamp && item.row === row);
+                    }
                     return !(item.studentKey === studentKey && item.timestamp === timestamp);
                 });
+
+                // セルが削除されて上に詰められたため、同じ生徒で削除行より下にあるデータのrowインデックスを1つ減らす
+                if (row !== null && row !== undefined) {
+                    cachedTeacherData.forEach(item => {
+                        if (item.studentKey === studentKey && item.row > row) {
+                            item.row--;
+                        }
+                    });
+                }
                 
                 // UIをリアルタイムで再描画
                 searchTeacherData();
@@ -6636,7 +6653,7 @@
                         <td>${item.rangeInfo || ''}</td>
                         <td>${correct} / ${total} <span style="font-weight: bold; color: ${rate >= 80 ? 'var(--success)' : rate >= 50 ? 'var(--secondary)' : 'var(--error)'}; margin-left: 4px;">(${rate}%)</span></td>
                         <td style="text-align: center;">
-                            <button class="btn-delete-record" onclick="deleteStudentHistoryRecord('${item.studentKey}', '${item.timestamp}')" title="この取り組み履歴を削除" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--error); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+                            <button class="btn-delete-record" onclick="deleteStudentHistoryRecord('${item.studentKey}', '${item.timestamp}', ${item.row || 'null'})" title="この取り組み履歴を削除" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--error); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
                                 🗑️
                             </button>
                         </td>
