@@ -3468,6 +3468,12 @@
             }
  
             updateStudentInfoDisplay();
+
+            // 起動時の同期データ取得
+            if (studentGrade && studentClass && studentNumber) {
+                const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
+                fetchSyncDataFromServer(sKey);
+            }
         }
  
         function updateStudentInfoDisplay() {
@@ -3902,13 +3908,43 @@
                 errorMsgEl.style.display = "none";
             }
 
-            // 単語データがローカルに存在しない場合は「データ読込」へ、ある場合は「メニュー（セットアップ）」へ
-            if (wordData.length === 0) {
-                showScreen('screen-data-load');
-            } else {
-                setupWelcomeScreen();
-                showScreen('screen-setup');
+            const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
+            
+            // 同期中であることを知らせる簡易ローディング表示
+            const loginBtn = document.querySelector('.login-btn');
+            const originalBtnText = loginBtn ? loginBtn.textContent : '';
+            if (loginBtn) {
+                loginBtn.disabled = true;
+                loginBtn.textContent = "同期中...";
             }
+
+            // 同期処理を行ってから画面遷移する
+            fetchSyncDataFromServer(sKey).then(() => {
+                if (loginBtn) {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = originalBtnText;
+                }
+                // 単語データがローカルに存在しない場合は「データ読込」へ、ある場合は「メニュー（セットアップ）」へ
+                if (wordData.length === 0) {
+                    showScreen('screen-data-load');
+                } else {
+                    setupWelcomeScreen();
+                    showScreen('screen-setup');
+                }
+            }).catch((err) => {
+                console.warn(err);
+                if (loginBtn) {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = originalBtnText;
+                }
+                // エラーになってもオフラインとみなして画面は進める
+                if (wordData.length === 0) {
+                    showScreen('screen-data-load');
+                } else {
+                    setupWelcomeScreen();
+                    showScreen('screen-setup');
+                }
+            });
         }
 
         function validateStudentInfoBeforeStart() {
@@ -3968,6 +4004,7 @@
 
         function saveBookmarks() {
             localStorage.setItem('vocab_bookmarks', JSON.stringify(Array.from(bookmarks)));
+            uploadBookmarksToServer();
         }
 
         function saveWrongCounts() {
@@ -3976,6 +4013,96 @@
 
         function saveWordNotes() {
             localStorage.setItem('vocab_word_notes', JSON.stringify(wordNotes));
+            uploadWordNotesToServer();
+        }
+
+        // --- Cloud Sync Helper Functions ---
+        function getStudentKey() {
+            if (!studentGrade || !studentClass || !studentNumber) return null;
+            return `${studentGrade}-${studentClass}.${studentNumber}`;
+        }
+
+        function uploadBookmarksToServer() {
+            const sKey = getStudentKey();
+            if (!sKey || sKey === "0-0.0" || !GAS_WEBAPP_URL) return;
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify({
+                    action: 'sync_bookmarks',
+                    studentKey: sKey,
+                    bookmarks: Array.from(bookmarks)
+                })
+            })
+            .catch(err => console.warn("Failed to upload bookmarks to server:", err));
+        }
+
+        function uploadWordNotesToServer() {
+            const sKey = getStudentKey();
+            if (!sKey || sKey === "0-0.0" || !GAS_WEBAPP_URL) return;
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify({
+                    action: 'sync_word_notes',
+                    studentKey: sKey,
+                    wordNotes: wordNotes
+                })
+            })
+            .catch(err => console.warn("Failed to upload word notes to server:", err));
+        }
+
+        function fetchSyncDataFromServer(sKey) {
+            if (!sKey || sKey === "0-0.0" || !GAS_WEBAPP_URL) return Promise.resolve();
+
+            const url = `${GAS_WEBAPP_URL}?action=get_sync_data&studentKey=${encodeURIComponent(sKey)}`;
+            return fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.status === 'success') {
+                        let hasChanges = false;
+
+                        // 1. ブックマークのマージ (和集合)
+                        if (Array.isArray(data.bookmarks)) {
+                            const beforeCount = bookmarks.size;
+                            data.bookmarks.forEach(id => bookmarks.add(id));
+                            if (bookmarks.size !== beforeCount) {
+                                hasChanges = true;
+                            }
+                        }
+
+                        // 2. 単語メモのマージ (サーバー側データ優先)
+                        if (data.wordNotes && typeof data.wordNotes === 'object') {
+                            for (const wordId in data.wordNotes) {
+                                if (data.wordNotes.hasOwnProperty(wordId)) {
+                                    if (wordNotes[wordId] !== data.wordNotes[wordId]) {
+                                        wordNotes[wordId] = data.wordNotes[wordId];
+                                        hasChanges = true;
+                                    }
+                                }
+                            }
+                        }
+
+                        // 3. マージ後のローカル保存と必要ならサーバーへの再同期
+                        if (hasChanges) {
+                            localStorage.setItem('vocab_bookmarks', JSON.stringify(Array.from(bookmarks)));
+                            localStorage.setItem('vocab_word_notes', JSON.stringify(wordNotes));
+                            
+                            // サーバーと不一致分があれば、即座にサーバー側も合体後データに更新
+                            uploadBookmarksToServer();
+                            uploadWordNotesToServer();
+                        }
+                    }
+                })
+                .catch(err => console.warn("Failed to download sync data from server:", err));
         }
 
         // --- In-Quiz Inline Note Editing Control ---
