@@ -4077,10 +4077,11 @@
                         if (!isMigrated) {
                             // 【初回移行処理】ローカルの既存データを消さないように合体（マージ）してサーバーに反映する
                             
-                            // 1. ブックマークの合体（マージ）
+                            // 1. ブックマークの合体（マージ・型キャスト付き）
                             if (Array.isArray(data.bookmarks)) {
                                 const beforeCount = bookmarks.size;
-                                data.bookmarks.forEach(id => bookmarks.add(id));
+                                // 文字列型で届いた場合を考慮して必ず数値(Number)にキャストして追加
+                                data.bookmarks.forEach(id => bookmarks.add(Number(id)));
                                 // サーバーとローカルに差分がある場合は同期が必要
                                 if (bookmarks.size !== beforeCount || data.bookmarks.length !== bookmarks.size) {
                                     hasLocalChanges = true;
@@ -4119,7 +4120,9 @@
                             // 1. ブックマークの同期
                             if (Array.isArray(data.bookmarks)) {
                                 if (data.bookmarks.length > 0) {
-                                    const serverSet = new Set(data.bookmarks);
+                                    // サーバー側IDを数値型に統一
+                                    const serverSet = new Set(data.bookmarks.map(id => Number(id)));
+                                    // 差異があるか比較
                                     let bookmarkDiff = (bookmarks.size !== serverSet.size);
                                     if (!bookmarkDiff) {
                                         for (const id of bookmarks) {
@@ -4169,6 +4172,19 @@
                         if (hasLocalChanges) {
                             localStorage.setItem('vocab_bookmarks', JSON.stringify(Array.from(bookmarks)));
                             localStorage.setItem('vocab_word_notes', JSON.stringify(wordNotes));
+                            
+                            // 💡非同期でロード完了した瞬間に、表示中のUI画面を自動で再描画する
+                            const activeScreen = document.querySelector('.screen[style*="display: block"]');
+                            if (activeScreen) {
+                                const screenId = activeScreen.id;
+                                if (screenId === 'screen-wordbook') {
+                                    if (typeof renderWordbookList === 'function') renderWordbookList();
+                                } else if (screenId === 'screen-bookmarks') {
+                                    if (typeof renderBookmarks === 'function') renderBookmarks();
+                                } else if (screenId === 'screen-weak-words') {
+                                    if (typeof renderWeakWords === 'function') renderWeakWords();
+                                }
+                            }
                         }
                         
                         if (hasServerChanges) {
