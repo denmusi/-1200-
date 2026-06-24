@@ -4063,42 +4063,117 @@
         function fetchSyncDataFromServer(sKey) {
             if (!sKey || sKey === "0-0.0" || !GAS_WEBAPP_URL) return Promise.resolve();
 
+            // 初回移行（移行前にローカルに登録されていたデータをGASに反映する）フラグの確認
+            const isMigrated = localStorage.getItem('vocab_sync_migrated') === 'true';
+
             const url = `${GAS_WEBAPP_URL}?action=get_sync_data&studentKey=${encodeURIComponent(sKey)}`;
             return fetch(url)
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.status === 'success') {
-                        let hasChanges = false;
+                        let hasLocalChanges = false;
+                        let hasServerChanges = false;
 
-                        // 1. ブックマークのマージ (和集合)
-                        if (Array.isArray(data.bookmarks)) {
-                            const beforeCount = bookmarks.size;
-                            data.bookmarks.forEach(id => bookmarks.add(id));
-                            if (bookmarks.size !== beforeCount) {
-                                hasChanges = true;
+                        if (!isMigrated) {
+                            // 【初回移行処理】ローカルの既存データを消さないように合体（マージ）してサーバーに反映する
+                            
+                            // 1. ブックマークの合体（マージ）
+                            if (Array.isArray(data.bookmarks)) {
+                                const beforeCount = bookmarks.size;
+                                data.bookmarks.forEach(id => bookmarks.add(id));
+                                // サーバーとローカルに差分がある場合は同期が必要
+                                if (bookmarks.size !== beforeCount || data.bookmarks.length !== bookmarks.size) {
+                                    hasLocalChanges = true;
+                                    hasServerChanges = true;
+                                }
+                            } else if (bookmarks.size > 0) {
+                                hasServerChanges = true;
                             }
-                        }
 
-                        // 2. 単語メモのマージ (サーバー側データ優先)
-                        if (data.wordNotes && typeof data.wordNotes === 'object') {
-                            for (const wordId in data.wordNotes) {
-                                if (data.wordNotes.hasOwnProperty(wordId)) {
-                                    if (wordNotes[wordId] !== data.wordNotes[wordId]) {
-                                        wordNotes[wordId] = data.wordNotes[wordId];
-                                        hasChanges = true;
+                            // 2. 単語メモの合体（マージ）
+                            if (data.wordNotes && typeof data.wordNotes === 'object') {
+                                let noteChanged = false;
+                                for (const wordId in data.wordNotes) {
+                                    if (data.wordNotes.hasOwnProperty(wordId)) {
+                                        if (wordNotes[wordId] !== data.wordNotes[wordId]) {
+                                            wordNotes[wordId] = data.wordNotes[wordId];
+                                            noteChanged = true;
+                                        }
                                     }
+                                }
+                                if (noteChanged || Object.keys(wordNotes).length !== Object.keys(data.wordNotes).length) {
+                                    hasLocalChanges = true;
+                                    hasServerChanges = true;
+                                }
+                            } else if (Object.keys(wordNotes).length > 0) {
+                                hasServerChanges = true;
+                            }
+
+                            // 移行完了フラグを立てて保存
+                            localStorage.setItem('vocab_sync_migrated', 'true');
+                            hasLocalChanges = true;
+
+                        } else {
+                            // 【2回目以降の通常同期】サーバー優先の上書き型同期（削除も正しく反映）
+                            
+                            // 1. ブックマークの同期
+                            if (Array.isArray(data.bookmarks)) {
+                                if (data.bookmarks.length > 0) {
+                                    const serverSet = new Set(data.bookmarks);
+                                    let bookmarkDiff = (bookmarks.size !== serverSet.size);
+                                    if (!bookmarkDiff) {
+                                        for (const id of bookmarks) {
+                                            if (!serverSet.has(id)) {
+                                                bookmarkDiff = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (bookmarkDiff) {
+                                        bookmarks = serverSet;
+                                        hasLocalChanges = true;
+                                    }
+                                } else if (bookmarks.size > 0) {
+                                    hasServerChanges = true;
+                                }
+                            }
+
+                            // 2. 単語メモの同期
+                            if (data.wordNotes && typeof data.wordNotes === 'object') {
+                                const serverKeys = Object.keys(data.wordNotes);
+                                if (serverKeys.length > 0) {
+                                    let noteDiff = false;
+                                    const localKeys = Object.keys(wordNotes);
+                                    if (localKeys.length !== serverKeys.length) {
+                                        noteDiff = true;
+                                    } else {
+                                        for (const key of serverKeys) {
+                                            if (wordNotes[key] !== data.wordNotes[key]) {
+                                                noteDiff = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (noteDiff) {
+                                        wordNotes = data.wordNotes;
+                                        hasLocalChanges = true;
+                                    }
+                                } else if (Object.keys(wordNotes).length > 0) {
+                                    hasServerChanges = true;
                                 }
                             }
                         }
 
-                        // 3. マージ後のローカル保存と必要ならサーバーへの再同期
-                        if (hasChanges) {
+                        // 3. ローカルおよびサーバー保存の適用
+                        if (hasLocalChanges) {
                             localStorage.setItem('vocab_bookmarks', JSON.stringify(Array.from(bookmarks)));
                             localStorage.setItem('vocab_word_notes', JSON.stringify(wordNotes));
-                            
-                            // サーバーと不一致分があれば、即座にサーバー側も合体後データに更新
-                            uploadBookmarksToServer();
-                            uploadWordNotesToServer();
+                        }
+                        
+                        if (hasServerChanges) {
+                            if (bookmarks.size > 0) uploadBookmarksToServer();
+                            if (Object.keys(wordNotes).length > 0) uploadWordNotesToServer();
                         }
                     }
                 })
