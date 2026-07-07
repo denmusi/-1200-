@@ -2540,9 +2540,117 @@
         [data-theme="light"] .my-rank-summary-value {
             color: #4f46e5;
         }
+        /* 配信テスト用ボタン・ポップアップのスタイル */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
+            50% { transform: scale(1.02); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5); }
+            100% { transform: scale(1); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); }
+        }
+
+        .test-popup-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .test-popup-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 450px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .test-list-item {
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-list-item:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .test-item-info {
+            flex-grow: 1;
+        }
+
+        .test-item-title {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .test-item-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .test-badge-status {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-not-started { background: rgba(99, 102, 241, 0.15); color: var(--primary); }
+        .status-started { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .status-completed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+
+        .active-tab {
+            border-bottom: 3px solid var(--primary) !important;
+            color: var(--text-main) !important;
+        }
     </style>
 </head>
 <body>
+
+    <!-- 先生からの配信テスト用ポップアップ一覧 -->
+    <div id="test-list-popup" class="test-popup-overlay" style="display: none;">
+        <div class="test-popup-content">
+            <h3 style="margin-top:0; margin-bottom:16px;">📝 配信されているテスト</h3>
+            <div id="test-list-container" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
+                <!-- 動的にテストが流し込まれる -->
+            </div>
+            <button class="btn btn-secondary" onclick="closeTestListPopup()">閉じる</button>
+        </div>
+    </div>
+
+    <!-- テスト開始確認ポップアップ -->
+    <div id="test-confirm-popup" class="test-popup-overlay" style="display: none;">
+        <div class="test-popup-content">
+            <h3 id="test-confirm-title" style="margin-top:0; margin-bottom:12px;">テストを開始しますか？</h3>
+            <p id="test-confirm-meta" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px;"></p>
+            <div id="test-confirm-warning" style="display:none; padding:12px; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); color:#ef4444; border-radius:8px; font-size:0.8rem; margin-bottom:20px; font-weight:600; text-align:left;">
+                ⚠️ 警告: このテストは「やり直し不可」です。開始した後にブラウザをリロードしたり閉じたりすると、再受験できなくなります。
+            </div>
+            <div style="display:flex; gap:12px;">
+                <button class="btn btn-secondary" onclick="closeTestConfirmPopup()" style="flex:1;">キャンセル</button>
+                <button class="btn btn-primary" id="btn-start-test-action" style="flex:1;">開始する</button>
+            </div>
+        </div>
+    </div>
 
     <div class="container" id="app-container">
         
@@ -2604,6 +2712,14 @@
             </button>
 
             <h1 style="margin-top: 40px;">ターゲット1200クイズメーカー</h1>
+            
+            <!-- 配信テスト通知ボタン (配信中のみ表示) -->
+            <div id="test-alert-container" style="display: none; margin: 8px 0 16px 0; text-align: center;">
+                <button class="btn btn-secondary" id="btn-test-alert" onclick="openTestListPopup()" style="width: 100%; max-width: 400px; padding: 12px; border: 2px solid var(--primary); background: rgba(99, 102, 241, 0.1); color: var(--primary); font-weight: bold; border-radius: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); animation: pulse 2s infinite;">
+                    📝 先生からの配信テストがあります
+                </button>
+            </div>
+
             <p class="subtitle" style="margin-bottom: 24px;">出題範囲とオプションを設定して開始してください</p>
 
             <!-- Range Pickers -->
@@ -2966,7 +3082,7 @@
                 </div>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom: 24px;">
+            <div id="result-normal-actions" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom: 24px;">
                 <button class="btn btn-primary" id="btn-review-mistakes" onclick="startReviewQuiz()">間違えた問題の復習</button>
                 <button class="btn btn-secondary" onclick="bookmarkAllMistakes()" id="btn-bookmark-all-mistakes">間違えた単語を一括登録</button>
             </div>
@@ -2979,7 +3095,7 @@
                 <button id="btn-gas-resubmit" class="btn btn-secondary" onclick="resubmitQuizData()" style="margin-top: 8px; display: none; min-height: 32px; padding: 4px 12px; font-size: 0.8rem; width: auto; margin-left: auto; margin-right: auto;">再送信する</button>
             </div>
             
-            <button class="btn btn-primary" onclick="restartQuizSession()" style="margin-bottom: 12px; width: 100%;">もう一度</button>
+            <button class="btn btn-primary" id="btn-result-restart" onclick="restartQuizSession()" style="margin-bottom: 12px; width: 100%;">もう一度</button>
             <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
 
             <h3 style="margin: 24px 0 12px 0; font-size:1.1rem; color:var(--text-main); font-weight:700;">出題結果プレビュー</h3>
@@ -3096,58 +3212,195 @@
 
         <!-- SCREEN 8: Teacher Portal Screen -->
         <div id="screen-teacher-portal" class="screen">
-            <div class="list-header-bar" style="justify-content: space-between; width: 100%;">
+            <div class="list-header-bar" style="justify-content: space-between; width: 100%; margin-bottom: 15px;">
                 <div style="display: flex; align-items: center; gap: 16px;">
                     <button class="btn-icon-circle" onclick="exitToHome()" title="ホームに戻る">
                         <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     </button>
-                    <h1>生徒取り組み確認</h1>
+                    <h1>先生用ポータル</h1>
                 </div>
                 <a href="https://docs.google.com/spreadsheets/d/1ySVEcSNq4_3HXp9PkmLBVCeB3KDvWljqT0zQiaiBjl0/edit?usp=sharing" target="_blank" class="btn btn-secondary" style="margin: 0; padding: 8px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; text-decoration: none; border-radius: 20px;">
                     📊 スプレッドシートを開く
                 </a>
             </div>
-            <p class="subtitle" style="margin-bottom: 20px;">学年、クラス、出席番号で絞り込んで検索できます（空欄で全員表示）</p>
 
-            <!-- Search Filters -->
-            <div class="row" style="margin-bottom: 18px; display: flex; gap: 12px;">
-                <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="search-grade">学年</label>
-                    <input type="number" id="search-grade" min="1" max="9" placeholder="例: 2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <!-- タブ切り替えボタン -->
+            <div style="display: flex; border-bottom: 2px solid var(--border-color); margin-bottom: 20px;">
+                <button id="tab-btn-records" class="btn active-tab" onclick="switchTeacherTab('records')" style="flex:1; background:none; border:none; color:var(--text-main); font-weight:bold; padding:12px; font-size:0.95rem; cursor:pointer; transition:0.2s; border-radius: 0;">
+                    👤 生徒取り組み履歴
+                </button>
+                <button id="tab-btn-tests" class="btn" onclick="switchTeacherTab('tests')" style="flex:1; background:none; border:none; color:var(--text-muted); font-weight:bold; padding:12px; font-size:0.95rem; cursor:pointer; transition:0.2s; border-radius: 0;">
+                    📝 テストの配信・管理
+                </button>
+            </div>
+
+            <!-- TAB 1: 生徒取り組み履歴 -->
+            <div id="teacher-tab-records-content">
+                <p class="subtitle" style="margin-bottom: 20px;">学年、クラス、出席番号で絞り込んで検索できます（空欄で全員表示）</p>
+
+                <!-- Search Filters -->
+                <div class="row" style="margin-bottom: 18px; display: flex; gap: 12px;">
+                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                        <label for="search-grade">学年</label>
+                        <input type="number" id="search-grade" min="1" max="9" placeholder="例: 2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    </div>
+                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                        <label for="search-class">組</label>
+                        <input type="number" id="search-class" min="1" max="99" placeholder="例: 1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    </div>
+                    <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                        <label for="search-number">出席番号</label>
+                        <input type="number" id="search-number" min="1" max="999" placeholder="例: 5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    </div>
                 </div>
-                <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="search-class">組</label>
-                    <input type="number" id="search-class" min="1" max="99" placeholder="例: 1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+                <!-- Sort Selector -->
+                <div class="sort-selector-container" style="margin-top: 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: flex-start; gap: 10px; background: rgba(255, 255, 255, 0.02); padding: 8px 14px; border-radius: 12px; border: 1px solid var(--border);">
+                    <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">並び順:</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" id="btn-sort-number" class="btn btn-primary active" onclick="setTeacherSortOrder('number')" style="padding: 6px 14px; font-size: 0.85rem; min-height: auto; width: auto; margin: 0; border-radius: 8px;">👤 出席番号順</button>
+                        <button type="button" id="btn-sort-newest" class="btn btn-secondary" onclick="setTeacherSortOrder('newest')" style="padding: 6px 14px; font-size: 0.85rem; min-height: auto; width: auto; margin: 0; border-radius: 8px;">📅 新着順</button>
+                    </div>
                 </div>
-                <div class="input-group" style="flex: 1; margin-bottom: 0;">
-                    <label for="search-number">出席番号</label>
-                    <input type="number" id="search-number" min="1" max="999" placeholder="例: 5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+
+                <div class="row" style="gap: 12px; margin-bottom: 24px; display: flex; margin-top: 18px;">
+                    <button class="btn btn-primary" onclick="searchTeacherData()" style="flex: 2; margin: 0; min-height: 50px; font-size: 1rem;">🔍 検索する</button>
+                    <button class="btn btn-secondary" onclick="toggleAllAccordions()" id="btn-accordion-toggle" style="flex: 1; margin: 0; min-height: 50px; font-size: 1rem; border-color: var(--primary); color: var(--primary);" disabled>🔓 全て展開</button>
+                </div>
+
+                <!-- Loader Spinner -->
+                <div id="teacher-loader" style="display: none; text-align: center; margin: 40px 0;">
+                    <span class="spinner" style="display:inline-block; width:36px; height:36px; border:3.5px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle;"></span>
+                    <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.95rem;">取り組みデータを取得中...</p>
+                </div>
+
+                <!-- Accordion Result Container -->
+                <div id="teacher-table-container" style="display: none; margin-bottom: 24px;">
+                    <div id="teacher-accordion-list"></div>
                 </div>
             </div>
 
-            <!-- Sort Selector -->
-            <div class="sort-selector-container" style="margin-top: 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: flex-start; gap: 10px; background: rgba(255, 255, 255, 0.02); padding: 8px 14px; border-radius: 12px; border: 1px solid var(--border);">
-                <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">並び順:</span>
-                <div style="display: flex; gap: 6px;">
-                    <button type="button" id="btn-sort-number" class="btn btn-primary active" onclick="setTeacherSortOrder('number')" style="padding: 6px 14px; font-size: 0.85rem; min-height: auto; width: auto; margin: 0; border-radius: 8px;">👤 出席番号順</button>
-                    <button type="button" id="btn-sort-newest" class="btn btn-secondary" onclick="setTeacherSortOrder('newest')" style="padding: 6px 14px; font-size: 0.85rem; min-height: auto; width: auto; margin: 0; border-radius: 8px;">📅 新着順</button>
+            <!-- TAB 2: テストの配信・管理 -->
+            <div id="teacher-tab-tests-content" style="display: none;">
+                <!-- 1. 新規テスト配信フォーム -->
+                <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:20px; margin-bottom:24px;">
+                    <h3 style="margin-top:0; margin-bottom:16px;">➕ 新しいテストを配信する</h3>
+                    
+                    <div class="row" style="margin-bottom:12px; display:flex; gap:12px;">
+                        <div class="input-group" style="flex:2; margin-bottom:0;">
+                            <label for="test-input-name">テスト名</label>
+                            <input type="text" id="test-input-name" placeholder="例: 第1回単語テスト">
+                        </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-class">対象クラス</label>
+                            <input type="text" id="test-input-class" placeholder="例: 1-1">
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:12px; display:flex; gap:12px;">
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-range-from">開始No</label>
+                            <input type="number" id="test-input-range-from" min="1" max="1200" placeholder="1">
+                        </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-range-to">終了No</label>
+                            <input type="number" id="test-input-range-to" min="1" max="1200" placeholder="100">
+                        </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-count">問題数</label>
+                            <input type="number" id="test-input-count" value="10" min="1" max="100">
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:12px; display:flex; gap:12px;">
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-format">出題形式</label>
+                            <select id="test-input-format" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                                <option value="en-ja">英単語 → 日本語</option>
+                                <option value="ja-en">日本語 → 英単語</option>
+                                <option value="ja-en-spelling">日本語 → 英語スペル</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-order">出題順序</label>
+                            <select id="test-input-order" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                                <option value="random">ランダム（生徒ごとに異なる）</option>
+                                <option value="fixed">全員同じ（問題・順序固定）</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:16px; display:flex; gap:12px;">
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-retry">やり直し設定</label>
+                            <select id="test-input-retry" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                                <option value="allow">やり直し可能（完了まで何度でも再挑戦可）</option>
+                                <option value="deny">やり直し不可（リロードしたら0点 / 1回きり）</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-deadline">期限日時</label>
+                            <input type="datetime-local" id="test-input-deadline" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="deliverNewTestFromUI()" style="margin:0; width:100%; min-height:50px;">🚀 テストを配信する</button>
+                    <div id="test-delivery-msg" style="margin-top:10px; font-weight:600; text-align:center; display:none;"></div>
+                </div>
+
+                <!-- 2. 配信済みテスト一覧 -->
+                <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:20px; margin-bottom:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <h3 style="margin:0;">📋 配信済みのテスト一覧</h3>
+                        <button class="btn btn-secondary" onclick="reloadActiveTestsForTeacher()" style="margin:0; font-size:0.8rem; padding:6px 12px; min-height:auto;">🔄 更新</button>
+                    </div>
+                    
+                    <div id="teacher-test-list-container" style="max-height: 250px; overflow-y: auto;">
+                        <!-- 動的に配信済みテストが並ぶ -->
+                        <p style="text-align:center; color:var(--text-muted); padding:20px;">読み込み中...</p>
+                    </div>
+                </div>
+
+                <!-- 3. 受験結果詳細 (特定のテストを選択したときに表示) -->
+                <div id="test-results-detail-panel" style="display:none; background:var(--bg-card); border:1px solid var(--border-color); border-radius:16px; padding:20px; margin-bottom: 24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:12px;">
+                        <div>
+                            <h3 id="detail-test-name" style="margin:0; color:var(--primary);">テスト結果詳細</h3>
+                            <span id="detail-test-meta" style="font-size:0.8rem; color:var(--text-muted);">クラス: - | 範囲: - | 受験数: -</span>
+                        </div>
+                        <button class="btn btn-secondary" onclick="closeTestDetailPanel()" style="margin:0; font-size:0.8rem; padding:6px 12px; min-height:auto;">閉じる</button>
+                    </div>
+
+                    <!-- 弱点単語 (正答率50%以下) -->
+                    <div style="margin-bottom:20px; padding:12px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.15); border-radius:12px;">
+                        <h4 style="margin-top:0; margin-bottom:8px; color:#ef4444; font-size:0.95rem; display:flex; align-items:center; gap:6px;">
+                            <span>⚠️</span> 弱点克服ターゲット (全体の正答率が50%以下の単語)
+                        </h4>
+                        <div id="detail-weak-words-container" style="max-height: 120px; overflow-y: auto; font-size:0.85rem; line-height:1.5;">
+                            <!-- 正答率50%以下の単語一覧 -->
+                            <p style="color:var(--text-muted); margin:0;">受験者が解答を送信すると、ここに自動抽出されます。</p>
+                        </div>
+                    </div>
+
+                    <!-- 受験者一覧表 -->
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;">
+                            <thead>
+                                <tr style="border-bottom:2px solid var(--border-color); color:var(--text-muted);">
+                                    <th style="padding:10px 8px;">出席番号</th>
+                                    <th style="padding:10px 8px;">ニックネーム</th>
+                                    <th style="padding:10px 8px;">得点</th>
+                                    <th style="padding:10px 8px;">ステータス</th>
+                                    <th style="padding:10px 8px;">受験日時</th>
+                                </tr>
+                            </thead>
+                            <tbody id="test-results-table-body">
+                                <!-- 受験者データが動的に並ぶ -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-
-            <div class="row" style="gap: 12px; margin-bottom: 24px; display: flex; margin-top: 18px;">
-                <button class="btn btn-primary" onclick="searchTeacherData()" style="flex: 2; margin: 0; min-height: 50px; font-size: 1rem;">🔍 検索する</button>
-                <button class="btn btn-secondary" onclick="toggleAllAccordions()" id="btn-accordion-toggle" style="flex: 1; margin: 0; min-height: 50px; font-size: 1rem; border-color: var(--primary); color: var(--primary);" disabled>🔓 全て展開</button>
-            </div>
-
-            <!-- Loader Spinner -->
-            <div id="teacher-loader" style="display: none; text-align: center; margin: 40px 0;">
-                <span class="spinner" style="display:inline-block; width:36px; height:36px; border:3.5px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle;"></span>
-                <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.95rem;">取り組みデータを取得中...</p>
-            </div>
-
-            <!-- Accordion Result Container -->
-            <div id="teacher-table-container" style="display: none; margin-bottom: 24px;">
-                <div id="teacher-accordion-list"></div>
             </div>
 
             <!-- Bug Reports & Feature Requests Section (For Teachers) -->
@@ -3259,6 +3512,12 @@
         let studentClass = "";
         let studentNumber = "";
         let lastSubmissionData = null; // 再送信用の直前送信データ保持用
+
+        // 小テスト機能用のグローバル状態変数
+        let activeTests = [];         // 生徒向けの現在有効なテストリスト
+        let currentActiveTest = null;  // 受験中のテストオブジェクト
+        let isTestingMode = false;    // テストモード中フラグ
+        let activeTeacherTests = [];  // 先生画面用の配信済みテストリスト
 
         let bookmarks = new Set();  // Word IDs that are manually bookmarked
         let wrongCounts = {};      // Word IDs cumulative mistakes count: { wordId: count }
@@ -3472,7 +3731,12 @@
             // 起動時の同期データ取得
             if (studentGrade && studentClass && studentNumber) {
                 const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
-                fetchSyncDataFromServer(sKey);
+                fetchSyncDataFromServer(sKey).then(() => {
+                    fetchActiveTestsForStudent();
+                }).catch(err => {
+                    console.warn("Startup sync failed, trying tests anyway:", err);
+                    fetchActiveTestsForStudent();
+                });
             }
         }
  
@@ -3924,6 +4188,10 @@
                     loginBtn.disabled = false;
                     loginBtn.textContent = originalBtnText;
                 }
+                
+                // 配信テスト一覧をフェッチする
+                fetchActiveTestsForStudent();
+
                 // 単語データがローカルに存在しない場合は「データ読込」へ、ある場合は「メニュー（セットアップ）」へ
                 if (wordData.length === 0) {
                     showScreen('screen-data-load');
@@ -3937,6 +4205,10 @@
                     loginBtn.disabled = false;
                     loginBtn.textContent = originalBtnText;
                 }
+                
+                // 失敗時もテスト一覧をフェッチ
+                fetchActiveTestsForStudent();
+
                 // エラーになってもオフラインとみなして画面は進める
                 if (wordData.length === 0) {
                     showScreen('screen-data-load');
@@ -4313,6 +4585,13 @@
         }
 
         function exitToHome() {
+            // テストモードの解除とフック削除
+            if (isTestingMode) {
+                isTestingMode = false;
+                currentActiveTest = null;
+                window.removeEventListener('beforeunload', handleTestBeforeUnload);
+            }
+
             // Reset teacher portal forms
             const passInput = document.getElementById('teacher-password-input');
             const errorEl = document.getElementById('teacher-login-error');
@@ -4332,6 +4611,595 @@
             window.scrollTo(0, 0);
 
             showScreen('screen-setup');
+        }
+
+        function handleTestBeforeUnload(e) {
+            e.preventDefault();
+            e.returnValue = "警告: テストが未完了です。このままページを離れると、やり直し不可のテストであるため再受験ができなくなります。";
+            return e.returnValue;
+        }
+
+        // 生徒側のテスト取得と処理
+        function fetchActiveTestsForStudent() {
+            if (!studentGrade || !studentClass || !studentNumber) return;
+            const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
+            const url = `${sheetAppUrl}?action=get_active_tests&studentKey=${encodeURIComponent(sKey)}`;
+            
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && Array.isArray(data.tests)) {
+                        activeTests = data.tests;
+                        updateTestAlertUI();
+                    }
+                })
+                .catch(err => console.error("Failed to fetch active tests:", err));
+        }
+
+        function updateTestAlertUI() {
+            const alertContainer = document.getElementById('test-delivery-alert');
+            const alertText = document.getElementById('test-delivery-alert-text');
+            if (!alertContainer) return;
+
+            if (activeTests.length > 0) {
+                alertContainer.style.display = 'flex';
+                if (alertText) {
+                    alertText.innerText = `🔔 先生からテストが届いています！ (${activeTests.length}件)`;
+                }
+            } else {
+                alertContainer.style.display = 'none';
+            }
+        }
+
+        function openTestListPopup() {
+            const popup = document.getElementById('test-list-popup');
+            const container = document.getElementById('test-list-container');
+            if (!popup || !container) return;
+
+            container.innerHTML = '';
+            if (activeTests.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:20px 0;">現在配信されているテストはありません。</p>';
+            } else {
+                activeTests.forEach(test => {
+                    const deadlineDate = test.deadline ? new Date(test.deadline) : null;
+                    const formattedDeadline = deadlineDate ? `${deadlineDate.getMonth() + 1}/${deadlineDate.getDate()} ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}` : '期限なし';
+                    
+                    const isRetryDenied = test.allowRetry === 'deny';
+                    const retryLabel = isRetryDenied ? '<span class="test-badge badge-deny">やり直し不可</span>' : '<span class="test-badge badge-allow">やり直し可能</span>';
+
+                    const item = document.createElement('div');
+                    item.className = 'test-list-item';
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                            <strong style="font-size:1.05rem;">${test.testName}</strong>
+                            ${retryLabel}
+                        </div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
+                            <span>範囲: No. ${test.range}</span>
+                            <span>形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'} / 問題数: ${test.questionCount}問</span>
+                            <span>提出期限: ${formattedDeadline}</span>
+                        </div>
+                        <button class="btn btn-primary" style="width:100%; padding:10px; font-size:0.9rem;" onclick="showTestConfirm('${test.testId}')">テストを受ける</button>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+            popup.style.display = 'flex';
+        }
+
+        function closeTestListPopup() {
+            const popup = document.getElementById('test-list-popup');
+            if (popup) popup.style.display = 'none';
+        }
+
+        let pendingTestObj = null;
+
+        function showTestConfirm(testId) {
+            const test = activeTests.find(t => t.testId === testId);
+            if (!test) return;
+
+            pendingTestObj = test;
+            closeTestListPopup();
+
+            const popup = document.getElementById('test-confirm-popup');
+            const meta = document.getElementById('test-confirm-meta');
+            const warning = document.getElementById('test-confirm-warning');
+            const startBtn = document.getElementById('btn-start-test-action');
+
+            if (!popup) return;
+
+            if (meta) {
+                meta.innerHTML = `
+                    <strong>テスト名: ${test.testName}</strong><br>
+                    範囲: No. ${test.range} (${test.questionCount}問)<br>
+                    形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'}
+                `;
+            }
+
+            if (warning) {
+                warning.style.display = (test.allowRetry === 'deny') ? 'block' : 'none';
+            }
+
+            if (startBtn) {
+                startBtn.onclick = startTestNow;
+            }
+
+            popup.style.display = 'flex';
+        }
+
+        function closeTestConfirmPopup() {
+            const popup = document.getElementById('test-confirm-popup');
+            if (popup) popup.style.display = 'none';
+            pendingTestObj = null;
+        }
+
+        function startTestNow() {
+            if (!pendingTestObj) return;
+            const test = pendingTestObj;
+            const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
+
+            // やり直し不可のテストの場合、不正受験防止のため開始時にGASにフラグを立てる
+            if (test.allowRetry === 'deny') {
+                const url = `${sheetAppUrl}?action=start_test&testId=${encodeURIComponent(test.testId)}&studentKey=${encodeURIComponent(sKey)}`;
+                
+                // ロード表示
+                const startBtn = document.getElementById('btn-start-test-action');
+                const origText = startBtn ? startBtn.textContent : '';
+                if (startBtn) {
+                    startBtn.disabled = true;
+                    startBtn.textContent = "準備中...";
+                }
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (startBtn) {
+                            startBtn.disabled = false;
+                            startBtn.textContent = origText;
+                        }
+                        if (data.success) {
+                            closeTestConfirmPopup();
+                            isTestingMode = true;
+                            currentActiveTest = test;
+                            setupTestQuizQuestions(test);
+                        } else {
+                            alert(data.message || "すでにこのテストは開始されているか、受験済みの可能性があります。");
+                            closeTestConfirmPopup();
+                            fetchActiveTestsForStudent();
+                        }
+                    })
+                    .catch(err => {
+                        if (startBtn) {
+                            startBtn.disabled = false;
+                            startBtn.textContent = origText;
+                        }
+                        console.error("Failed to start test:", err);
+                        alert("通信エラーが発生しました。ネットワーク接続を確認し、もう一度お試しください。");
+                    });
+            } else {
+                // やり直し可能テストはローカルだけでそのまま開始
+                closeTestConfirmPopup();
+                isTestingMode = true;
+                currentActiveTest = test;
+                setupTestQuizQuestions(test);
+            }
+        }
+
+        function setupTestQuizQuestions(testObj) {
+            const parts = testObj.range.split('-');
+            const fromNo = parseInt(parts[0], 10) || 1;
+            const toNo = parseInt(parts[1], 10) || 1200;
+            const rangeWords = wordData.filter(w => w.id >= fromNo && w.id <= toNo);
+
+            if (rangeWords.length === 0) {
+                alert("指定範囲に有効な単語がありませんでした。");
+                isTestingMode = false;
+                currentActiveTest = null;
+                return;
+            }
+
+            let pool = [];
+            // 出題順序 (全員同じ: fixed, ランダム: random)
+            if (testObj.orderType === 'fixed' && Array.isArray(testObj.selectedWords) && testObj.selectedWords.length > 0) {
+                const wordMap = {};
+                wordData.forEach(w => { wordMap[w.id] = w; });
+                testObj.selectedWords.forEach(id => {
+                    if (wordMap[id]) {
+                        pool.push(wordMap[id]);
+                    }
+                });
+            } else {
+                // シャッフルして指定問題数分を抽出
+                const shuffled = [...rangeWords].sort(() => Math.random() - 0.5);
+                pool = shuffled.slice(0, Math.min(testObj.questionCount, shuffled.length));
+            }
+
+            currentSessionPool = [...pool];
+            
+            // `loadQuizQuestion` は `.pop()` するので、
+            // 固定順序で先頭から出題するために配列をあらかじめ反転させてコピーする
+            if (testObj.orderType === 'fixed') {
+                quizQueue = [...pool].reverse();
+            } else {
+                quizQueue = [...pool];
+            }
+
+            quizIndex = 0;
+            correctCount = 0;
+            totalPoints = 0;
+            quizHistory = [];
+
+            isInfiniteMode = false;
+            targetQuestionCount = pool.length;
+            activeQuizType = testObj.format;
+
+            if (testObj.allowRetry === 'deny') {
+                window.addEventListener('beforeunload', handleTestBeforeUnload);
+            }
+
+            showScreen('screen-quiz');
+            loadQuizQuestion();
+        }
+
+        function submitTestResultToGAS() {
+            if (!currentActiveTest) return;
+            const test = currentActiveTest;
+            const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
+
+            window.removeEventListener('beforeunload', handleTestBeforeUnload);
+
+            const details = quizHistory.map(h => ({
+                id: h.word.id,
+                en: h.word.en,
+                isCorrect: h.isCorrect ? 1 : 0
+            }));
+
+            const payload = {
+                action: 'submit_test_result',
+                testId: test.testId,
+                studentKey: sKey,
+                score: correctCount,
+                totalQuestions: targetQuestionCount,
+                details: JSON.stringify(details)
+            };
+
+            // 結果画面にローディング中を出すための工夫
+            const resultScoreEl = document.getElementById('result-score');
+            const originalScoreText = resultScoreEl ? resultScoreEl.innerText : '';
+            if (resultScoreEl) {
+                resultScoreEl.innerText = "送信中...";
+            }
+
+            fetch(sheetAppUrl, {
+                method: 'POST',
+                body: new URLSearchParams(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (resultScoreEl) {
+                    resultScoreEl.innerText = originalScoreText;
+                }
+                if (data.success) {
+                    console.log("Test result submitted successfully.");
+                } else {
+                    console.error("Test result submit error:", data.message);
+                }
+                // 送信完了したためテスト一覧をリロード
+                fetchActiveTestsForStudent();
+            })
+            .catch(err => {
+                if (resultScoreEl) {
+                    resultScoreEl.innerText = originalScoreText;
+                }
+                console.error("Error submitting test result:", err);
+                alert("テスト結果の送信に失敗しました。画面を閉じずにしばらく待つか、ネットワーク接続を確認してください。");
+            });
+        }
+
+        // 先生ポータル管理用のJS関数群
+        function switchTeacherTab(tabName) {
+            const tabs = document.querySelectorAll('.teacher-tab-btn');
+            tabs.forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabName) {
+                    btn.classList.add('active-tab');
+                } else {
+                    btn.classList.remove('active-tab');
+                }
+            });
+
+            const recordsView = document.getElementById('teacher-records-view');
+            const testsView = document.getElementById('teacher-tests-view');
+
+            if (tabName === 'records') {
+                if (recordsView) recordsView.style.display = 'block';
+                if (testsView) testsView.style.display = 'none';
+            } else {
+                if (recordsView) recordsView.style.display = 'none';
+                if (testsView) testsView.style.display = 'block';
+                reloadActiveTestsForTeacher();
+            }
+        }
+
+        function reloadActiveTestsForTeacher() {
+            const container = document.getElementById('teacher-active-deliveries-list');
+            if (!container) return;
+
+            container.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">読み込み中...</td></tr>';
+
+            const url = `${sheetAppUrl}?action=get_active_tests&studentKey=teacher`;
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && Array.isArray(data.tests)) {
+                        activeTeacherTests = data.tests;
+                        renderActiveTestsTable();
+                    } else {
+                        container.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#ef4444;">データの取得に失敗しました。</td></tr>';
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching teacher tests:", err);
+                    container.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#ef4444;">通信エラーが発生しました。</td></tr>';
+                });
+        }
+
+        function renderActiveTestsTable() {
+            const container = document.getElementById('teacher-active-deliveries-list');
+            if (!container) return;
+
+            container.innerHTML = '';
+            if (activeTeacherTests.length === 0) {
+                container.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">現在配信されているテストはありません。</td></tr>';
+                return;
+            }
+
+            activeTeacherTests.forEach(test => {
+                const tr = document.createElement('tr');
+
+                const isRetryDenied = test.allowRetry === 'deny';
+                const retryLabel = isRetryDenied ? '<span class="test-badge badge-deny">不可</span>' : '<span class="test-badge badge-allow">可能</span>';
+                
+                const deadlineDate = test.deadline ? new Date(test.deadline) : null;
+                const formattedDeadline = deadlineDate ? `${deadlineDate.getMonth() + 1}/${deadlineDate.getDate()} ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}` : '期限なし';
+
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${test.testName}</td>
+                    <td><span class="portal-badge" style="background:var(--card-bg); border:1px solid var(--border-color); color:var(--text-main); font-weight:600; padding:2px 8px; border-radius:4px;">${test.targetClass}組</span></td>
+                    <td>No. ${test.range}</td>
+                    <td>${test.format === 'en-ja' ? '英→日' : test.format === 'ja-en' ? '日→英' : '綴り'} (${test.questionCount}問)</td>
+                    <td>${retryLabel}</td>
+                    <td style="font-size:0.85rem; color:var(--text-muted);">${formattedDeadline}</td>
+                    <td>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-secondary" style="padding:6px 12px; font-size:0.8rem;" onclick="viewTestResults('${test.testId}')">結果を見る</button>
+                            <button class="btn btn-secondary" style="padding:6px 12px; font-size:0.8rem; background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.3); color:#ef4444;" onclick="deleteDeliveredTest('${test.testId}')">削除</button>
+                        </div>
+                    </td>
+                `;
+                container.appendChild(tr);
+            });
+        }
+
+        function deliverNewTestFromUI() {
+            const name = document.getElementById('test-name-input').value.trim();
+            const targetClass = document.getElementById('test-target-class').value;
+            const rangeFrom = parseInt(document.getElementById('test-range-from').value, 10);
+            const rangeTo = parseInt(document.getElementById('test-range-to').value, 10);
+            const format = document.getElementById('test-format-select').value;
+            const qCount = parseInt(document.getElementById('test-qcount-input').value, 10);
+            const orderType = document.getElementById('test-order-select').value;
+            const allowRetry = document.getElementById('test-retry-select').value;
+            const deadlineRaw = document.getElementById('test-deadline-input').value;
+
+            if (!name) {
+                alert("テスト名を入力してください。");
+                return;
+            }
+            if (isNaN(rangeFrom) || isNaN(rangeTo) || rangeFrom < 1 || rangeTo > 1200 || rangeFrom > rangeTo) {
+                alert("正しい単語番号の範囲 (1〜1200) を指定してください。");
+                return;
+            }
+            if (isNaN(qCount) || qCount < 1) {
+                alert("問題数には1以上の数値を指定してください。");
+                return;
+            }
+
+            // 出題順序が「全員同じ (fixed)」の場合、指定範囲からあらかじめ問題単語IDを固定抽出して決定します
+            let selectedWords = [];
+            if (orderType === 'fixed') {
+                const rangeWords = wordData.filter(w => w.id >= rangeFrom && w.id <= rangeTo);
+                if (rangeWords.length === 0) {
+                    alert("指定範囲に有効な単語がありません。");
+                    return;
+                }
+                // シャッフルして問題数分を固定問題として登録
+                const shuffled = [...rangeWords].sort(() => Math.random() - 0.5);
+                const sliced = shuffled.slice(0, Math.min(qCount, shuffled.length));
+                selectedWords = sliced.map(w => w.id);
+            }
+
+            const payload = {
+                action: 'deliver_test',
+                testName: name,
+                targetClass: targetClass,
+                range: `${rangeFrom}-${rangeTo}`,
+                format: format,
+                questionCount: qCount,
+                orderType: orderType,
+                allowRetry: allowRetry,
+                deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : '',
+                selectedWords: JSON.stringify(selectedWords)
+            };
+
+            const deliverBtn = document.getElementById('btn-deliver-test-action');
+            const origText = deliverBtn ? deliverBtn.textContent : '';
+            if (deliverBtn) {
+                deliverBtn.disabled = true;
+                deliverBtn.textContent = "配信中...";
+            }
+
+            fetch(sheetAppUrl, {
+                method: 'POST',
+                body: new URLSearchParams(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (deliverBtn) {
+                    deliverBtn.disabled = false;
+                    deliverBtn.textContent = origText;
+                }
+                if (data.success) {
+                    alert("テストを配信しました。");
+                    // フォームクリア
+                    document.getElementById('test-name-input').value = '';
+                    document.getElementById('test-deadline-input').value = '';
+                    // 一覧リロード
+                    reloadActiveTestsForTeacher();
+                } else {
+                    alert(data.message || "配信に失敗しました。");
+                }
+            })
+            .catch(err => {
+                if (deliverBtn) {
+                    deliverBtn.disabled = false;
+                    deliverBtn.textContent = origText;
+                }
+                console.error("Error delivering test:", err);
+                alert("配信処理中にエラーが発生しました。");
+            });
+        }
+
+        function deleteDeliveredTest(testId) {
+            if (!confirm("本当にこのテストの配信履歴を削除しますか？\n(※このテストに関連する生徒の解答記録もすべて削除されます。)")) return;
+
+            const payload = {
+                action: 'delete_test',
+                testId: testId
+            };
+
+            fetch(sheetAppUrl, {
+                method: 'POST',
+                body: new URLSearchParams(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("削除しました。");
+                    reloadActiveTestsForTeacher();
+                } else {
+                    alert(data.message || "削除に失敗しました。");
+                }
+            })
+            .catch(err => {
+                console.error("Error deleting test:", err);
+                alert("通信エラーが発生しました。");
+            });
+        }
+
+        function viewTestResults(testId) {
+            const panel = document.getElementById('teacher-test-detail-panel');
+            const title = document.getElementById('detail-test-name');
+            const averageEl = document.getElementById('detail-average-score');
+            const tableBody = document.getElementById('detail-results-tbody');
+            const weaknessList = document.getElementById('detail-weakness-list');
+
+            if (!panel || !tableBody || !weaknessList) return;
+
+            panel.style.display = 'block';
+            title.innerText = "読み込み中...";
+            averageEl.innerText = "-";
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:12px; color:var(--text-muted);">データを取得中...</td></tr>';
+            weaknessList.innerHTML = '<li style="color:var(--text-muted);">取得中...</li>';
+
+            // スムーズスクロールで詳細パネルへ
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            const url = `${sheetAppUrl}?action=get_test_results&testId=${encodeURIComponent(testId)}`;
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const testMeta = activeTeacherTests.find(t => t.testId === testId);
+                        title.innerText = testMeta ? `📊 「${testMeta.testName}」の受験結果詳細` : "📊 受験結果詳細";
+
+                        // 点数と平均の集計
+                        const results = data.results || [];
+                        if (results.length === 0) {
+                            averageEl.innerText = "まだ誰も受験していません (受験者: 0人)";
+                            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">受験者がいません</td></tr>';
+                        } else {
+                            let totalScoreSum = 0;
+                            let totalQCount = 1;
+                            tableBody.innerHTML = '';
+                            results.forEach(res => {
+                                const tr = document.createElement('tr');
+                                const parts = res.studentKey.split('-');
+                                const grade = parts[0] || '';
+                                const classNumAndNum = parts[1] || '';
+                                const classNum = classNumAndNum.split('.')[0] || '';
+                                const number = classNumAndNum.split('.')[1] || '';
+                                
+                                totalScoreSum += res.score;
+                                totalQCount = res.totalQuestions || 1;
+
+                                const pct = Math.round((res.score / totalQCount) * 100);
+
+                                tr.innerHTML = `
+                                    <td>${grade}年 ${classNum}組</td>
+                                    <td>${number}番</td>
+                                    <td style="font-weight:600;">${res.score} / ${totalQCount} 問</td>
+                                    <td><strong style="color:${pct >= 80 ? '#10b981' : pct >= 50 ? 'var(--primary)' : '#ef4444'}">${pct}%</strong></td>
+                                `;
+                                tableBody.appendChild(tr);
+                            });
+
+                            const avg = (totalScoreSum / results.length).toFixed(1);
+                            averageEl.innerText = `平均点: ${avg} / ${totalQCount} 問 (受験者数: ${results.length}人)`;
+                        }
+
+                        // 正答率50%以下の誤答単語リストアップ
+                        const weaknesses = data.weaknesses || [];
+                        weaknessList.innerHTML = '';
+                        if (weaknesses.length === 0) {
+                            weaknessList.innerHTML = '<li style="color:var(--text-muted); padding:4px 0;">特にありません (全員50%以上正解しています)。</li>';
+                        } else {
+                            weaknesses.forEach(w => {
+                                const wordObj = wordData.find(wd => wd.id === w.id);
+                                const enText = wordObj ? wordObj.en : '';
+                                const jaText = wordObj ? wordObj.ja : '';
+                                const rate = Math.round(w.correctRate * 100);
+
+                                const li = document.createElement('li');
+                                li.style.marginBottom = '8px';
+                                li.innerHTML = `
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <div>
+                                            <span class="portal-badge" style="background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.3); color:#ef4444; margin-right:8px; font-weight:700;">No. ${w.id}</span>
+                                            <strong>${enText}</strong> <span style="font-size:0.85rem; color:var(--text-muted); margin-left:6px;">(${jaText})</span>
+                                        </div>
+                                        <span style="font-weight:600; color:#ef4444;">正答率: ${rate}%</span>
+                                    </div>
+                                `;
+                                weaknessList.appendChild(li);
+                            });
+                        }
+                    } else {
+                        title.innerText = "⚠️ 読み込み失敗";
+                        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#ef4444;">${data.message || 'エラーが発生しました'}</td></tr>`;
+                        weaknessList.innerHTML = '<li style="color:#ef4444;">読み込み失敗</li>';
+                    }
+                })
+                .catch(err => {
+                    console.error("Error viewing test detail:", err);
+                    title.innerText = "⚠️ 読み込み失敗";
+                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#ef4444;">通信エラーが発生しました。</td></tr>';
+                    weaknessList.innerHTML = '<li style="color:#ef4444;">通信エラー</li>';
+                });
+        }
+
+        function closeTestDetailPanel() {
+            const panel = document.getElementById('teacher-test-detail-panel');
+            if (panel) panel.style.display = 'none';
         }
 
         // --- File Reader & SheetJS ---
@@ -5459,6 +6327,20 @@
         function finishQuizSession() {
             clearInterval(timerInterval);
             showScreen('screen-result');
+
+            // テストモード時の結果表示制御
+            const normalActions = document.getElementById('result-normal-actions');
+            const restartBtn = document.getElementById('btn-result-restart');
+            const rangeInfo = document.getElementById('result-range-info');
+
+            if (isTestingMode && currentActiveTest) {
+                if (normalActions) normalActions.style.display = 'none';
+                if (restartBtn) restartBtn.style.display = 'none';
+                if (rangeInfo) rangeInfo.innerText = `配信テスト: ${currentActiveTest.testName}`;
+            } else {
+                if (normalActions) normalActions.style.display = 'grid';
+                if (restartBtn) restartBtn.style.display = 'block';
+            }
             
             const totalCount = quizHistory.length;
             const pct = totalCount === 0 ? 0 : Math.round((correctCount / totalCount) * 100);
@@ -5489,28 +6371,35 @@
             rankEl.classList.add(`rank-${rank.toLowerCase()}`);
             rankEl.style.color = '';
             
-            const rangeInfo = document.getElementById('result-range-info');
-            if (sourceListType === 'range') {
-                rangeInfo.innerText = `範囲: ID No. ${sessionRange.from} から ${sessionRange.to}`;
-            } else if (sourceListType === 'weak') {
-                rangeInfo.innerText = '間違えやすい単語復習';
-            } else if (sourceListType === 'bookmark') {
-                rangeInfo.innerText = 'ブックマーク単語復習';
-            } else if (sourceListType === 'review_mistakes') {
-                rangeInfo.innerText = '間違えた問題のやり直し';
+            if (!isTestingMode) {
+                if (sourceListType === 'range') {
+                    rangeInfo.innerText = `範囲: ID No. ${sessionRange.from} から ${sessionRange.to}`;
+                } else if (sourceListType === 'weak') {
+                    rangeInfo.innerText = '間違えやすい単語復習';
+                } else if (sourceListType === 'bookmark') {
+                    rangeInfo.innerText = 'ブックマーク単語復習';
+                } else if (sourceListType === 'review_mistakes') {
+                    rangeInfo.innerText = '間違えた問題のやり直し';
+                }
             }
 
             const mistakesCount = totalCount - correctCount;
             const reviewBtn = document.getElementById('btn-review-mistakes');
             const bookmarkAllBtn = document.getElementById('btn-bookmark-all-mistakes');
             
-            if (mistakesCount > 0) {
-                reviewBtn.style.display = 'inline-flex';
-                bookmarkAllBtn.style.display = 'inline-flex';
-                bookmarkAllBtn.innerText = `間違えた${mistakesCount}語を一括登録`;
+            // テストモード時は間違えた問題のやり直しや一括ブックマークを隠す
+            if (isTestingMode) {
+                if (reviewBtn) reviewBtn.style.display = 'none';
+                if (bookmarkAllBtn) bookmarkAllBtn.style.display = 'none';
             } else {
-                reviewBtn.style.display = 'none';
-                bookmarkAllBtn.style.display = 'none';
+                if (mistakesCount > 0) {
+                    if (reviewBtn) reviewBtn.style.display = 'inline-flex';
+                    if (bookmarkAllBtn) bookmarkAllBtn.style.display = 'inline-flex';
+                    if (bookmarkAllBtn) bookmarkAllBtn.innerText = `間違えた${mistakesCount}語を一括登録`;
+                } else {
+                    if (reviewBtn) reviewBtn.style.display = 'none';
+                    if (bookmarkAllBtn) bookmarkAllBtn.style.display = 'none';
+                }
             }
 
             const container = document.getElementById('result-preview-container');
@@ -5545,7 +6434,11 @@
             });
 
             // Automatic submission to Google Sheets
-            submitQuizResultToGAS();
+            if (isTestingMode) {
+                submitTestResultToGAS();
+            } else {
+                submitQuizResultToGAS();
+            }
         }
 
         function getJapaneseRangeInfo() {
