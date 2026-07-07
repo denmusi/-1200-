@@ -3382,6 +3382,19 @@
                         </div>
                     </div>
 
+                    <!-- 配信問題一覧 (トグル開閉式) -->
+                    <div style="margin-bottom:20px; border:1px solid var(--border-color); border-radius:12px; overflow:hidden;">
+                        <button type="button" onclick="toggleDetailQuestionsList()" style="width:100%; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border:none; padding:12px 16px; color:var(--text-main); font-weight:600; cursor:pointer; font-size:0.95rem; text-align:left;">
+                            <span>📋 配信問題の一覧を確認する</span>
+                            <span id="detail-questions-toggle-icon">▼</span>
+                        </button>
+                        <div id="detail-questions-container" style="display:none; max-height:200px; overflow-y:auto; padding:12px; border-top:1px solid var(--border-color); background:var(--bg-app); font-size:0.85rem;">
+                            <ul id="detail-questions-list" style="margin:0; padding-left:20px; line-height:1.6;">
+                                <!-- 配信単語リストが動的に挿入される -->
+                            </ul>
+                        </div>
+                    </div>
+
                     <!-- 受験者一覧表 -->
                     <div style="overflow-x:auto;">
                         <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;">
@@ -4981,15 +4994,15 @@
         }
 
         function deliverNewTestFromUI() {
-            const name = document.getElementById('test-name-input').value.trim();
-            const targetClass = document.getElementById('test-target-class').value;
-            const rangeFrom = parseInt(document.getElementById('test-range-from').value, 10);
-            const rangeTo = parseInt(document.getElementById('test-range-to').value, 10);
-            const format = document.getElementById('test-format-select').value;
-            const qCount = parseInt(document.getElementById('test-qcount-input').value, 10);
-            const orderType = document.getElementById('test-order-select').value;
-            const allowRetry = document.getElementById('test-retry-select').value;
-            const deadlineRaw = document.getElementById('test-deadline-input').value;
+            const name = document.getElementById('test-input-name').value.trim();
+            const targetClass = document.getElementById('test-input-class').value;
+            const rangeFrom = parseInt(document.getElementById('test-input-range-from').value, 10);
+            const rangeTo = parseInt(document.getElementById('test-input-range-to').value, 10);
+            const format = document.getElementById('test-input-format').value;
+            const qCount = parseInt(document.getElementById('test-input-count').value, 10);
+            const orderType = document.getElementById('test-input-order').value;
+            const allowRetry = document.getElementById('test-input-retry').value;
+            const deadlineRaw = document.getElementById('test-input-deadline').value;
 
             if (!name) {
                 alert("テスト名を入力してください。");
@@ -5051,8 +5064,8 @@
                 if (data.success) {
                     alert("テストを配信しました。");
                     // フォームクリア
-                    document.getElementById('test-name-input').value = '';
-                    document.getElementById('test-deadline-input').value = '';
+                    document.getElementById('test-input-name').value = '';
+                    document.getElementById('test-input-deadline').value = '';
                     // 一覧リロード
                     reloadActiveTestsForTeacher();
                 } else {
@@ -5097,19 +5110,29 @@
         }
 
         function viewTestResults(testId) {
-            const panel = document.getElementById('teacher-test-detail-panel');
+        function viewTestResults(testId) {
+            const panel = document.getElementById('test-results-detail-panel');
             const title = document.getElementById('detail-test-name');
-            const averageEl = document.getElementById('detail-average-score');
-            const tableBody = document.getElementById('detail-results-tbody');
-            const weaknessList = document.getElementById('detail-weakness-list');
+            const metaEl = document.getElementById('detail-test-meta');
+            const tableBody = document.getElementById('test-results-table-body');
+            const weaknessList = document.getElementById('detail-weak-words-container');
+            const questionsList = document.getElementById('detail-questions-list');
 
             if (!panel || !tableBody || !weaknessList) return;
 
+            // 配信問題リスト表示用のコンテナも初期化
+            if (questionsList) questionsList.innerHTML = '';
+            // 問題トグル状態を非表示に初期化
+            const qContainer = document.getElementById('detail-questions-container');
+            const qToggleIcon = document.getElementById('detail-questions-toggle-icon');
+            if (qContainer) qContainer.style.display = 'none';
+            if (qToggleIcon) qToggleIcon.innerText = '▼';
+
             panel.style.display = 'block';
             title.innerText = "読み込み中...";
-            averageEl.innerText = "-";
-            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:12px; color:var(--text-muted);">データを取得中...</td></tr>';
-            weaknessList.innerHTML = '<li style="color:var(--text-muted);">取得中...</li>';
+            metaEl.innerText = "-";
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:var(--text-muted);">データを取得中...</td></tr>';
+            weaknessList.innerHTML = '<p style="color:var(--text-muted); margin:0;">取得中...</p>';
 
             // スムーズスクロールで詳細パネルへ
             panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -5124,12 +5147,13 @@
 
                         // 点数と平均の集計
                         const results = data.results || [];
+                        const totalQCount = testMeta ? testMeta.questionCount : 10;
+                        
                         if (results.length === 0) {
-                            averageEl.innerText = "まだ誰も受験していません (受験者: 0人)";
-                            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">受験者がいません</td></tr>';
+                            metaEl.innerText = `クラス: ${testMeta ? testMeta.targetClass : '-'}組 | 範囲: No. ${testMeta ? testMeta.range : '-'} | 受験者: 0人 | 平均点: -`;
+                            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">受験者がいません</td></tr>';
                         } else {
                             let totalScoreSum = 0;
-                            let totalQCount = 1;
                             tableBody.innerHTML = '';
                             results.forEach(res => {
                                 const tr = document.createElement('tr');
@@ -5140,28 +5164,67 @@
                                 const number = classNumAndNum.split('.')[1] || '';
                                 
                                 totalScoreSum += res.score;
-                                totalQCount = res.totalQuestions || 1;
-
                                 const pct = Math.round((res.score / totalQCount) * 100);
+                                
+                                const statusLabel = res.status === 'completed' ? '<span class="test-badge badge-allow">提出済</span>' : '<span class="test-badge badge-deny">受験中</span>';
+                                const timeStr = res.timestamp ? new Date(res.timestamp).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
 
                                 tr.innerHTML = `
-                                    <td>${grade}年 ${classNum}組</td>
-                                    <td>${number}番</td>
-                                    <td style="font-weight:600;">${res.score} / ${totalQCount} 問</td>
-                                    <td><strong style="color:${pct >= 80 ? '#10b981' : pct >= 50 ? 'var(--primary)' : '#ef4444'}">${pct}%</strong></td>
+                                    <td style="padding:10px 8px;">${grade}年 ${classNum}組 ${number}番</td>
+                                    <td style="padding:10px 8px;">${res.nickname || '名無し'}</td>
+                                    <td style="padding:10px 8px; font-weight:600;">${res.score} / ${totalQCount} 問</td>
+                                    <td style="padding:10px 8px;">${statusLabel}</td>
+                                    <td style="padding:10px 8px; font-size:0.85rem; color:var(--text-muted);">${timeStr}</td>
                                 `;
                                 tableBody.appendChild(tr);
                             });
 
                             const avg = (totalScoreSum / results.length).toFixed(1);
-                            averageEl.innerText = `平均点: ${avg} / ${totalQCount} 問 (受験者数: ${results.length}人)`;
+                            metaEl.innerText = `クラス: ${testMeta ? testMeta.targetClass : '-'}組 | 範囲: No. ${testMeta ? testMeta.range : '-'} | 受験者: ${results.length}人 | 平均点: ${avg} / ${totalQCount}問`;
+                        }
+
+                        // 配信問題リストの構築
+                        if (questionsList && testMeta) {
+                            if (testMeta.orderType === 'fixed' && Array.isArray(testMeta.selectedWords) && testMeta.selectedWords.length > 0) {
+                                // 固定出題
+                                testMeta.selectedWords.forEach(wId => {
+                                    const wordObj = wordData.find(wd => wd.id === wId);
+                                    if (wordObj) {
+                                        const li = document.createElement('li');
+                                        li.style.marginBottom = '6px';
+                                        li.innerHTML = `<span style="color:var(--primary); font-weight:700; margin-right:8px;">No. ${wordObj.id}</span><strong>${wordObj.en}</strong> <span style="color:var(--text-muted); margin-left:6px;">(${wordObj.ja})</span>`;
+                                        questionsList.appendChild(li);
+                                    }
+                                });
+                            } else {
+                                // ランダム出題（範囲内の全単語）
+                                const parts = testMeta.range.split('-');
+                                const from = parseInt(parts[0], 10);
+                                const to = parseInt(parts[1], 10);
+
+                                const liMeta = document.createElement('li');
+                                liMeta.style.listStyleType = 'none';
+                                liMeta.style.color = 'var(--text-muted)';
+                                liMeta.style.marginBottom = '10px';
+                                liMeta.style.fontSize = '0.9rem';
+                                liMeta.innerHTML = `⚠️ このテストは出題順序「<strong>ランダム</strong>」で配信されています。以下の範囲から生徒ごとにランダムで <strong>${testMeta.questionCount}問</strong> が選出されます。`;
+                                questionsList.appendChild(liMeta);
+
+                                const rangeWords = wordData.filter(wd => wd.id >= from && wd.id <= to);
+                                rangeWords.forEach(wordObj => {
+                                    const li = document.createElement('li');
+                                    li.style.marginBottom = '6px';
+                                    li.innerHTML = `<span style="color:var(--text-muted); margin-right:8px;">No. ${wordObj.id}</span><strong>${wordObj.en}</strong> <span style="color:var(--text-muted); margin-left:6px;">(${wordObj.ja})</span>`;
+                                    questionsList.appendChild(li);
+                                });
+                            }
                         }
 
                         // 正答率50%以下の誤答単語リストアップ
                         const weaknesses = data.weaknesses || [];
                         weaknessList.innerHTML = '';
                         if (weaknesses.length === 0) {
-                            weaknessList.innerHTML = '<li style="color:var(--text-muted); padding:4px 0;">特にありません (全員50%以上正解しています)。</li>';
+                            weaknessList.innerHTML = '<p style="color:var(--text-muted); margin:0;">特にありません (全員50%以上正解しています)。</p>';
                         } else {
                             weaknesses.forEach(w => {
                                 const wordObj = wordData.find(wd => wd.id === w.id);
@@ -5169,36 +5232,51 @@
                                 const jaText = wordObj ? wordObj.ja : '';
                                 const rate = Math.round(w.correctRate * 100);
 
-                                const li = document.createElement('li');
-                                li.style.marginBottom = '8px';
-                                li.innerHTML = `
-                                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                                        <div>
-                                            <span class="portal-badge" style="background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.3); color:#ef4444; margin-right:8px; font-weight:700;">No. ${w.id}</span>
-                                            <strong>${enText}</strong> <span style="font-size:0.85rem; color:var(--text-muted); margin-left:6px;">(${jaText})</span>
-                                        </div>
-                                        <span style="font-weight:600; color:#ef4444;">正答率: ${rate}%</span>
+                                const div = document.createElement('div');
+                                div.style.display = 'flex';
+                                div.style.justifyContent = 'space-between';
+                                div.style.alignItems = 'center';
+                                div.style.marginBottom = '8px';
+                                div.innerHTML = `
+                                    <div>
+                                        <span class="portal-badge" style="background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.3); color:#ef4444; margin-right:8px; font-weight:700;">No. ${w.id}</span>
+                                        <strong>${enText}</strong> <span style="font-size:0.85rem; color:var(--text-muted); margin-left:6px;">(${jaText})</span>
                                     </div>
+                                    <span style="font-weight:600; color:#ef4444;">正答率: ${rate}%</span>
                                 `;
-                                weaknessList.appendChild(li);
+                                weaknessList.appendChild(div);
                             });
                         }
                     } else {
                         title.innerText = "⚠️ 読み込み失敗";
-                        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#ef4444;">${data.message || 'エラーが発生しました'}</td></tr>`;
-                        weaknessList.innerHTML = '<li style="color:#ef4444;">読み込み失敗</li>';
+                        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444;">${data.message || 'エラーが発生しました'}</td></tr>`;
+                        weaknessList.innerHTML = '<p style="color:#ef4444; margin:0;">読み込み失敗</p>';
                     }
                 })
                 .catch(err => {
                     console.error("Error viewing test detail:", err);
                     title.innerText = "⚠️ 読み込み失敗";
-                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#ef4444;">通信エラーが発生しました。</td></tr>';
-                    weaknessList.innerHTML = '<li style="color:#ef4444;">通信エラー</li>';
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444;">通信エラーが発生しました。</td></tr>';
+                    weaknessList.innerHTML = '<p style="color:#ef4444; margin:0;">通信エラー</p>';
                 });
         }
 
+        function toggleDetailQuestionsList() {
+            const container = document.getElementById('detail-questions-container');
+            const icon = document.getElementById('detail-questions-toggle-icon');
+            if (!container || !icon) return;
+            
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                icon.innerText = '▲';
+            } else {
+                container.style.display = 'none';
+                icon.innerText = '▼';
+            }
+        }
+
         function closeTestDetailPanel() {
-            const panel = document.getElementById('teacher-test-detail-panel');
+            const panel = document.getElementById('test-results-detail-panel');
             if (panel) panel.style.display = 'none';
         }
 
