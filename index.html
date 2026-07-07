@@ -4911,17 +4911,25 @@
 
         // 先生ポータル管理用のJS関数群
         function switchTeacherTab(tabName) {
-            const tabs = document.querySelectorAll('.teacher-tab-btn');
-            tabs.forEach(btn => {
-                if (btn.getAttribute('data-tab') === tabName) {
-                    btn.classList.add('active-tab');
-                } else {
-                    btn.classList.remove('active-tab');
-                }
-            });
+            const btnRecords = document.getElementById('tab-btn-records');
+            const btnTests = document.getElementById('tab-btn-tests');
+            
+            if (tabName === 'records') {
+                if (btnRecords) btnRecords.classList.add('active-tab');
+                if (btnTests) btnTests.classList.remove('active-tab');
+                
+                if (btnRecords) btnRecords.style.color = 'var(--text-main)';
+                if (btnTests) btnTests.style.color = 'var(--text-muted)';
+            } else {
+                if (btnRecords) btnRecords.classList.remove('active-tab');
+                if (btnTests) btnTests.classList.add('active-tab');
+                
+                if (btnRecords) btnRecords.style.color = 'var(--text-muted)';
+                if (btnTests) btnTests.style.color = 'var(--text-main)';
+            }
 
-            const recordsView = document.getElementById('teacher-records-view');
-            const testsView = document.getElementById('teacher-tests-view');
+            const recordsView = document.getElementById('teacher-tab-records-content');
+            const testsView = document.getElementById('teacher-tab-tests-content');
 
             if (tabName === 'records') {
                 if (recordsView) recordsView.style.display = 'block';
