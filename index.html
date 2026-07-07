@@ -2972,7 +2972,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-secondary" onclick="showScreen('screen-setup')" style="width: 100%;">メインメニューに戻る</button>
+            <button class="btn btn-secondary" onclick="exitToHome()" style="width: 100%;">メインメニューに戻る</button>
         </div>
 
         <!-- SCREEN 2: Quiz Screen -->
@@ -3354,10 +3354,23 @@
                         <h3 style="margin:0;">📋 配信済みのテスト一覧</h3>
                         <button class="btn btn-secondary" onclick="reloadActiveTestsForTeacher()" style="margin:0; font-size:0.8rem; padding:6px 12px; min-height:auto;">🔄 更新</button>
                     </div>
-                    
                     <div id="teacher-test-list-container" style="max-height: 250px; overflow-y: auto;">
-                        <!-- 動的に配信済みテストが並ぶ -->
-                        <p style="text-align:center; color:var(--text-muted); padding:20px;">読み込み中...</p>
+                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;">
+                            <thead>
+                                <tr style="border-bottom:2px solid var(--border-color); color:var(--text-muted);">
+                                    <th style="padding:10px 8px;">テスト名</th>
+                                    <th style="padding:10px 8px;">対象</th>
+                                    <th style="padding:10px 8px;">範囲</th>
+                                    <th style="padding:10px 8px;">形式 (問題数)</th>
+                                    <th style="padding:10px 8px;">やり直し</th>
+                                    <th style="padding:10px 8px;">提出期限</th>
+                                    <th style="padding:10px 8px;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacher-active-deliveries-list">
+                                <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">読み込み中...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -4649,14 +4662,14 @@
         }
 
         function updateTestAlertUI() {
-            const alertContainer = document.getElementById('test-delivery-alert');
-            const alertText = document.getElementById('test-delivery-alert-text');
+            const alertContainer = document.getElementById('test-alert-container');
+            const alertBtn = document.getElementById('btn-test-alert');
             if (!alertContainer) return;
 
             if (activeTests.length > 0) {
-                alertContainer.style.display = 'flex';
-                if (alertText) {
-                    alertText.innerText = `🔔 先生からテストが届いています！ (${activeTests.length}件)`;
+                alertContainer.style.display = 'block';
+                if (alertBtn) {
+                    alertBtn.innerText = `🔔 先生からテストが届いています！ (${activeTests.length}件)`;
                 }
             } else {
                 alertContainer.style.display = 'none';
@@ -4750,9 +4763,13 @@
             const test = pendingTestObj;
             const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
 
-            // やり直し不可のテストの場合、不正受験防止のため開始時にGASにフラグを立てる
             if (test.allowRetry === 'deny') {
-                const url = `${GAS_WEBAPP_URL}?action=start_test&testId=${encodeURIComponent(test.testId)}&studentKey=${encodeURIComponent(sKey)}`;
+                const payload = {
+                    action: 'start_test',
+                    testId: test.testId,
+                    studentKey: sKey,
+                    nickname: studentNickname || ''
+                };
                 
                 // ロード表示
                 const startBtn = document.getElementById('btn-start-test-action');
@@ -4762,7 +4779,10 @@
                     startBtn.textContent = "準備中...";
                 }
 
-                fetch(url)
+                fetch(GAS_WEBAPP_URL, {
+                    method: 'POST',
+                    body: new URLSearchParams(payload)
+                })
                     .then(res => res.json())
                     .then(data => {
                         if (startBtn) {
@@ -5116,7 +5136,6 @@
             });
         }
 
-        function viewTestResults(testId) {
         function viewTestResults(testId) {
             const panel = document.getElementById('test-results-detail-panel');
             const title = document.getElementById('detail-test-name');
