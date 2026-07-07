@@ -4781,7 +4781,10 @@
 
                 fetch(GAS_WEBAPP_URL, {
                     method: 'POST',
-                    body: new URLSearchParams(payload)
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8'
+                    },
+                    body: JSON.stringify(payload)
                 })
                     .then(res => res.json())
                     .then(data => {
@@ -4789,7 +4792,7 @@
                             startBtn.disabled = false;
                             startBtn.textContent = origText;
                         }
-                        if (data.success) {
+                        if (data.status === 'success') {
                             closeTestConfirmPopup();
                             isTestingMode = true;
                             currentActiveTest = test;
@@ -4904,14 +4907,17 @@
 
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
-                body: new URLSearchParams(payload)
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
             })
             .then(res => res.json())
             .then(data => {
                 if (resultScoreEl) {
                     resultScoreEl.innerText = originalScoreText;
                 }
-                if (data.success) {
+                if (data.status === 'success') {
                     console.log("Test result submitted successfully.");
                 } else {
                     console.error("Test result submit error:", data.message);
@@ -5080,7 +5086,10 @@
 
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
-                body: new URLSearchParams(payload)
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
             })
             .then(res => res.json())
             .then(data => {
@@ -5088,7 +5097,7 @@
                     deliverBtn.disabled = false;
                     deliverBtn.textContent = origText;
                 }
-                if (data.success) {
+                if (data.status === 'success') {
                     alert("テストを配信しました。");
                     // フォームクリア
                     document.getElementById('test-input-name').value = '';
@@ -5119,11 +5128,14 @@
 
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
-                body: new URLSearchParams(payload)
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
+                if (data.status === 'success') {
                     alert("削除しました。");
                     reloadActiveTestsForTeacher();
                 } else {
