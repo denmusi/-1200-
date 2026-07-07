@@ -4623,7 +4623,7 @@
         function fetchActiveTestsForStudent() {
             if (!studentGrade || !studentClass || !studentNumber) return;
             const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
-            const url = `${sheetAppUrl}?action=get_active_tests&studentKey=${encodeURIComponent(sKey)}`;
+            const url = `${GAS_WEBAPP_URL}?action=get_active_tests&studentKey=${encodeURIComponent(sKey)}`;
             
             fetch(url)
                 .then(res => res.json())
@@ -4740,7 +4740,7 @@
 
             // やり直し不可のテストの場合、不正受験防止のため開始時にGASにフラグを立てる
             if (test.allowRetry === 'deny') {
-                const url = `${sheetAppUrl}?action=start_test&testId=${encodeURIComponent(test.testId)}&studentKey=${encodeURIComponent(sKey)}`;
+                const url = `${GAS_WEBAPP_URL}?action=start_test&testId=${encodeURIComponent(test.testId)}&studentKey=${encodeURIComponent(sKey)}`;
                 
                 // ロード表示
                 const startBtn = document.getElementById('btn-start-test-action');
@@ -4870,7 +4870,7 @@
                 resultScoreEl.innerText = "送信中...";
             }
 
-            fetch(sheetAppUrl, {
+            fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 body: new URLSearchParams(payload)
             })
@@ -4926,7 +4926,7 @@
 
             container.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">読み込み中...</td></tr>';
 
-            const url = `${sheetAppUrl}?action=get_active_tests&studentKey=teacher`;
+            const url = `${GAS_WEBAPP_URL}?action=get_active_tests&studentKey=teacher`;
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
@@ -5038,7 +5038,7 @@
                 deliverBtn.textContent = "配信中...";
             }
 
-            fetch(sheetAppUrl, {
+            fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 body: new URLSearchParams(payload)
             })
@@ -5077,7 +5077,7 @@
                 testId: testId
             };
 
-            fetch(sheetAppUrl, {
+            fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 body: new URLSearchParams(payload)
             })
@@ -5114,7 +5114,7 @@
             // スムーズスクロールで詳細パネルへ
             panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-            const url = `${sheetAppUrl}?action=get_test_results&testId=${encodeURIComponent(testId)}`;
+            const url = `${GAS_WEBAPP_URL}?action=get_test_results&testId=${encodeURIComponent(testId)}`;
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
