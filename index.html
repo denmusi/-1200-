@@ -3291,9 +3291,15 @@
                             <label for="test-input-name">テスト名</label>
                             <input type="text" id="test-input-name" placeholder="例: 第1回単語テスト">
                         </div>
-                        <div class="input-group" style="flex:1; margin-bottom:0;">
-                            <label for="test-input-class">対象クラス</label>
-                            <input type="text" id="test-input-class" placeholder="例: 1-1">
+                        <div class="input-group" style="flex:1.5; margin-bottom:0; display:flex; gap:8px;">
+                            <div style="flex:1;">
+                                <label for="test-input-grade">対象学年</label>
+                                <input type="number" id="test-input-grade" min="1" max="9" placeholder="学年" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </div>
+                            <div style="flex:1;">
+                                <label for="test-input-class">対象組</label>
+                                <input type="number" id="test-input-class" min="1" max="99" placeholder="組" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            </div>
                         </div>
                     </div>
 
@@ -4646,8 +4652,16 @@
 
         // 生徒側のテスト取得と処理
         function fetchActiveTestsForStudent() {
-            if (!studentGrade || !studentClass || !studentNumber) return;
-            const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
+            // 文字列・数値のいずれであっても安全にパースして判定
+            const grade = parseInt(studentGrade, 10) || 0;
+            const clazz = parseInt(studentClass, 10) || 0;
+            const number = parseInt(studentNumber, 10) || 0;
+            
+            if (grade <= 0 || clazz <= 0 || number <= 0) {
+                return;
+            }
+            
+            const sKey = `${grade}-${clazz}.${number}`;
             const url = `${GAS_WEBAPP_URL}?action=get_active_tests&studentKey=${encodeURIComponent(sKey)}`;
             
             fetch(url)
@@ -4666,10 +4680,13 @@
             const alertText = document.getElementById('btn-test-alert-text');
             if (!alertContainer) return;
 
-            if (activeTests.length > 0) {
+            // 受験完了していない未受験・開始済みのテストだけを件数として表示
+            const pendingTests = activeTests.filter(t => t.status !== 'completed');
+
+            if (pendingTests.length > 0) {
                 alertContainer.style.display = 'block';
                 if (alertText) {
-                    alertText.innerText = `テストが届いています (${activeTests.length}件)`;
+                    alertText.innerText = `テストが届いています (${pendingTests.length}件)`;
                 }
             } else {
                 alertContainer.style.display = 'none';
@@ -4720,6 +4737,14 @@
         let pendingTestObj = null;
 
         function showTestConfirm(testId) {
+            // ダミー生徒キー（未設定）の場合はテストを受験させない
+            if (!studentGrade || studentGrade === "0" || 
+                !studentClass || studentClass === "0" || 
+                !studentNumber || studentNumber === "0") {
+                showToast("生徒情報（学年・クラス・出席番号）を登録してからテストを受けてください。", true);
+                return;
+            }
+
             const test = activeTests.find(t => t.testId === testId);
             if (!test) return;
 
@@ -5028,7 +5053,8 @@
 
         function deliverNewTestFromUI() {
             const name = document.getElementById('test-input-name').value.trim();
-            const targetClass = document.getElementById('test-input-class').value;
+            const gradeVal = document.getElementById('test-input-grade').value.trim();
+            const classVal = document.getElementById('test-input-class').value.trim();
             const rangeFrom = parseInt(document.getElementById('test-input-range-from').value, 10);
             const rangeTo = parseInt(document.getElementById('test-input-range-to').value, 10);
             const format = document.getElementById('test-input-format').value;
@@ -5041,6 +5067,11 @@
                 alert("テスト名を入力してください。");
                 return;
             }
+            if (!gradeVal || !classVal) {
+                alert("対象学年と対象組を入力してください。");
+                return;
+            }
+            const targetClass = `${gradeVal}-${classVal}`;
             if (isNaN(rangeFrom) || isNaN(rangeTo) || rangeFrom < 1 || rangeTo > 1200 || rangeFrom > rangeTo) {
                 alert("正しい単語番号の範囲 (1〜1200) を指定してください。");
                 return;
