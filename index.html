@@ -2711,14 +2711,14 @@
                 日間・週間<br>ランキング
             </button>
 
-            <h1 style="margin-top: 40px;">ターゲット1200クイズメーカー</h1>
-            
             <!-- 配信テスト通知ボタン (配信中のみ表示) -->
-            <div id="test-alert-container" style="display: none; margin: 8px 0 16px 0; text-align: center;">
-                <button class="btn btn-secondary" id="btn-test-alert" onclick="openTestListPopup()" style="width: 100%; max-width: 400px; padding: 12px; border: 2px solid var(--primary); background: rgba(99, 102, 241, 0.1); color: var(--primary); font-weight: bold; border-radius: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); animation: pulse 2s infinite;">
-                    📝 先生からの配信テストがあります
+            <div id="test-alert-container" style="display: none; margin: 12px auto 20px auto; text-align: center; max-width: 400px;">
+                <button class="btn" id="btn-test-alert" onclick="openTestListPopup()" style="width: 100%; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.3); background: rgba(99, 102, 241, 0.08); color: var(--primary); font-weight: 600; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease;">
+                    <span>🔔</span> <span id="btn-test-alert-text">テストが届いています (0件)</span>
                 </button>
             </div>
+
+            <h1 style="margin-top: 40px;">ターゲット1200クイズメーカー</h1>
 
             <p class="subtitle" style="margin-bottom: 24px;">出題範囲とオプションを設定して開始してください</p>
 
@@ -4653,8 +4653,8 @@
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success && Array.isArray(data.tests)) {
-                        activeTests = data.tests;
+                    if (Array.isArray(data)) {
+                        activeTests = data;
                         updateTestAlertUI();
                     }
                 })
@@ -4663,13 +4663,13 @@
 
         function updateTestAlertUI() {
             const alertContainer = document.getElementById('test-alert-container');
-            const alertBtn = document.getElementById('btn-test-alert');
+            const alertText = document.getElementById('btn-test-alert-text');
             if (!alertContainer) return;
 
             if (activeTests.length > 0) {
                 alertContainer.style.display = 'block';
-                if (alertBtn) {
-                    alertBtn.innerText = `🔔 先生からテストが届いています！ (${activeTests.length}件)`;
+                if (alertText) {
+                    alertText.innerText = `テストが届いています (${activeTests.length}件)`;
                 }
             } else {
                 alertContainer.style.display = 'none';
@@ -4976,8 +4976,8 @@
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success && Array.isArray(data.tests)) {
-                        activeTeacherTests = data.tests;
+                    if (Array.isArray(data)) {
+                        activeTeacherTests = data;
                         renderActiveTestsTable();
                     } else {
                         container.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#ef4444;">データの取得に失敗しました。</td></tr>';
