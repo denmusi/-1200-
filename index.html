@@ -3096,6 +3096,15 @@
                 </div>
                 <button id="btn-gas-resubmit" class="btn btn-secondary" onclick="resubmitQuizData()" style="margin-top: 8px; display: none; min-height: 32px; padding: 4px 12px; font-size: 0.8rem; width: auto; margin-left: auto; margin-right: auto;">再送信する</button>
             </div>
+
+            <!-- Test Passing Status Panel (Delivered Tests Only) -->
+            <div id="test-passing-panel" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background-color: #ffffff; border: 2px solid var(--border-color); text-align: center; display: none; flex-direction: column; gap: 8px; color: #1e293b;">
+                <div id="test-passing-status-title" style="font-size: 1.1rem; font-weight: 700; color: #1e293b;"></div>
+                <div id="test-passing-streak-text" style="font-size: 0.95rem; color: #64748b;"></div>
+                <div id="test-passing-streak-bar-container" style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; display: none; margin-top: 4px;">
+                    <div id="test-passing-streak-bar" style="height: 100%; background: #22c55e; width: 0%;"></div>
+                </div>
+            </div>
             
             <button class="btn btn-primary" id="btn-result-restart" onclick="restartQuizSession()" style="margin-bottom: 12px; width: 100%;">もう一度</button>
             <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
@@ -3316,7 +3325,7 @@
                         </div>
                         <div class="input-group" style="flex:1; margin-bottom:0;">
                             <label for="test-input-count">問題数</label>
-                            <input type="number" id="test-input-count" value="10" min="1" max="100">
+                            <input type="number" id="test-input-count" value="10" min="1" max="100" oninput="document.getElementById('test-input-passing-score').value = Math.max(1, Math.floor(this.value * 0.8))">
                         </div>
                     </div>
 
@@ -3340,12 +3349,16 @@
 
                     <div class="row" style="margin-bottom:16px; display:flex; gap:12px;">
                         <div class="input-group" style="flex:1; margin-bottom:0;">
-                            <label for="test-input-retry">やり直し設定</label>
-                            <select id="test-input-retry" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
-                                <option value="allow">やり直し可能（完了まで何度でも再挑戦可）</option>
-                                <option value="deny">やり直し不可（リロードしたら0点 / 1回きり）</option>
-                            </select>
+                            <label for="test-input-passing-score">合格点（必要な正解数）</label>
+                            <input type="number" id="test-input-passing-score" min="1" max="100" placeholder="例: 8" value="8" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
                         </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-required-streak">必要連続合格回数</label>
+                            <input type="number" id="test-input-required-streak" min="1" max="10" placeholder="例: 1" value="1" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-bottom:16px; display:flex; gap:12px;">
                         <div class="input-group" style="flex:1; margin-bottom:0;">
                             <label for="test-input-deadline">期限日時</label>
                             <input type="datetime-local" id="test-input-deadline" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
@@ -3370,7 +3383,7 @@
                                     <th style="padding:10px 8px;">対象</th>
                                     <th style="padding:10px 8px;">範囲</th>
                                     <th style="padding:10px 8px;">形式 (問題数)</th>
-                                    <th style="padding:10px 8px;">やり直し</th>
+                                    <th style="padding:10px 8px;">クリア条件</th>
                                     <th style="padding:10px 8px;">提出期限</th>
                                     <th style="padding:10px 8px;">操作</th>
                                 </tr>
@@ -3425,6 +3438,7 @@
                                     <th style="padding:10px 8px;">ニックネーム</th>
                                     <th style="padding:10px 8px;">得点</th>
                                     <th style="padding:10px 8px;">ステータス</th>
+                                    <th style="padding:10px 8px;">現在の連続合格数</th>
                                     <th style="padding:10px 8px;">受験日時</th>
                                 </tr>
                             </thead>
@@ -4708,19 +4722,24 @@
                     const deadlineDate = test.deadline ? new Date(test.deadline) : null;
                     const formattedDeadline = deadlineDate ? `${deadlineDate.getMonth() + 1}/${deadlineDate.getDate()} ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}` : '期限なし';
                     
-                    const isRetryDenied = test.allowRetry === 'deny';
-                    const retryLabel = isRetryDenied ? '<span class="test-badge badge-deny">やり直し不可</span>' : '<span class="test-badge badge-allow">やり直し可能</span>';
+                    const pScore = test.passingScore || test.questionCount;
+                    const reqStreak = test.requiredStreak || 1;
+                    const cStreak = test.currentStreak || 0;
+                    
+                    const badgeLabel = `<span class="test-badge badge-allow">${pScore}問 / ${test.questionCount}問で合格</span>`;
+                    const streakLabel = reqStreak > 1 ? `<span>進捗: ${reqStreak}回連続合格が必要（現在 ${cStreak}回連続中）</span>` : '';
 
                     const item = document.createElement('div');
                     item.className = 'test-list-item';
                     item.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
                             <strong style="font-size:1.05rem;">${test.testName}</strong>
-                            ${retryLabel}
+                            ${badgeLabel}
                         </div>
                         <div style="font-size:0.85rem; color:#64748b; margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
                             <span>範囲: No. ${test.range}</span>
-                            <span>形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'} / 問題数: ${test.questionCount}問</span>
+                            <span>形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'}</span>
+                            ${streakLabel}
                             <span>提出期限: ${formattedDeadline}</span>
                         </div>
                         <button class="btn btn-primary" style="width:100%; padding:10px; font-size:0.9rem;" onclick="showTestConfirm('${test.testId}')">テストを受ける</button>
@@ -4932,6 +4951,22 @@
                 resultScoreEl.innerText = "送信中...";
             }
 
+            const passingPanel = document.getElementById('test-passing-panel');
+            const passingTitle = document.getElementById('test-passing-status-title');
+            const passingStreakText = document.getElementById('test-passing-streak-text');
+            const passingBarContainer = document.getElementById('test-passing-streak-bar-container');
+            const passingBar = document.getElementById('test-passing-streak-bar');
+
+            if (passingPanel) {
+                passingPanel.style.display = 'flex';
+                if (passingTitle) {
+                    passingTitle.innerText = "テスト結果を送信中...";
+                    passingTitle.style.color = "#64748b";
+                }
+                if (passingStreakText) passingStreakText.innerText = "データを集計しています...";
+                if (passingBarContainer) passingBarContainer.style.display = 'none';
+            }
+
             fetch(GAS_WEBAPP_URL, {
                 method: 'POST',
                 headers: {
@@ -4945,9 +4980,65 @@
                     resultScoreEl.innerText = originalScoreText;
                 }
                 if (data.status === 'success') {
-                    console.log("Test result submitted successfully.");
+                    console.log("Test result submitted successfully:", data);
+                    
+                    if (passingPanel) {
+                        passingPanel.style.display = 'flex';
+                        
+                        // 合格・不合格の表示
+                        if (data.isPassed) {
+                            if (passingTitle) {
+                                passingTitle.innerText = "🎉 合格点クリア！";
+                                passingTitle.style.color = "#16a34a"; // 緑
+                            }
+                        } else {
+                            if (passingTitle) {
+                                passingTitle.innerText = "❌ 合格点に届きませんでした";
+                                passingTitle.style.color = "#dc2626"; // 赤
+                            }
+                        }
+
+                        // 連続合格進捗の表示
+                        const cStreak = data.currentStreak || 0;
+                        const reqStreak = data.requiredStreak || 1;
+                        
+                        if (reqStreak > 1) {
+                            if (passingStreakText) {
+                                if (data.isFullyCompleted) {
+                                    passingStreakText.innerText = `見事 ${reqStreak}回連続合格をクリアしました！🎉\n(メニューの未受験テスト一覧から消えます)`;
+                                } else {
+                                    passingStreakText.innerText = `クリアまであと連続合格 ${reqStreak - cStreak}回必要です。\n(現在: ${cStreak} / ${reqStreak} 回連続合格中)`;
+                                }
+                            }
+                            // プログレスバー表示
+                            if (passingBarContainer && passingBar) {
+                                passingBarContainer.style.display = 'block';
+                                const percent = Math.min(100, Math.round((cStreak / reqStreak) * 100));
+                                passingBar.style.width = `${percent}%`;
+                                if (data.isFullyCompleted) {
+                                    passingBar.style.backgroundColor = "#22c55e"; // クリア時は緑
+                                } else {
+                                    passingBar.style.backgroundColor = "#eab308"; // 進行中は黄色
+                                }
+                            }
+                        } else {
+                            if (passingStreakText) {
+                                if (data.isPassed) {
+                                    passingStreakText.innerText = "テストの合格条件を達成しました！\n(メニューの未受験テスト一覧から消えます)";
+                                } else {
+                                    passingStreakText.innerText = "もう一度受験して、合格点クリアを目指しましょう！";
+                                }
+                            }
+                            if (passingBarContainer) passingBarContainer.style.display = 'none';
+                        }
+                    }
                 } else {
                     console.error("Test result submit error:", data.message);
+                    if (passingTitle) {
+                        passingTitle.innerText = "送信エラー";
+                        passingTitle.style.color = "#dc2626";
+                    }
+                    if (passingStreakText) passingStreakText.innerText = "サーバー処理中にエラーが発生しました。";
                 }
                 // 送信完了したためテスト一覧をリロード
                 fetchActiveTestsForStudent();
@@ -4957,6 +5048,11 @@
                     resultScoreEl.innerText = originalScoreText;
                 }
                 console.error("Error submitting test result:", err);
+                if (passingTitle) {
+                    passingTitle.innerText = "通信エラー";
+                    passingTitle.style.color = "#dc2626";
+                }
+                if (passingStreakText) passingStreakText.innerText = "ネットワーク環境をお確かめの上、もう一度お試しください。";
                 alert("テスト結果の送信に失敗しました。画面を閉じずにしばらく待つか、ネットワーク接続を確認してください。");
             });
         }
@@ -5029,8 +5125,9 @@
             activeTeacherTests.forEach(test => {
                 const tr = document.createElement('tr');
 
-                const isRetryDenied = test.allowRetry === 'deny';
-                const retryLabel = isRetryDenied ? '<span class="test-badge badge-deny">不可</span>' : '<span class="test-badge badge-allow">可能</span>';
+                const pScore = test.passingScore || test.questionCount;
+                const reqStreak = test.requiredStreak || 1;
+                const conditionLabel = `<span style="font-weight:600; color:var(--text-main);">${pScore}問 / ${test.questionCount}問</span>${reqStreak > 1 ? `<br><span style="font-size:0.75rem; color:#64748b;">(${reqStreak}回連続合格)</span>` : ''}`;
                 
                 const deadlineDate = test.deadline ? new Date(test.deadline) : null;
                 const formattedDeadline = deadlineDate ? `${deadlineDate.getMonth() + 1}/${deadlineDate.getDate()} ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}` : '期限なし';
@@ -5040,7 +5137,7 @@
                     <td><span class="portal-badge" style="background:var(--card-bg); border:1px solid var(--border-color); color:var(--text-main); font-weight:600; padding:2px 8px; border-radius:4px;">${test.targetClass}組</span></td>
                     <td>No. ${test.range}</td>
                     <td>${test.format === 'en-ja' ? '英→日' : test.format === 'ja-en' ? '日→英' : '綴り'} (${test.questionCount}問)</td>
-                    <td>${retryLabel}</td>
+                    <td>${conditionLabel}</td>
                     <td style="font-size:0.85rem; color:var(--text-muted);">${formattedDeadline}</td>
                     <td>
                         <div style="display:flex; gap:8px;">
@@ -5062,7 +5159,8 @@
             const format = document.getElementById('test-input-format').value;
             const qCount = parseInt(document.getElementById('test-input-count').value, 10);
             const orderType = document.getElementById('test-input-order').value;
-            const allowRetry = document.getElementById('test-input-retry').value;
+            const passingScore = parseInt(document.getElementById('test-input-passing-score').value, 10);
+            const requiredStreak = parseInt(document.getElementById('test-input-required-streak').value, 10);
             const deadlineRaw = document.getElementById('test-input-deadline').value;
 
             if (!name) {
@@ -5080,6 +5178,14 @@
             }
             if (isNaN(qCount) || qCount < 1) {
                 alert("問題数には1以上の数値を指定してください。");
+                return;
+            }
+            if (isNaN(passingScore) || passingScore < 1 || passingScore > qCount) {
+                alert(`合格点は1から問題数（${qCount}問）以下の数値を指定してください。`);
+                return;
+            }
+            if (isNaN(requiredStreak) || requiredStreak < 1) {
+                alert("必要連続合格回数には1以上の数値を指定してください。");
                 return;
             }
 
@@ -5105,7 +5211,8 @@
                 format: format,
                 questionCount: qCount,
                 orderType: orderType,
-                allowRetry: allowRetry,
+                passingScore: passingScore,
+                requiredStreak: requiredStreak,
                 deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : '',
                 selectedWords: JSON.stringify(selectedWords)
             };
@@ -5202,7 +5309,7 @@
             panel.style.display = 'block';
             title.innerText = "読み込み中...";
             metaEl.innerText = "-";
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:12px; color:var(--text-muted);">データを取得中...</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:12px; color:var(--text-muted);">データを取得中...</td></tr>';
             weaknessList.innerHTML = '<p style="color:var(--text-muted); margin:0;">取得中...</p>';
 
             // スムーズスクロールで詳細パネルへ
@@ -5222,7 +5329,7 @@
                         
                         if (results.length === 0) {
                             metaEl.innerText = `クラス: ${testMeta ? testMeta.targetClass : '-'}組 | 範囲: No. ${testMeta ? testMeta.range : '-'} | 受験者: 0人 | 平均点: -`;
-                            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">受験者がいません</td></tr>';
+                            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-muted);">受験者がいません</td></tr>';
                         } else {
                             let totalScoreSum = 0;
                             tableBody.innerHTML = '';
@@ -5237,7 +5344,12 @@
                                 totalScoreSum += res.score;
                                 const pct = Math.round((res.score / totalQCount) * 100);
                                 
-                                const statusLabel = res.status === 'completed' ? '<span class="test-badge badge-allow">提出済</span>' : '<span class="test-badge badge-deny">受験中</span>';
+                                const requiredStreak = (testMeta && testMeta.requiredStreak) ? testMeta.requiredStreak : 1;
+                                const streakText = `${res.streak || 0} / ${requiredStreak} 回`;
+                                
+                                const statusLabel = res.status === 'completed' 
+                                    ? '<span class="test-badge badge-allow">クリア</span>' 
+                                    : (res.status === 'streak_progress' ? '<span class="test-badge badge-deny" style="background:#f59e0b; border-color:#d97706;">挑戦中</span>' : '<span class="test-badge badge-deny">受験中</span>');
                                 const timeStr = res.timestamp ? new Date(res.timestamp).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
 
                                 tr.innerHTML = `
@@ -5245,6 +5357,7 @@
                                     <td style="padding:10px 8px;">${res.nickname || '名無し'}</td>
                                     <td style="padding:10px 8px; font-weight:600;">${res.score} / ${totalQCount} 問</td>
                                     <td style="padding:10px 8px;">${statusLabel}</td>
+                                    <td style="padding:10px 8px; font-weight:600;">${streakText}</td>
                                     <td style="padding:10px 8px; font-size:0.85rem; color:var(--text-muted);">${timeStr}</td>
                                 `;
                                 tableBody.appendChild(tr);
@@ -6476,6 +6589,10 @@
         function finishQuizSession() {
             clearInterval(timerInterval);
             showScreen('screen-result');
+
+            // テスト合格状況パネルを初期状態では非表示にする
+            const passingPanel = document.getElementById('test-passing-panel');
+            if (passingPanel) passingPanel.style.display = 'none';
 
             // テストモード時の結果表示制御
             const normalActions = document.getElementById('result-normal-actions');
