@@ -3358,10 +3358,16 @@
                         </div>
                     </div>
 
-                    <div class="row" style="margin-bottom:16px; display:flex; gap:12px;">
-                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                    <div class="row" style="margin-bottom:16px; display:flex; gap:12px; align-items: flex-end;">
+                        <div class="input-group" style="flex:1.2; margin-bottom:0;">
                             <label for="test-input-deadline">期限日時</label>
                             <input type="datetime-local" id="test-input-deadline" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                        </div>
+                        <div class="input-group" style="flex:0.8; margin-bottom:0; display:flex; align-items:center; height:45px; background:var(--bg-app); border:1px solid var(--border-color); border-radius:8px; padding:0 12px; cursor:pointer;">
+                            <label style="display:flex; align-items:center; gap:8px; width:100%; height:100%; font-size:0.9rem; font-weight:600; cursor:pointer; color:var(--text-main); user-select:none; margin:0;">
+                                <input type="checkbox" id="test-input-ignore-phrases" style="width:18px; height:18px; cursor:pointer; accent-color:var(--primary);">
+                                熟語を出題しない
+                            </label>
                         </div>
                     </div>
 
@@ -4597,6 +4603,120 @@
             }
         }
 
+        function deliverNewTestFromUI() {
+            const name = document.getElementById('test-input-name').value.trim();
+            const gradeVal = document.getElementById('test-input-grade').value.trim();
+            const classVal = document.getElementById('test-input-class').value.trim();
+            const rangeFrom = parseInt(document.getElementById('test-input-range-from').value, 10);
+            const rangeTo = parseInt(document.getElementById('test-input-range-to').value, 10);
+            const format = document.getElementById('test-input-format').value;
+            const qCount = parseInt(document.getElementById('test-input-count').value, 10);
+            const orderType = document.getElementById('test-input-order').value;
+            const passingScore = parseInt(document.getElementById('test-input-passing-score').value, 10);
+            const requiredStreak = parseInt(document.getElementById('test-input-required-streak').value, 10);
+            const deadlineRaw = document.getElementById('test-input-deadline').value;
+            const ignorePhrases = document.getElementById('test-input-ignore-phrases').checked;
+
+            if (!name) {
+                alert("テスト名を入力してください。");
+                return;
+            }
+            if (!gradeVal || !classVal) {
+                alert("対象学年と対象組を入力してください。");
+                return;
+            }
+            const targetClass = `${gradeVal}-${classVal}`;
+            if (isNaN(rangeFrom) || isNaN(rangeTo) || rangeFrom < 1 || rangeTo > 1200 || rangeFrom > rangeTo) {
+                alert("正しい単語番号の範囲 (1〜1200) を指定してください。");
+                return;
+            }
+            if (isNaN(qCount) || qCount < 1) {
+                alert("問題数には1以上の数値を指定してください。");
+                return;
+            }
+            if (isNaN(passingScore) || passingScore < 1 || passingScore > qCount) {
+                alert(`合格点は1から問題数（${qCount}問）以下の数値を指定してください。`);
+                return;
+            }
+            if (isNaN(requiredStreak) || requiredStreak < 1) {
+                alert("必要連続合格回数には1以上の数値を指定してください。");
+                return;
+            }
+
+            // 出題順序が「全員同じ (fixed)」の場合、指定範囲からあらかじめ問題単語IDを固定抽出して決定します
+            let selectedWords = [];
+            if (orderType === 'fixed') {
+                let rangeWords = wordData.filter(w => w.id >= rangeFrom && w.id <= rangeTo);
+                if (ignorePhrases) {
+                    rangeWords = rangeWords.filter(w => !isPhraseId(w.id));
+                }
+                if (rangeWords.length === 0) {
+                    alert("指定範囲に有効な単語がありません（熟語除外設定がONになっているため、指定範囲がすべて熟語IDである可能性があります）。");
+                    return;
+                }
+                // シャッフルして問題数分を固定問題として登録
+                const shuffled = [...rangeWords].sort(() => Math.random() - 0.5);
+                const sliced = shuffled.slice(0, Math.min(qCount, shuffled.length));
+                selectedWords = sliced.map(w => w.id);
+            }
+
+            const rangeParam = ignorePhrases ? `${rangeFrom}-${rangeTo}-np` : `${rangeFrom}-${rangeTo}`;
+
+            const payload = {
+                action: 'deliver_test',
+                testName: name,
+                targetClass: targetClass,
+                range: rangeParam,
+                format: format,
+                questionCount: qCount,
+                orderType: orderType,
+                passingScore: passingScore,
+                requiredStreak: requiredStreak,
+                deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : '',
+                selectedWords: JSON.stringify(selectedWords)
+            };
+
+            const deliverBtn = document.getElementById('btn-deliver-test-action');
+            const origText = deliverBtn ? deliverBtn.textContent : '';
+            if (deliverBtn) {
+                deliverBtn.disabled = true;
+                deliverBtn.textContent = "配信中...";
+            }
+
+            fetch(GAS_WEBAPP_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (deliverBtn) {
+                    deliverBtn.disabled = false;
+                    deliverBtn.textContent = origText;
+                }
+                if (data.status === 'success') {
+                    alert("テストを配信しました。");
+                    // フォームクリア
+                    document.getElementById('test-input-name').value = '';
+                    document.getElementById('test-input-deadline').value = '';
+                    document.getElementById('test-input-ignore-phrases').checked = false;
+                    reloadActiveTestsForTeacher();
+                } else {
+                    alert("テストの配信に失敗しました: " + (data.message || "Unknown error"));
+                }
+            })
+            .catch(err => {
+                if (deliverBtn) {
+                    deliverBtn.disabled = false;
+                    deliverBtn.textContent = origText;
+                }
+                console.error("Error delivering test:", err);
+                alert("テストの配信に失敗しました。ネットワーク接続を確認してください。");
+            });
+        }
+
         // --- Navigation ---
         function showScreen(screenId) {
             // Cancel timer if moving away from quiz screen
@@ -4737,7 +4857,7 @@
                             ${badgeLabel}
                         </div>
                         <div style="font-size:0.85rem; color:#64748b; margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
-                            <span>範囲: No. ${test.range}</span>
+                            <span>範囲: No. ${test.range.replace('-np', '')}</span>
                             <span>形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'}</span>
                             ${streakLabel}
                             <span>提出期限: ${formattedDeadline}</span>
@@ -4782,7 +4902,7 @@
             if (meta) {
                 meta.innerHTML = `
                     <strong>テスト名: ${test.testName}</strong><br>
-                    範囲: No. ${test.range} (${test.questionCount}問)<br>
+                    範囲: No. ${test.range.replace('-np', '')} (${test.questionCount}問)<br>
                     形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'}
                 `;
             }
@@ -4870,7 +4990,12 @@
             const parts = testObj.range.split('-');
             const fromNo = parseInt(parts[0], 10) || 1;
             const toNo = parseInt(parts[1], 10) || 1200;
-            const rangeWords = wordData.filter(w => w.id >= fromNo && w.id <= toNo);
+            const ignorePhrases = testObj.range.includes('-np');
+
+            let rangeWords = wordData.filter(w => w.id >= fromNo && w.id <= toNo);
+            if (ignorePhrases) {
+                rangeWords = rangeWords.filter(w => !isPhraseId(w.id));
+            }
 
             if (rangeWords.length === 0) {
                 alert("指定範囲に有効な単語がありませんでした。");
@@ -5135,7 +5260,7 @@
                 tr.innerHTML = `
                     <td style="font-weight:600;">${test.testName}</td>
                     <td><span class="portal-badge" style="background:var(--card-bg); border:1px solid var(--border-color); color:var(--text-main); font-weight:600; padding:2px 8px; border-radius:4px;">${test.targetClass}組</span></td>
-                    <td>No. ${test.range}</td>
+                    <td>No. ${test.range.replace('-np', '')}</td>
                     <td>${test.format === 'en-ja' ? '英→日' : test.format === 'ja-en' ? '日→英' : '綴り'} (${test.questionCount}問)</td>
                     <td>${conditionLabel}</td>
                     <td style="font-size:0.85rem; color:var(--text-muted);">${formattedDeadline}</td>
@@ -5150,113 +5275,7 @@
             });
         }
 
-        function deliverNewTestFromUI() {
-            const name = document.getElementById('test-input-name').value.trim();
-            const gradeVal = document.getElementById('test-input-grade').value.trim();
-            const classVal = document.getElementById('test-input-class').value.trim();
-            const rangeFrom = parseInt(document.getElementById('test-input-range-from').value, 10);
-            const rangeTo = parseInt(document.getElementById('test-input-range-to').value, 10);
-            const format = document.getElementById('test-input-format').value;
-            const qCount = parseInt(document.getElementById('test-input-count').value, 10);
-            const orderType = document.getElementById('test-input-order').value;
-            const passingScore = parseInt(document.getElementById('test-input-passing-score').value, 10);
-            const requiredStreak = parseInt(document.getElementById('test-input-required-streak').value, 10);
-            const deadlineRaw = document.getElementById('test-input-deadline').value;
 
-            if (!name) {
-                alert("テスト名を入力してください。");
-                return;
-            }
-            if (!gradeVal || !classVal) {
-                alert("対象学年と対象組を入力してください。");
-                return;
-            }
-            const targetClass = `${gradeVal}-${classVal}`;
-            if (isNaN(rangeFrom) || isNaN(rangeTo) || rangeFrom < 1 || rangeTo > 1200 || rangeFrom > rangeTo) {
-                alert("正しい単語番号の範囲 (1〜1200) を指定してください。");
-                return;
-            }
-            if (isNaN(qCount) || qCount < 1) {
-                alert("問題数には1以上の数値を指定してください。");
-                return;
-            }
-            if (isNaN(passingScore) || passingScore < 1 || passingScore > qCount) {
-                alert(`合格点は1から問題数（${qCount}問）以下の数値を指定してください。`);
-                return;
-            }
-            if (isNaN(requiredStreak) || requiredStreak < 1) {
-                alert("必要連続合格回数には1以上の数値を指定してください。");
-                return;
-            }
-
-            // 出題順序が「全員同じ (fixed)」の場合、指定範囲からあらかじめ問題単語IDを固定抽出して決定します
-            let selectedWords = [];
-            if (orderType === 'fixed') {
-                const rangeWords = wordData.filter(w => w.id >= rangeFrom && w.id <= rangeTo);
-                if (rangeWords.length === 0) {
-                    alert("指定範囲に有効な単語がありません。");
-                    return;
-                }
-                // シャッフルして問題数分を固定問題として登録
-                const shuffled = [...rangeWords].sort(() => Math.random() - 0.5);
-                const sliced = shuffled.slice(0, Math.min(qCount, shuffled.length));
-                selectedWords = sliced.map(w => w.id);
-            }
-
-            const payload = {
-                action: 'deliver_test',
-                testName: name,
-                targetClass: targetClass,
-                range: `${rangeFrom}-${rangeTo}`,
-                format: format,
-                questionCount: qCount,
-                orderType: orderType,
-                passingScore: passingScore,
-                requiredStreak: requiredStreak,
-                deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : '',
-                selectedWords: JSON.stringify(selectedWords)
-            };
-
-            const deliverBtn = document.getElementById('btn-deliver-test-action');
-            const origText = deliverBtn ? deliverBtn.textContent : '';
-            if (deliverBtn) {
-                deliverBtn.disabled = true;
-                deliverBtn.textContent = "配信中...";
-            }
-
-            fetch(GAS_WEBAPP_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (deliverBtn) {
-                    deliverBtn.disabled = false;
-                    deliverBtn.textContent = origText;
-                }
-                if (data.status === 'success') {
-                    alert("テストを配信しました。");
-                    // フォームクリア
-                    document.getElementById('test-input-name').value = '';
-                    document.getElementById('test-input-deadline').value = '';
-                    // 一覧リロード
-                    reloadActiveTestsForTeacher();
-                } else {
-                    alert(data.message || "配信に失敗しました。");
-                }
-            })
-            .catch(err => {
-                if (deliverBtn) {
-                    deliverBtn.disabled = false;
-                    deliverBtn.textContent = origText;
-                }
-                console.error("Error delivering test:", err);
-                alert("配信処理中にエラーが発生しました。");
-            });
-        }
 
         function deleteDeliveredTest(testId) {
             if (!confirm("本当にこのテストの配信履歴を削除しますか？\n(※このテストに関連する生徒の解答記録もすべて削除されます。)")) return;
