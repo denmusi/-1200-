@@ -2842,22 +2842,26 @@
 
             <!-- Radio Buttons: Question Format -->
             <div class="radio-card" style="margin-bottom: 24px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
                     <span class="toggle-title">出題形式</span>
                     <span class="toggle-desc" id="toggle-type-desc" style="display:none;">英単語 → 日本語の選択肢</span>
                 </div>
-                <div class="radio-group">
-                    <label class="radio-option">
+                <div class="radio-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <label class="radio-option" style="margin: 0; padding: 12px 10px; min-height: 48px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer;">
                         <input type="radio" name="setting-type" value="en-ja" checked onchange="updateSettingLabels()">
-                        <span class="radio-label">英単語 → 日本語の選択肢</span>
+                        <span class="radio-label" style="font-size: 0.85rem; font-weight: 600; line-height: 1.2;">英 → 日</span>
                     </label>
-                    <label class="radio-option">
+                    <label class="radio-option" style="margin: 0; padding: 12px 10px; min-height: 48px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer;">
                         <input type="radio" name="setting-type" value="ja-en" onchange="updateSettingLabels()">
-                        <span class="radio-label">日本語 → 英語の選択肢</span>
+                        <span class="radio-label" style="font-size: 0.85rem; font-weight: 600; line-height: 1.2;">日 → 英</span>
                     </label>
-                    <label class="radio-option">
+                    <label class="radio-option" style="margin: 0; padding: 12px 10px; min-height: 48px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer;">
                         <input type="radio" name="setting-type" value="ja-en-spelling" onchange="updateSettingLabels()">
-                        <span class="radio-label">日本語 → 英語スペリング</span>
+                        <span class="radio-label" style="font-size: 0.85rem; font-weight: 600; line-height: 1.2;">スペル</span>
+                    </label>
+                    <label class="radio-option" style="margin: 0; padding: 12px 10px; min-height: 48px; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; border-color: rgba(99, 102, 241, 0.4); background: rgba(99, 102, 241, 0.02);">
+                        <input type="radio" name="setting-type" value="unit-test" onchange="updateSettingLabels()">
+                        <span class="radio-label" style="font-weight: 700; font-size: 0.85rem; color: var(--primary); line-height: 1.2;">📝 単元テスト</span>
                     </label>
                 </div>
             </div>
@@ -3135,6 +3139,21 @@
                 <div class="teacher-modal-buttons">
                     <button class="btn-modal btn-modal-cancel" onclick="closeFcAbortModal()">キャンセル</button>
                     <button class="btn-modal btn-modal-confirm" onclick="confirmFcAbort()">戻る</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Modal: Special List Format Selection -->
+        <div id="special-list-format-modal" class="teacher-modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 9999;">
+            <div class="teacher-modal" style="max-width: 380px; padding: 28px 24px; border-radius: 20px;">
+                <div class="teacher-modal-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); font-size: 1.8rem; width: 60px; height: 60px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">🎴</div>
+                <h3 class="teacher-modal-title" style="margin-bottom: 8px;">出題形式の選択</h3>
+                <p class="teacher-modal-desc" style="margin-bottom: 20px; font-size: 0.9rem; line-height: 1.4;">クイズの出題形式を選択してください。</p>
+                <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+                    <button class="btn btn-secondary" style="min-height: 48px; border-color: rgba(99, 102, 241, 0.3); font-weight: 600;" onclick="selectSpecialListFormat('en-ja')">🔤 英単語 → 日本語 (選択肢)</button>
+                    <button class="btn btn-secondary" style="min-height: 48px; border-color: rgba(99, 102, 241, 0.3); font-weight: 600;" onclick="selectSpecialListFormat('ja-en')">🇯🇵 日本語 → 英語 (選択肢)</button>
+                    <button class="btn btn-secondary" style="min-height: 48px; border-color: rgba(99, 102, 241, 0.3); font-weight: 600;" onclick="selectSpecialListFormat('ja-en-spelling')">✏️ 日本語 → 英語スペリング</button>
+                    <button class="btn btn-secondary" style="min-height: 40px; margin-top: 10px; border: none; background: transparent; color: var(--text-muted); font-size: 0.85rem;" onclick="closeSpecialListFormatModal()">キャンセル</button>
                 </div>
             </div>
         </div>
@@ -6072,6 +6091,8 @@
                 typeDesc = '日本語 → 英語の選択肢';
             } else if (quizType === 'ja-en-spelling') {
                 typeDesc = '日本語 → 英語スペリング';
+            } else if (quizType === 'unit-test') {
+                typeDesc = '単元テスト (英日30問 + スペル20問)';
             }
             
             document.getElementById('toggle-type-desc').innerText = typeDesc;
@@ -6103,7 +6124,7 @@
             }
 
             const countContainer = document.getElementById('fixed-count-container');
-            if (isInfinite) {
+            if (quizType === 'unit-test' || isInfinite) {
                 countContainer.style.display = 'none';
             } else {
                 countContainer.style.display = 'block';
@@ -6289,13 +6310,25 @@
             }
 
             activeQuizType = getSelectedQuizType();
-            isInfiniteMode = document.getElementById('setting-mode').checked;
-            isSequentialOrder = document.getElementById('setting-order').checked;
+            
+            if (activeQuizType === 'unit-test') {
+                if (filtered.length < 50) {
+                    alert(`単元テストを行うには、範囲内に最低50単語必要です。（現在の範囲内には ${filtered.length} 単語しかありません。）`);
+                    return;
+                }
+                isInfiniteMode = false;
+                targetQuestionCount = 50;
+                isSequentialOrder = false;
+            } else {
+                isInfiniteMode = document.getElementById('setting-mode').checked;
+                isSequentialOrder = document.getElementById('setting-order').checked;
+            }
+
             speechEnabled = document.getElementById('setting-tts').checked;
             soundEnabled = document.getElementById('setting-sound').checked;
             isButtonProgressMode = document.getElementById('setting-progress').checked;
             
-            if (!isInfiniteMode) {
+            if (activeQuizType !== 'unit-test' && !isInfiniteMode) {
                 const countInput = parseInt(document.getElementById('fixed-count').value);
                 targetQuestionCount = isNaN(countInput) || countInput <= 0 ? 20 : countInput;
             }
@@ -6303,12 +6336,67 @@
             sourceListType = 'range';
             sessionRange = { from, to };
             
-            initQuizQueue(filtered);
+            if (activeQuizType === 'unit-test') {
+                // 範囲からランダムに50単語を抽出
+                const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+                const sliced = shuffled.slice(0, 50);
+                
+                // 前半30問（英日用）と後半20問（スペル用）に分割
+                const enJaWords = sliced.slice(0, 30);
+                const spellingWords = sliced.slice(30, 50);
+                
+                // それぞれを個別にシャッフル
+                const shuffledEnJa = [...enJaWords].sort(() => Math.random() - 0.5);
+                const shuffledSpelling = [...spellingWords].sort(() => Math.random() - 0.5);
+                
+                // 形式を割り当て
+                const enJaPool = shuffledEnJa.map(w => ({ ...w, assignedFormat: 'en-ja' }));
+                const spellingPool = shuffledSpelling.map(w => ({ ...w, assignedFormat: 'ja-en-spelling' }));
+                
+                // 連結してpoolを作成（前半30問が英日、後半20問がスペル）
+                const pool = [...enJaPool, ...spellingPool];
+                
+                initQuizQueue(pool);
+            } else {
+                initQuizQueue(filtered);
+            }
         }
+
+        let pendingSpecialListType = null;
 
         function startQuizFromSpecialList(type) {
             clearSetupError();
             if (!validateStudentInfoBeforeStart()) return;
+            let pool = [];
+            
+            if (type === 'weak') {
+                pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 4);
+            } else if (type === 'bookmark') {
+                pool = wordData.filter(w => bookmarks.has(w.id));
+            }
+
+            pool = filterPhrasesIfNeeded(pool);
+
+            if(pool.length < 1) {
+                showSetupError("テストを開始するためには、リストに最低1つの単語が必要です。");
+                return;
+            }
+
+            pendingSpecialListType = type;
+            document.getElementById('special-list-format-modal').style.display = 'flex';
+        }
+
+        function closeSpecialListFormatModal() {
+            document.getElementById('special-list-format-modal').style.display = 'none';
+        }
+
+        function selectSpecialListFormat(format) {
+            closeSpecialListFormatModal();
+            activeQuizType = format;
+            executeStartQuizFromSpecialList(pendingSpecialListType);
+        }
+
+        function executeStartQuizFromSpecialList(type) {
             let pool = [];
             
             if (type === 'weak') {
@@ -6321,12 +6409,6 @@
 
             pool = filterPhrasesIfNeeded(pool);
 
-            if(pool.length < 1) {
-                showSetupError("テストを開始するためには、リストに最低1つの単語が必要です。");
-                return;
-            }
-
-            activeQuizType = getSelectedQuizType();
             isInfiniteMode = document.getElementById('setting-mode').checked;
             isSequentialOrder = document.getElementById('setting-order').checked;
             speechEnabled = document.getElementById('setting-tts').checked;
@@ -6375,7 +6457,11 @@
 
         function initQuizQueue(pool) {
             currentSessionPool = [...pool]; // Save current pool for retry/restart functionality
-            if (isSequentialOrder) {
+            if (activeQuizType === 'unit-test') {
+                // 単元テストの場合、前半30問(英日)・後半20問(スペル)の構成が崩れないように
+                // 渡された配列順序をそのまま逆順にしてキューにセットする (popで末尾から取り出すため)
+                quizQueue = [...pool].reverse();
+            } else if (isSequentialOrder) {
                 quizQueue = [...pool].sort((a,b) => b.id - a.id); // Sequential, pops from back (asc)
             } else {
                 quizQueue = [...pool].sort(() => Math.random() - 0.5);
