@@ -2624,6 +2624,101 @@
             border-bottom: 3px solid var(--primary) !important;
             color: var(--text-main) !important;
         }
+
+        /* --- Flashcard Mode Premium 3D Styles --- */
+        .fc-card-wrapper {
+            perspective: 1200px;
+            width: 100%;
+            max-width: 500px;
+            height: 320px;
+            margin: 20px auto;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .fc-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 24px;
+        }
+
+        .fc-card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .fc-card-side {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 24px;
+            padding: 32px;
+            box-sizing: border-box;
+            text-align: center;
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .fc-card-front {
+            border: 3px solid var(--primary);
+            background: linear-gradient(135deg, var(--card-bg, #ffffff), rgba(var(--primary-rgb), 0.05));
+            box-shadow: 0 10px 25px rgba(var(--primary-rgb), 0.1);
+            z-index: 2;
+        }
+
+        .fc-card-back {
+            border: 3px solid var(--success, #10b981);
+            background: linear-gradient(135deg, var(--card-bg, #ffffff), rgba(16, 185, 129, 0.05));
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.1);
+            transform: rotateY(180deg);
+        }
+
+        .dark-mode .fc-card-front {
+            background: linear-gradient(135deg, #1e293b, rgba(var(--primary-rgb), 0.1));
+        }
+
+        .dark-mode .fc-card-back {
+            background: linear-gradient(135deg, #1e293b, rgba(16, 185, 129, 0.1));
+        }
+
+        .fc-card-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .fc-card-word {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.3;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            font-family: 'Outfit', 'Inter', sans-serif;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        #screen-flashcard-complete.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -2880,6 +2975,11 @@
             
             <button class="btn btn-secondary" onclick="showScreen('screen-weak-words')">間違えやすい単語</button>
 
+            <!-- Flashcard Mode Button -->
+            <button class="btn btn-primary" onclick="openFlashcardSetup()" style="margin-top: 12px; background: linear-gradient(135deg, #ec4899, #f43f5e); border: none; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25); border-radius: 14px; font-weight: 700; letter-spacing: 0.5px;">
+                🎴 フラッシュカードモード
+            </button>
+
             <!-- Backup UI Section -->
             <div class="backup-panel">
                 <div class="backup-title">データ管理</div>
@@ -2893,6 +2993,150 @@
 
             <button class="btn btn-secondary" style="font-size:0.9rem; color:var(--text); border-color: rgba(99, 102, 241, 0.4); min-height: 48px; margin-top: 10px;" onclick="openBugReportModal()">🐞 バグがある場合、要望がある場合はこちら</button>
             <button class="btn btn-secondary" style="font-size: 0.9rem; color: var(--secondary); border-color: rgba(139, 92, 246, 0.3); min-height: 48px; margin-top: 24px;" onclick="showTeacherPasswordScreen()">👤 先生用ポータル</button>
+        </div>
+
+        <!-- SCREEN: Flashcard Setup Screen -->
+        <div id="screen-flashcard-setup" class="screen">
+            <!-- Back to Welcome Screen -->
+            <button class="btn btn-secondary" onclick="showScreen('screen-setup')" style="position: absolute; top: 16px; left: 16px; width: auto; min-height: unset; padding: 8px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; border-radius: 12px; z-index: 10;">
+                <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                メニューに戻る
+            </button>
+
+            <h1 style="margin-top: 40px; background: linear-gradient(135deg, #ec4899, #f43f5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">フラッシュカード設定</h1>
+            <p class="subtitle" style="margin-bottom: 24px;">学習の条件を設定して開始してください</p>
+
+            <!-- Range Pickers -->
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="input-group">
+                    <label for="fc-range-from">開始番号</label>
+                    <input type="number" id="fc-range-from" min="1" placeholder="例: 1">
+                </div>
+                <div class="input-group">
+                    <label for="fc-range-to">終了番号</label>
+                    <input type="number" id="fc-range-to" min="1" placeholder="例: 100">
+                </div>
+            </div>
+
+            <!-- Radio Buttons: Question Format (Direction) -->
+            <div class="radio-card" style="margin-bottom: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                    <span class="toggle-title" style="font-weight: 700;">カードの表示方向</span>
+                </div>
+                <div class="radio-group" style="display: flex; gap: 12px;">
+                    <label class="radio-option" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="fc-setting-type" value="en-ja" checked>
+                        <span class="radio-label">英単語 → 日本語意味</span>
+                    </label>
+                    <label class="radio-option" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="fc-setting-type" value="ja-en">
+                        <span class="radio-label">日本語意味 → 英単語</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Settings Grid -->
+            <div class="settings-grid" style="margin-bottom: 28px;">
+                <!-- 出題順序 -->
+                <div class="toggle-card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 12px;">
+                    <div class="toggle-label" style="display: flex; flex-direction: column;">
+                        <span class="toggle-title" style="font-weight: 700;">表示順序</span>
+                        <span class="toggle-desc" id="fc-toggle-order-desc" style="font-size: 0.8rem; color: var(--text-muted);">シャッフル (ランダム)</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="fc-setting-order" checked onchange="updateFcSettingLabels()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- 音声読み上げ -->
+                <div class="toggle-card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                    <div class="toggle-label" style="display: flex; flex-direction: column;">
+                        <span class="toggle-title" style="font-weight: 700;">英語発音の自動再生</span>
+                        <span class="toggle-desc" style="font-size: 0.8rem; color: var(--text-muted);">英語表示時に発音を読み上げ</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="fc-setting-tts" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="startFlashcardFromRange()" style="background: linear-gradient(135deg, #ec4899, #f43f5e); border: none; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25); border-radius: 14px; font-weight: 700; height: 50px;">学習を開始する</button>
+            <div id="fc-setup-error-msg" style="color: var(--error); font-size: 0.9rem; font-weight: 600; text-align: center; margin-top: 12px; display: none;"></div>
+        </div>
+
+        <!-- SCREEN: Flashcard Play Screen -->
+        <div id="screen-flashcard-play" class="screen" style="position: relative;">
+            <!-- Header bar with HUD -->
+            <div class="quiz-header" style="margin-bottom: 20px;">
+                <button class="btn-icon-circle" onclick="abortFlashcard(); event.preventDefault();" title="中断してメニューに戻る" style="z-index: 60;">
+                    <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </button>
+                
+                <div style="flex-grow: 1; text-align: center;">
+                    <p style="color:var(--text-primary); font-size:1.05rem; font-weight:700; margin: 0;" id="fc-progress-text">カード 0 / 0</p>
+                </div>
+
+                <div class="quiz-header-buttons" style="z-index: 60;">
+                    <button class="btn-icon-circle" onclick="speakFcCurrentWord()" title="音声を再生">
+                        <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flashcard 3D Wrapper -->
+            <div class="fc-card-wrapper" onclick="flipFlashcard()">
+                <div class="fc-card" id="fc-card-element">
+                    <!-- Front side -->
+                    <div class="fc-card-side fc-card-front" id="fc-card-front-content">
+                        <div class="fc-card-label" id="fc-card-front-label">WORD</div>
+                        <div class="fc-card-word" id="fc-card-front-text">English</div>
+                    </div>
+                    <!-- Back side -->
+                    <div class="fc-card-side fc-card-back" id="fc-card-back-content">
+                        <div class="fc-card-label" id="fc-card-back-label">MEANING</div>
+                        <div class="fc-card-word" id="fc-card-back-text">日本語</div>
+                    </div>
+                </div>
+            </div>
+            
+            <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 12px; margin-bottom: 24px;">
+                💡 画面タップでカードを裏返します
+            </p>
+
+            <!-- Bottom Actions -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: auto;">
+                <button class="btn btn-secondary" onclick="markCardLearned(false)" style="border: 2px solid var(--error); color: var(--error); border-radius: 16px; font-weight: 700; height: 56px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);">
+                    ❌ 覚えていない
+                </button>
+                <button class="btn btn-primary" onclick="markCardLearned(true)" style="background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 16px; font-weight: 700; height: 56px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">
+                    ✅ 覚えた
+                </button>
+            </div>
+        </div>
+
+        <!-- SCREEN: Flashcard Complete Screen -->
+        <div id="screen-flashcard-complete" class="screen" style="text-align: center; justify-content: center; align-items: center; flex-direction: column;">
+            <div style="font-size: 5rem; margin-bottom: 24px; animation: bounce 1.5s infinite;">🎉</div>
+            <h1 style="background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px;">学習を完了しました！</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 32px;">お疲れ様でした。すべての単語をマスターしました！</p>
+            <button class="btn btn-primary" onclick="finishFlashcardSession()" style="width: auto; padding: 14px 48px; border-radius: 16px; font-weight: 700; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);">
+                OK
+            </button>
+        </div>
+
+        <!-- Custom Modal: Abort Confirmation -->
+        <div id="fc-abort-modal" class="teacher-modal-overlay" style="display: none;">
+            <div class="teacher-modal">
+                <div class="teacher-modal-icon">⚠️</div>
+                <h3 class="teacher-modal-title">学習の中断</h3>
+                <p class="teacher-modal-desc">フラッシュカード学習を中断してメニューに戻りますか？<br>（現在の進捗状況は失われます）</p>
+                <div class="teacher-modal-buttons">
+                    <button class="btn-modal btn-modal-cancel" onclick="closeFcAbortModal()">キャンセル</button>
+                    <button class="btn-modal btn-modal-confirm" onclick="confirmFcAbort()">戻る</button>
+                </div>
+            </div>
         </div>
 
         <!-- SCREEN 1.5: Ranking Screen -->
@@ -4233,49 +4477,25 @@
 
             const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
             
-            // 同期中であることを知らせる簡易ローディング表示
-            const loginBtn = document.querySelector('.login-btn');
-            const originalBtnText = loginBtn ? loginBtn.textContent : '';
-            if (loginBtn) {
-                loginBtn.disabled = true;
-                loginBtn.textContent = "同期中...";
+            // 1. 直ちに画面のウェルカムテキスト等をセットアップ
+            setupWelcomeScreen();
+
+            // 2. 単語データがローカルに存在しない場合は「データ読込」へ、ある場合は「メニュー」へ即遷移 (ノンブロッキング)
+            if (wordData.length === 0) {
+                showScreen('screen-data-load');
+            } else {
+                showScreen('screen-setup');
             }
 
-            // 同期処理を行ってから画面遷移する
-            fetchSyncDataFromServer(sKey).then(() => {
-                if (loginBtn) {
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = originalBtnText;
-                }
-                
-                // 配信テスト一覧をフェッチする
-                fetchActiveTestsForStudent();
-
-                // 単語データがローカルに存在しない場合は「データ読込」へ、ある場合は「メニュー（セットアップ）」へ
-                if (wordData.length === 0) {
-                    showScreen('screen-data-load');
-                } else {
-                    setupWelcomeScreen();
-                    showScreen('screen-setup');
-                }
-            }).catch((err) => {
-                console.warn(err);
-                if (loginBtn) {
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = originalBtnText;
-                }
-                
-                // 失敗時もテスト一覧をフェッチ
-                fetchActiveTestsForStudent();
-
-                // エラーになってもオフラインとみなして画面は進める
-                if (wordData.length === 0) {
-                    showScreen('screen-data-load');
-                } else {
-                    setupWelcomeScreen();
-                    showScreen('screen-setup');
-                }
-            });
+            // 3. サーバー同期および配信テスト一覧のフェッチは、バックグラウンドで並行処理する
+            fetchSyncDataFromServer(sKey)
+                .then(() => {
+                    fetchActiveTestsForStudent();
+                })
+                .catch((err) => {
+                    console.warn("Background sync failed (offline mode):", err);
+                    fetchActiveTestsForStudent();
+                });
         }
 
         function validateStudentInfoBeforeStart() {
@@ -5154,7 +5374,7 @@
                         if (reqStreak > 1) {
                             if (passingStreakText) {
                                 if (data.isFullyCompleted) {
-                                    passingStreakText.innerText = `見事 ${reqStreak}回連続合格をクリアしました！🎉\n(メニューの未受験テスト一覧から消えます)`;
+                                    passingStreakText.innerText = `見事 ${reqStreak}回連続合格をクリアしました！🎉`;
                                 } else {
                                     passingStreakText.innerText = `クリアまであと連続合格 ${reqStreak - cStreak}回必要です。\n(現在: ${cStreak} / ${reqStreak} 回連続合格中)`;
                                 }
@@ -5173,7 +5393,7 @@
                         } else {
                             if (passingStreakText) {
                                 if (data.isPassed) {
-                                    passingStreakText.innerText = "テストの合格条件を達成しました！\n(メニューの未受験テスト一覧から消えます)";
+                                    passingStreakText.innerText = "テストの合格条件を達成しました！";
                                 } else {
                                     passingStreakText.innerText = "もう一度受験して、合格点クリアを目指しましょう！";
                                 }
@@ -5362,7 +5582,7 @@
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.status === 'success' || data.results) {
                         const testMeta = activeTeacherTests.find(t => t.testId === testId);
                         title.innerText = testMeta ? `📊 「${testMeta.testName}」の受験結果詳細` : "📊 受験結果詳細";
 
@@ -5448,16 +5668,16 @@
                         }
 
                         // 正答率50%以下の誤答単語リストアップ
-                        const weaknesses = data.weaknesses || [];
+                        const weaknesses = data.weakWords || [];
                         weaknessList.innerHTML = '';
                         if (weaknesses.length === 0) {
                             weaknessList.innerHTML = '<p style="color:var(--text-muted); margin:0;">特にありません (全員50%以上正解しています)。</p>';
                         } else {
                             weaknesses.forEach(w => {
-                                const wordObj = wordData.find(wd => wd.id === w.id);
+                                const wordObj = wordData.find(wd => wd.id === w.wordId);
                                 const enText = wordObj ? wordObj.en : '';
                                 const jaText = wordObj ? wordObj.ja : '';
-                                const rate = Math.round(w.correctRate * 100);
+                                const rate = Math.round(w.accuracy * 100);
 
                                 const div = document.createElement('div');
                                 div.style.display = 'flex';
@@ -5466,7 +5686,7 @@
                                 div.style.marginBottom = '8px';
                                 div.innerHTML = `
                                     <div>
-                                        <span class="portal-badge" style="background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.3); color:#ef4444; margin-right:8px; font-weight:700;">No. ${w.id}</span>
+                                        <span class="portal-badge" style="background:rgba(239, 68, 68, 0.1); border-color:rgba(239, 68, 68, 0.3); color:#ef4444; margin-right:8px; font-weight:700;">No. ${w.wordId}</span>
                                         <strong>${enText}</strong> <span style="font-size:0.85rem; color:var(--text-muted); margin-left:6px;">(${jaText})</span>
                                     </div>
                                     <span style="font-weight:600; color:#ef4444;">正答率: ${rate}%</span>
@@ -5476,14 +5696,14 @@
                         }
                     } else {
                         title.innerText = "⚠️ 読み込み失敗";
-                        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444;">${data.message || 'エラーが発生しました'}</td></tr>`;
+                        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">${data.message || 'エラーが発生しました'}</td></tr>`;
                         weaknessList.innerHTML = '<p style="color:#ef4444; margin:0;">読み込み失敗</p>';
                     }
                 })
                 .catch(err => {
                     console.error("Error viewing test detail:", err);
                     title.innerText = "⚠️ 読み込み失敗";
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444;">通信エラーが発生しました。</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">通信エラーが発生しました。</td></tr>';
                     weaknessList.innerHTML = '<p style="color:#ef4444; margin:0;">通信エラー</p>';
                 });
         }
@@ -8406,6 +8626,284 @@
                 syncWordbookSeekBar();
             }
         });
+
+        // ==========================================
+        //         FLASHCARD MODE LOGIC
+        // ==========================================
+        let fcActiveDeck = [];
+        let fcUnlearnedDeck = [];
+        let fcCurrentIndex = 0;
+        let fcRoundCount = 1;
+        let fcInitialCount = 0;
+        let fcIsFlipped = false;
+        let fcSettingDirection = 'en-ja'; // 'en-ja' or 'ja-en'
+        let fcSettingRandom = true;
+        let fcSettingTts = true;
+
+        // Opens the Flashcard Setup screen and populates range inputs based on current book
+        function openFlashcardSetup() {
+            if (!wordData || wordData.length === 0) return;
+
+            // Get valid range
+            const ids = wordData.map(w => parseInt(w.id)).filter(id => !isNaN(id));
+            if (ids.length === 0) return;
+
+            let minId = ids[0];
+            let maxId = ids[0];
+            for (let i = 1; i < ids.length; i++) {
+                if (ids[i] < minId) minId = ids[i];
+                if (ids[i] > maxId) maxId = ids[i];
+            }
+
+            // Restore from localStorage if exists, else default to minId/100 (or maxId if < 100)
+            const savedFrom = localStorage.getItem('vocab_range_from');
+            const savedTo = localStorage.getItem('vocab_range_to');
+
+            let fromValue = minId;
+            let toValue = Math.max(minId, Math.min(100, maxId));
+
+            if (savedFrom) {
+                const parsedFrom = parseInt(savedFrom);
+                if (!isNaN(parsedFrom) && parsedFrom >= minId && parsedFrom <= maxId) {
+                    fromValue = parsedFrom;
+                }
+            }
+            if (savedTo) {
+                const parsedTo = parseInt(savedTo);
+                if (!isNaN(parsedTo) && parsedTo >= minId && parsedTo <= maxId) {
+                    toValue = parsedTo;
+                }
+            }
+
+            document.getElementById('fc-range-from').value = fromValue;
+            document.getElementById('fc-range-to').value = toValue;
+
+            // Reset setup UI error message
+            const errEl = document.getElementById('fc-setup-error-msg');
+            if (errEl) {
+                errEl.style.display = 'none';
+                errEl.innerText = '';
+            }
+
+            // Update toggles representation
+            document.getElementById('fc-setting-order').checked = fcSettingRandom;
+            document.getElementById('fc-setting-tts').checked = fcSettingTts;
+            updateFcSettingLabels();
+
+            showScreen('screen-flashcard-setup');
+        }
+
+        function updateFcSettingLabels() {
+            const isRandom = document.getElementById('fc-setting-order').checked;
+            document.getElementById('fc-toggle-order-desc').innerText = isRandom ? "シャッフル (ランダム)" : "ID番号順";
+        }
+
+        // Starts the flashcard session by filtering, sorting, and establishing decks
+        function startFlashcardFromRange() {
+            if (!wordData || wordData.length === 0) return;
+
+            const fromVal = parseInt(document.getElementById('fc-range-from').value);
+            const toVal = parseInt(document.getElementById('fc-range-to').value);
+            const errEl = document.getElementById('fc-setup-error-msg');
+
+            if (isNaN(fromVal) || isNaN(toVal) || fromVal > toVal || fromVal < 1 || toVal < 1) {
+                if (errEl) {
+                    errEl.innerText = "有効な範囲を指定してください。";
+                    errEl.style.display = 'block';
+                }
+                return;
+            }
+
+            // Save range settings to localStorage
+            localStorage.setItem('vocab_range_from', fromVal);
+            localStorage.setItem('vocab_range_to', toVal);
+
+            // Extract words in range
+            const wordsInRange = wordData.filter(w => {
+                const idNum = parseInt(w.id);
+                return idNum >= fromVal && idNum <= toVal;
+            });
+
+            if (wordsInRange.length === 0) {
+                if (errEl) {
+                    errEl.innerText = "指定された範囲内に単語がありません。";
+                    errEl.style.display = 'block';
+                }
+                return;
+            }
+
+            if (errEl) {
+                errEl.style.display = 'none';
+            }
+
+            // Gather settings
+            const dirRadio = document.querySelector('input[name="fc-setting-type"]:checked');
+            fcSettingDirection = dirRadio ? dirRadio.value : 'en-ja';
+            fcSettingRandom = document.getElementById('fc-setting-order').checked;
+            fcSettingTts = document.getElementById('fc-setting-tts').checked;
+
+            // Prepare deck
+            fcActiveDeck = [...wordsInRange];
+            if (fcSettingRandom) {
+                // Shuffle array
+                for (let i = fcActiveDeck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [fcActiveDeck[i], fcActiveDeck[j]] = [fcActiveDeck[j], fcActiveDeck[i]];
+                }
+            } else {
+                // Sort by ID ascending
+                fcActiveDeck.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+            }
+
+            fcUnlearnedDeck = [];
+            fcCurrentIndex = 0;
+            fcRoundCount = 1;
+            fcInitialCount = fcActiveDeck.length;
+
+            showScreen('screen-flashcard-play');
+            loadFcCard();
+        }
+
+        // Loads the active card details onto the card element
+        function loadFcCard() {
+            if (fcActiveDeck.length === 0) return;
+            fcIsFlipped = false;
+
+            const cardElement = document.getElementById('fc-card-element');
+            if (cardElement) {
+                cardElement.classList.remove('is-flipped');
+            }
+
+            const currentWord = fcActiveDeck[fcCurrentIndex];
+
+            // Render text
+            const frontText = document.getElementById('fc-card-front-text');
+            const backText = document.getElementById('fc-card-back-text');
+            const frontLabel = document.getElementById('fc-card-front-label');
+            const backLabel = document.getElementById('fc-card-back-label');
+
+            if (fcSettingDirection === 'en-ja') {
+                // Front: English, Back: Japanese
+                frontLabel.innerText = `No. ${currentWord.id} - WORD`;
+                frontText.innerText = currentWord.en;
+                backLabel.innerText = `No. ${currentWord.id} - MEANING`;
+                backText.innerText = currentWord.ja;
+            } else {
+                // Front: Japanese, Back: English
+                frontLabel.innerText = `No. ${currentWord.id} - MEANING`;
+                frontText.innerText = currentWord.ja;
+                backLabel.innerText = `No. ${currentWord.id} - WORD`;
+                backText.innerText = currentWord.en;
+            }
+
+            // Update HUD progress text
+            document.getElementById('fc-progress-text').innerText = `カード ${fcCurrentIndex + 1} / ${fcActiveDeck.length} (残り ${fcActiveDeck.length - fcCurrentIndex}枚)`;
+
+            // Trigger Speech TTS automatically if English is on the front
+            if (fcSettingTts) {
+                if (fcSettingDirection === 'en-ja') {
+                    // English is displayed immediately on front
+                    setTimeout(() => {
+                        if (fcActiveDeck[fcCurrentIndex] === currentWord && !fcIsFlipped) {
+                            speak(currentWord.en);
+                        }
+                    }, 300);
+                }
+            }
+        }
+
+        // Toggles the flipping animation of the active card
+        function flipFlashcard() {
+            fcIsFlipped = !fcIsFlipped;
+            const cardElement = document.getElementById('fc-card-element');
+            if (cardElement) {
+                cardElement.classList.toggle('is-flipped', fcIsFlipped);
+            }
+
+            // Play speech if flipped to English side
+            if (fcSettingTts) {
+                const currentWord = fcActiveDeck[fcCurrentIndex];
+                if (fcSettingDirection === 'ja-en' && fcIsFlipped) {
+                    // English is on the back and just flipped to view
+                    speak(currentWord.en);
+                }
+            }
+        }
+
+        // Speaks the English text of the current flashcard manually
+        function speakFcCurrentWord() {
+            if (fcActiveDeck.length === 0) return;
+            const currentWord = fcActiveDeck[fcCurrentIndex];
+            speak(currentWord.en);
+        }
+
+        // User marks the card as learned (true) or not learned (false)
+        function markCardLearned(wasLearned) {
+            if (fcActiveDeck.length === 0) return;
+
+            const currentWord = fcActiveDeck[fcCurrentIndex];
+
+            if (!wasLearned) {
+                fcUnlearnedDeck.push(currentWord);
+            }
+
+            // Transition to next card
+            fcCurrentIndex++;
+            if (fcCurrentIndex < fcActiveDeck.length) {
+                loadFcCard();
+            } else {
+                // Round is finished!
+                if (fcUnlearnedDeck.length > 0) {
+                    // There are missed words. Load them into active deck for next round.
+                    fcActiveDeck = [...fcUnlearnedDeck];
+                    // Re-shuffle for next round if shuffle option is active
+                    if (fcSettingRandom) {
+                        for (let i = fcActiveDeck.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [fcActiveDeck[i], fcActiveDeck[j]] = [fcActiveDeck[j], fcActiveDeck[i]];
+                        }
+                    } else {
+                        fcActiveDeck.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+                    }
+
+                    fcUnlearnedDeck = [];
+                    fcCurrentIndex = 0;
+                    fcRoundCount++;
+                    loadFcCard();
+                } else {
+                    // Mastered all cards! Show completion screen
+                    document.getElementById('screen-flashcard-play').style.display = 'none';
+                    showScreen('screen-flashcard-complete');
+                }
+            }
+        }
+
+        // Exits out of play screen safely
+        function abortFlashcard() {
+            const modal = document.getElementById('fc-abort-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        // Closes the abort confirmation modal
+        function closeFcAbortModal() {
+            const modal = document.getElementById('fc-abort-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Confirms the abort and redirects back to setup screen
+        function confirmFcAbort() {
+            closeFcAbortModal();
+            showScreen('screen-setup');
+        }
+
+        // Complete sessions and transitions back to book setup dashboard
+        function finishFlashcardSession() {
+            showScreen('screen-setup');
+        }
     </script>
 </body>
 </html>
