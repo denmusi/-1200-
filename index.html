@@ -3567,25 +3567,40 @@
                             <input type="number" id="test-input-range-to" min="1" max="1200" placeholder="100">
                         </div>
                         <div class="input-group" style="flex:1; margin-bottom:0;">
-                            <label for="test-input-count">問題数</label>
-                            <input type="number" id="test-input-count" value="10" min="1" max="100" oninput="document.getElementById('test-input-passing-score').value = Math.max(1, Math.floor(this.value * 0.8))">
+                            <label for="test-input-count">総問題数（自動計算）</label>
+                            <input type="number" id="test-input-count" value="10" min="1" max="100" readonly style="background: var(--bg-app); opacity: 0.8; cursor: not-allowed;">
+                        </div>
+                    </div>
+
+                    <!-- 形式ごとの問題数入力欄 -->
+                    <div class="row" style="margin-bottom:12px; display:flex; gap:12px;">
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-count-en-ja">🔤 英 → 日 (問数)</label>
+                            <input type="number" id="test-input-count-en-ja" value="10" min="0" max="100" oninput="recalcTotalTestQuestions()">
+                        </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-count-ja-en">🇯🇵 日 → 英 (問数)</label>
+                            <input type="number" id="test-input-count-ja-en" value="0" min="0" max="100" oninput="recalcTotalTestQuestions()">
+                        </div>
+                        <div class="input-group" style="flex:1; margin-bottom:0;">
+                            <label for="test-input-count-spelling">✏️ スペリング (問数)</label>
+                            <input type="number" id="test-input-count-spelling" value="0" min="0" max="100" oninput="recalcTotalTestQuestions()">
                         </div>
                     </div>
 
                     <div class="row" style="margin-bottom:12px; display:flex; gap:12px;">
                         <div class="input-group" style="flex:1; margin-bottom:0;">
-                            <label for="test-input-format">出題形式</label>
-                            <select id="test-input-format" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
-                                <option value="en-ja">英単語 → 日本語</option>
-                                <option value="ja-en">日本語 → 英単語</option>
-                                <option value="ja-en-spelling">日本語 → 英語スペル</option>
+                            <label for="test-input-order">出題単語・順序</label>
+                            <select id="test-input-order" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                                <option value="random">生徒ごとにランダム</option>
+                                <option value="fixed">全員同じ（問題・順序固定）</option>
                             </select>
                         </div>
                         <div class="input-group" style="flex:1; margin-bottom:0;">
-                            <label for="test-input-order">出題順序</label>
-                            <select id="test-input-order" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
-                                <option value="random">ランダム（生徒ごとに異なる）</option>
-                                <option value="fixed">全員同じ（問題・順序固定）</option>
+                            <label for="test-input-mix-order">形式の混合方法</label>
+                            <select id="test-input-mix-order" style="width:100%; height:45px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:8px; padding:0 8px;">
+                                <option value="mixed">完全にランダムに混ぜる</option>
+                                <option value="grouped">出題形式ごとにまとめる</option>
                             </select>
                         </div>
                     </div>
@@ -4829,11 +4844,16 @@
             }
         }
 
-        function togglePassingScoreFields() {
-            const enabled = document.getElementById('test-input-enable-passing-score').checked;
-            const container = document.getElementById('test-passing-settings-container');
-            if (container) {
-                container.style.display = enabled ? 'flex' : 'none';
+        function recalcTotalTestQuestions() {
+            const enJaVal = parseInt(document.getElementById('test-input-count-en-ja').value, 10) || 0;
+            const jaEnVal = parseInt(document.getElementById('test-input-count-ja-en').value, 10) || 0;
+            const spellingVal = parseInt(document.getElementById('test-input-count-spelling').value, 10) || 0;
+            const total = enJaVal + jaEnVal + spellingVal;
+            document.getElementById('test-input-count').value = total;
+
+            const passingScoreInput = document.getElementById('test-input-passing-score');
+            if (passingScoreInput) {
+                passingScoreInput.value = Math.max(1, Math.floor(total * 0.8));
             }
         }
 
@@ -4843,8 +4863,32 @@
             const classVal = document.getElementById('test-input-class').value.trim();
             const rangeFrom = parseInt(document.getElementById('test-input-range-from').value, 10);
             const rangeTo = parseInt(document.getElementById('test-input-range-to').value, 10);
-            const format = document.getElementById('test-input-format').value;
-            const qCount = parseInt(document.getElementById('test-input-count').value, 10);
+
+            // 形式ごとの数を取得
+            const enJaVal = parseInt(document.getElementById('test-input-count-en-ja').value, 10) || 0;
+            const jaEnVal = parseInt(document.getElementById('test-input-count-ja-en').value, 10) || 0;
+            const spellingVal = parseInt(document.getElementById('test-input-count-spelling').value, 10) || 0;
+            const qCount = enJaVal + jaEnVal + spellingVal;
+            const mixOrder = document.getElementById('test-input-mix-order').value;
+
+            // フォーマット指定のシリアライズ (1種類だけなら従来形式で保存)
+            let format = '';
+            const activeFormats = [];
+            if (enJaVal > 0) activeFormats.push({ name: 'en-ja', count: enJaVal });
+            if (jaEnVal > 0) activeFormats.push({ name: 'ja-en', count: jaEnVal });
+            if (spellingVal > 0) activeFormats.push({ name: 'ja-en-spelling', count: spellingVal });
+
+            if (activeFormats.length === 0) {
+                alert("少なくとも1つの形式で1問以上指定してください。");
+                return;
+            }
+
+            if (activeFormats.length === 1) {
+                format = activeFormats[0].name;
+            } else {
+                format = `mixed:en-ja=${enJaVal},ja-en=${jaEnVal},ja-en-spelling=${spellingVal}:${mixOrder}`;
+            }
+
             const orderType = document.getElementById('test-input-order').value;
             const deadlineRaw = document.getElementById('test-input-deadline').value;
             const ignorePhrases = document.getElementById('test-input-ignore-phrases').checked;
@@ -4864,7 +4908,7 @@
                 return;
             }
             if (isNaN(qCount) || qCount < 1) {
-                alert("問題数には1以上の数値を指定してください。");
+                alert("総問題数には1以上の数値を指定してください。");
                 return;
             }
 
@@ -4899,7 +4943,27 @@
                 // シャッフルして問題数分を固定問題として登録
                 const shuffled = [...rangeWords].sort(() => Math.random() - 0.5);
                 const sliced = shuffled.slice(0, Math.min(qCount, shuffled.length));
-                selectedWords = sliced.map(w => w.id);
+
+                if (activeFormats.length === 1) {
+                    selectedWords = sliced.map(w => w.id);
+                } else {
+                    // 各形式ごとの出題数に従って形式のプールを作る
+                    const formatPool = [];
+                    if (enJaVal > 0) for (let i = 0; i < enJaVal; i++) formatPool.push('en-ja');
+                    if (jaEnVal > 0) for (let i = 0; i < jaEnVal; i++) formatPool.push('ja-en');
+                    if (spellingVal > 0) for (let i = 0; i < spellingVal; i++) formatPool.push('ja-en-spelling');
+
+                    // 単語と形式を結合した配列を作成
+                    let wordWithFormatList = sliced.map((w, idx) => {
+                        return { id: w.id, f: formatPool[idx] || activeFormats[0].name };
+                    });
+
+                    // 順序設定が「完全に混ぜる(mixed)」の場合、結合後にシャッフルする
+                    if (mixOrder === 'mixed') {
+                        wordWithFormatList = wordWithFormatList.sort(() => Math.random() - 0.5);
+                    }
+                    selectedWords = wordWithFormatList;
+                }
             }
 
             const rangeParam = ignorePhrases ? `${rangeFrom}-${rangeTo}-np` : `${rangeFrom}-${rangeTo}`;
@@ -5248,31 +5312,80 @@
                 return;
             }
 
+            // 複数形式設定のパース
+            let isMixed = false;
+            let formatCounts = {};
+            let mixOrder = 'mixed';
+            if (testObj.format && testObj.format.startsWith('mixed:')) {
+                isMixed = true;
+                const fmtParts = testObj.format.split(':');
+                mixOrder = fmtParts[2] || 'mixed';
+                const pairs = fmtParts[1].split(',');
+                pairs.forEach(pair => {
+                    const kv = pair.split('=');
+                    formatCounts[kv[0]] = parseInt(kv[1], 10) || 0;
+                });
+            }
+
             let pool = [];
             // 出題順序 (全員同じ: fixed, ランダム: random)
             if (testObj.orderType === 'fixed' && Array.isArray(testObj.selectedWords) && testObj.selectedWords.length > 0) {
                 const wordMap = {};
                 wordData.forEach(w => { wordMap[w.id] = w; });
-                testObj.selectedWords.forEach(id => {
-                    if (wordMap[id]) {
-                        pool.push(wordMap[id]);
+                testObj.selectedWords.forEach(item => {
+                    let wordId, wordFormat;
+                    if (typeof item === 'object' && item !== null) {
+                        wordId = item.id;
+                        wordFormat = item.f;
+                    } else {
+                        wordId = item;
+                        wordFormat = testObj.format;
+                    }
+                    if (wordMap[wordId]) {
+                        pool.push({ ...wordMap[wordId], assignedFormat: wordFormat });
                     }
                 });
             } else {
                 // シャッフルして指定問題数分を抽出
                 const shuffled = [...rangeWords].sort(() => Math.random() - 0.5);
-                pool = shuffled.slice(0, Math.min(testObj.questionCount, shuffled.length));
+                const sliced = shuffled.slice(0, Math.min(testObj.questionCount, shuffled.length));
+
+                if (isMixed) {
+                    // 各形式ごとの出題数に従って形式のプールを作る
+                    const formatPool = [];
+                    for (const fmt in formatCounts) {
+                        const count = formatCounts[fmt];
+                        for (let i = 0; i < count; i++) {
+                            formatPool.push(fmt);
+                        }
+                    }
+                    // 単語ごとに形式を割り当て
+                    let wordWithFormatList = sliced.map((w, idx) => {
+                        return { ...w, assignedFormat: formatPool[idx] || 'en-ja' };
+                    });
+
+                    // 順序設定に従って並べ替え
+                    if (mixOrder === 'mixed') {
+                        pool = wordWithFormatList.sort(() => Math.random() - 0.5);
+                    } else {
+                        // 出題形式ごとにまとめる (grouped)
+                        const formatPriority = { 'en-ja': 1, 'ja-en': 2, 'ja-en-spelling': 3 };
+                        pool = wordWithFormatList.sort((a, b) => {
+                            return (formatPriority[a.assignedFormat] || 99) - (formatPriority[b.assignedFormat] || 99);
+                        });
+                    }
+                } else {
+                    pool = sliced.map(w => {
+                        return { ...w, assignedFormat: testObj.format };
+                    });
+                }
             }
 
             currentSessionPool = [...pool];
             
             // `loadQuizQuestion` は `.pop()` するので、
-            // 固定順序で先頭から出題するために配列をあらかじめ反転させてコピーする
-            if (testObj.orderType === 'fixed') {
-                quizQueue = [...pool].reverse();
-            } else {
-                quizQueue = [...pool];
-            }
+            // 設定された出題順序通りにするために配列を反転させてキューに入れる
+            quizQueue = [...pool].reverse();
 
             quizIndex = 0;
             correctCount = 0;
@@ -5281,7 +5394,9 @@
 
             isInfiniteMode = false;
             targetQuestionCount = pool.length;
-            activeQuizType = testObj.format;
+            
+            // 初期状態の形式を設定
+            activeQuizType = pool[0] ? pool[0].assignedFormat : testObj.format;
 
             if (testObj.allowRetry === 'deny') {
                 window.addEventListener('beforeunload', handleTestBeforeUnload);
@@ -5632,14 +5747,28 @@
 
                         // 配信問題リストの構築
                         if (questionsList && testMeta) {
+                            const formatLabels = {
+                                'en-ja': '英→日',
+                                'ja-en': '日→英',
+                                'ja-en-spelling': 'スペル'
+                            };
+
                             if (testMeta.orderType === 'fixed' && Array.isArray(testMeta.selectedWords) && testMeta.selectedWords.length > 0) {
                                 // 固定出題
-                                testMeta.selectedWords.forEach(wId => {
+                                testMeta.selectedWords.forEach(item => {
+                                    let wId, wFormat = '';
+                                    if (typeof item === 'object' && item !== null) {
+                                        wId = item.id;
+                                        wFormat = item.f;
+                                    } else {
+                                        wId = item;
+                                    }
                                     const wordObj = wordData.find(wd => wd.id === wId);
                                     if (wordObj) {
                                         const li = document.createElement('li');
                                         li.style.marginBottom = '6px';
-                                        li.innerHTML = `<span style="color:var(--primary); font-weight:700; margin-right:8px;">No. ${wordObj.id}</span><strong>${wordObj.en}</strong> <span style="color:var(--text-muted); margin-left:6px;">(${wordObj.ja})</span>`;
+                                        const fmtText = wFormat ? `<span class="portal-badge" style="margin-left:8px; font-size:0.75rem; padding:1px 6px; background:rgba(79,70,229,0.08); border-color:rgba(79,70,229,0.2); color:var(--primary);">${formatLabels[wFormat] || wFormat}</span>` : '';
+                                        li.innerHTML = `<span style="color:var(--primary); font-weight:700; margin-right:8px;">No. ${wordObj.id}</span><strong>${wordObj.en}</strong> <span style="color:var(--text-muted); margin-left:6px;">(${wordObj.ja})</span>${fmtText}`;
                                         questionsList.appendChild(li);
                                     }
                                 });
@@ -5654,7 +5783,24 @@
                                 liMeta.style.color = 'var(--text-muted)';
                                 liMeta.style.marginBottom = '10px';
                                 liMeta.style.fontSize = '0.9rem';
-                                liMeta.innerHTML = `⚠️ このテストは出題順序「<strong>ランダム</strong>」で配信されています。以下の範囲から生徒ごとにランダムで <strong>${testMeta.questionCount}問</strong> が選出されます。`;
+
+                                // 混合形式の設定をパースして表示
+                                let fmtDesc = '';
+                                if (testMeta.format && testMeta.format.startsWith('mixed:')) {
+                                    const fmtParts = testMeta.format.split(':');
+                                    const mixOrder = fmtParts[2] === 'grouped' ? '形式グループ順' : 'ランダム混合順';
+                                    const pairs = fmtParts[1].split(',');
+                                    const countsText = pairs.map(pair => {
+                                        const kv = pair.split('=');
+                                        const name = formatLabels[kv[0]] || kv[0];
+                                        return `${name}: ${kv[1]}問`;
+                                    }).join(' / ');
+                                    fmtDesc = `<br>📊 <strong>混合内訳</strong>: ${countsText} (${mixOrder})`;
+                                } else {
+                                    fmtDesc = `<br>📊 <strong>出題形式</strong>: ${formatLabels[testMeta.format] || testMeta.format}`;
+                                }
+
+                                liMeta.innerHTML = `⚠️ このテストは出題順序「<strong>ランダム</strong>」で配信されています。以下の範囲から生徒ごとにランダムで <strong>${testMeta.questionCount}問</strong> が選出されます。${fmtDesc}`;
                                 questionsList.appendChild(liMeta);
 
                                 const rangeWords = wordData.filter(wd => wd.id >= from && wd.id <= to);
@@ -6344,23 +6490,6 @@
         }
 
         function loadQuizQuestion() {
-            const spellingHintBtn = document.getElementById('btn-quiz-spelling-hint');
-            if (activeQuizType === 'ja-en-spelling') {
-                document.body.classList.add('spelling-mode');
-                if (spellingHintBtn) {
-                    spellingHintBtn.style.display = 'flex';
-                    updateSpellingHintBtnStyle();
-                }
-            } else {
-                document.body.classList.remove('spelling-mode');
-                if (spellingHintBtn) spellingHintBtn.style.display = 'none';
-            }
-            document.body.classList.remove('quiz-answered');
-            // Hide the tap overlay & next button
-            document.getElementById('btn-next-word').style.display = 'none';
-            document.getElementById('quiz-tap-overlay').style.display = 'none';
-            document.getElementById('quiz-tap-overlay-hint').style.display = 'none';
-
             // Check session exit criteria for fixed mode
             if (!isInfiniteMode && quizIndex >= targetQuestionCount) {
                 finishQuizSession();
@@ -6398,6 +6527,29 @@
                 // 通常モードの場合：キューから取り出す
                 currentWord = quizQueue.pop();
             }
+
+            // 単語個別の出題形式を activeQuizType に反映
+            if (currentWord && currentWord.assignedFormat) {
+                activeQuizType = currentWord.assignedFormat;
+            }
+
+            const spellingHintBtn = document.getElementById('btn-quiz-spelling-hint');
+            if (activeQuizType === 'ja-en-spelling') {
+                document.body.classList.add('spelling-mode');
+                if (spellingHintBtn) {
+                    spellingHintBtn.style.display = 'flex';
+                    updateSpellingHintBtnStyle();
+                }
+            } else {
+                document.body.classList.remove('spelling-mode');
+                if (spellingHintBtn) spellingHintBtn.style.display = 'none';
+            }
+            document.body.classList.remove('quiz-answered');
+            // Hide the tap overlay & next button
+            document.getElementById('btn-next-word').style.display = 'none';
+            document.getElementById('quiz-tap-overlay').style.display = 'none';
+            document.getElementById('quiz-tap-overlay-hint').style.display = 'none';
+
             const progText = document.getElementById('quiz-progress-text');
             const fill = document.getElementById('quiz-progress-fill');
             
