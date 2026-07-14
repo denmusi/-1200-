@@ -4876,6 +4876,14 @@
             }
         }
 
+        function togglePassingScoreFields() {
+            const checkBox = document.getElementById('test-input-enable-passing-score');
+            const container = document.getElementById('test-passing-settings-container');
+            if (checkBox && container) {
+                container.style.display = checkBox.checked ? 'flex' : 'none';
+            }
+        }
+
         function deliverNewTestFromUI() {
             const name = document.getElementById('test-input-name').value.trim();
             const gradeVal = document.getElementById('test-input-grade').value.trim();
