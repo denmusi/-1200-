@@ -3567,14 +3567,27 @@
                         <div class="input-group" style="flex:1.5; margin-bottom:0; display:flex; gap:8px;">
                             <div style="flex:1;">
                                 <label for="test-input-grade">対象学年</label>
-                                <input type="number" id="test-input-grade" min="1" max="9" placeholder="学年" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                <input type="number" id="test-input-grade" min="1" max="9" placeholder="学年" value="1" oninput="this.value=this.value.replace(/[^0-9]/g,''); renderClassToggleButtons();">
                             </div>
-                            <div style="flex:1;">
+                            <div style="flex:1; display:none;">
                                 <label for="test-input-class">対象組</label>
-                                <input type="number" id="test-input-class" min="1" max="99" placeholder="組" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                <input type="number" id="test-input-class" min="1" max="99" placeholder="組" value="1">
                             </div>
                         </div>
                     </div>
+
+                    <div id="test-class-toggles-section" class="row" style="margin-bottom:12px; display:none; flex-direction:column;">
+                        <div class="input-group" style="margin-bottom:0; width:100%;">
+                            <label style="font-weight:600; color:var(--text-main); margin-bottom:6px; display:block;">対象組（複数選択可）</label>
+                            <div id="test-class-toggles-container" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                                <!-- 動的にボタンが生成されます -->
+                            </div>
+                            <!-- 手動追加用UI -->
+                            <div style="display:flex; gap:6px; align-items:center; max-width:200px; margin-top:8px;">
+                                <input type="number" id="test-input-add-class" min="1" max="99" placeholder="組番号" style="width:75px; height:32px; font-size:0.8rem; padding:0 6px; background:var(--bg-app); border:1px solid var(--border-color); color:var(--text-main); border-radius:6px; margin:0;">
+                                <button type="button" class="btn btn-secondary" onclick="addNewClassToggleFromUI()" style="padding:0 10px; height:32px; font-size:0.8rem; margin:0; min-height:auto; border-color:var(--primary); color:var(--primary); background:transparent;">➕ 追加</button>
+                            </div>
+                        </div>
 
                     <div class="row" style="margin-bottom:12px; display:flex; gap:12px;">
                         <div class="input-group" style="flex:1; margin-bottom:0;">
@@ -4884,10 +4897,176 @@
             }
         }
 
+        let manuallyAddedClasses = [];
+
+        function renderClassToggleButtons() {
+            const gradeInput = document.getElementById('test-input-grade');
+            const section = document.getElementById('test-class-toggles-section');
+            const container = document.getElementById('test-class-toggles-container');
+            
+            if (!gradeInput || !section || !container) return;
+            
+            const gradeVal = parseInt(gradeInput.value, 10);
+            if (isNaN(gradeVal) || gradeVal <= 0) {
+                section.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+            
+            // 対象学年に合致するクラス（組）をcachedTeacherDataから抽出
+            const classes = new Set();
+            if (typeof cachedTeacherData !== 'undefined' && Array.isArray(cachedTeacherData)) {
+                cachedTeacherData.forEach(item => {
+                    const info = parseStudentKey(item.studentKey);
+                    if (info.grade === gradeVal && info.clazz > 0) {
+                        classes.add(info.clazz);
+                    }
+                });
+            }
+            
+            // 手動追加されたクラスをマージ
+            manuallyAddedClasses.forEach(c => classes.add(c));
+            
+            let classList = Array.from(classes).sort((a, b) => a - b);
+            
+            // 該当するクラスが履歴にない場合はデフォルトとして1〜8組を表示
+            if (classList.length === 0) {
+                classList = [1, 2, 3, 4, 5, 6, 7, 8];
+            }
+            
+            // 現在選択されているクラスを記憶しておく（再描画時に選択状態を維持するため）
+            const previouslySelected = new Set();
+            container.querySelectorAll('.class-toggle-btn.active').forEach(btn => {
+                previouslySelected.add(parseInt(btn.getAttribute('data-class'), 10));
+            });
+            
+            // ボタンの生成
+            container.innerHTML = '';
+            classList.forEach(classNum => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'class-toggle-btn';
+                btn.setAttribute('data-class', classNum);
+                btn.innerText = `${classNum}組`;
+                
+                // スタイル設計（プレミアムなボタンスタイル）
+                Object.assign(btn.style, {
+                    padding: '8px 16px',
+                    fontSize: '0.85rem',
+                    fontWeight: '600',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    background: 'transparent',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    userSelect: 'none'
+                });
+                
+                // ホバー効果とクリックイベント
+                btn.onmouseenter = () => {
+                    if (!btn.classList.contains('active')) {
+                        btn.style.borderColor = 'var(--primary)';
+                        btn.style.color = 'var(--primary)';
+                        btn.style.background = 'rgba(99, 102, 241, 0.04)';
+                    }
+                };
+                btn.onmouseleave = () => {
+                    if (!btn.classList.contains('active')) {
+                        btn.style.borderColor = 'var(--border-color)';
+                        btn.style.color = 'var(--text-muted)';
+                        btn.style.background = 'transparent';
+                    }
+                };
+                
+                btn.onclick = () => toggleClassSelection(btn);
+                
+                // 以前選択されていた場合はアクティブ状態を復元
+                if (previouslySelected.has(classNum)) {
+                    btn.classList.add('active');
+                    Object.assign(btn.style, {
+                        borderColor: 'var(--primary)',
+                        background: 'var(--primary)',
+                        color: '#ffffff'
+                    });
+                }
+                
+                container.appendChild(btn);
+            });
+            
+            section.style.display = 'flex';
+        }
+
+        function toggleClassSelection(btn) {
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                Object.assign(btn.style, {
+                    borderColor: 'var(--border-color)',
+                    background: 'transparent',
+                    color: 'var(--text-muted)'
+                });
+            } else {
+                btn.classList.add('active');
+                Object.assign(btn.style, {
+                    borderColor: 'var(--primary)',
+                    background: 'var(--primary)',
+                    color: '#ffffff'
+                });
+            }
+        }
+
+        function addNewClassToggleFromUI() {
+            const input = document.getElementById('test-input-add-class');
+            if (!input) return;
+            
+            const classNum = parseInt(input.value, 10);
+            if (isNaN(classNum) || classNum <= 0 || classNum > 99) {
+                alert("1から99の範囲で有効な組番号を入力してください。");
+                return;
+            }
+            
+            if (!manuallyAddedClasses.includes(classNum)) {
+                manuallyAddedClasses.push(classNum);
+            }
+            
+            input.value = '';
+            renderClassToggleButtons();
+            
+            // 追加したトグルボタンを自動的にアクティブ状態にする
+            setTimeout(() => {
+                const container = document.getElementById('test-class-toggles-container');
+                const addedBtn = container.querySelector(`.class-toggle-btn[data-class="${classNum}"]`);
+                if (addedBtn && !addedBtn.classList.contains('active')) {
+                    toggleClassSelection(addedBtn);
+                }
+            }, 50);
+        }
+
+        function clearClassToggleSelections() {
+            manuallyAddedClasses = [];
+            const container = document.getElementById('test-class-toggles-container');
+            if (container) {
+                container.querySelectorAll('.class-toggle-btn.active').forEach(btn => {
+                    toggleClassSelection(btn);
+                });
+            }
+            const section = document.getElementById('test-class-toggles-section');
+            if (section) section.style.display = 'none';
+        }
+
         function deliverNewTestFromUI() {
             const name = document.getElementById('test-input-name').value.trim();
             const gradeVal = document.getElementById('test-input-grade').value.trim();
-            const classVal = document.getElementById('test-input-class').value.trim();
+            
+            // 選択されているクラスをトグルボタンから取得
+            const selectedClasses = [];
+            const toggleContainer = document.getElementById('test-class-toggles-container');
+            if (toggleContainer) {
+                toggleContainer.querySelectorAll('.class-toggle-btn.active').forEach(btn => {
+                    selectedClasses.push(parseInt(btn.getAttribute('data-class'), 10));
+                });
+            }
+
             const rangeFrom = parseInt(document.getElementById('test-input-range-from').value, 10);
             const rangeTo = parseInt(document.getElementById('test-input-range-to').value, 10);
 
@@ -4925,11 +5104,14 @@
                 alert("テスト名を入力してください。");
                 return;
             }
-            if (!gradeVal || !classVal) {
-                alert("対象学年と対象組を入力してください。");
+            if (!gradeVal) {
+                alert("対象学年を入力してください。");
                 return;
             }
-            const targetClass = `${gradeVal}-${classVal}`;
+            if (selectedClasses.length === 0) {
+                alert("対象組を少なくとも1つ選択（タップ）してください。");
+                return;
+            }
             if (isNaN(rangeFrom) || isNaN(rangeTo) || rangeFrom < 1 || rangeTo > 1200 || rangeFrom > rangeTo) {
                 alert("正しい単語番号の範囲 (1〜1200) を指定してください。");
                 return;
@@ -4995,61 +5177,83 @@
 
             const rangeParam = ignorePhrases ? `${rangeFrom}-${rangeTo}-np` : `${rangeFrom}-${rangeTo}`;
 
-            const payload = {
-                action: 'deliver_test',
-                testName: name,
-                targetClass: targetClass,
-                range: rangeParam,
-                format: format,
-                questionCount: qCount,
-                orderType: orderType,
-                passingScore: passingScore,
-                requiredStreak: requiredStreak,
-                deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : '',
-                selectedWords: JSON.stringify(selectedWords)
-            };
-
             const deliverBtn = document.getElementById('btn-deliver-test-action');
             const origText = deliverBtn ? deliverBtn.textContent : '';
             if (deliverBtn) {
                 deliverBtn.disabled = true;
-                deliverBtn.textContent = "配信中...";
+                deliverBtn.textContent = `配信中 (0/${selectedClasses.length})...`;
             }
 
-            fetch(GAS_WEBAPP_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/plain;charset=utf-8'
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
+            let successCount = 0;
+            let errorCount = 0;
+
+            // 順番に配信リクエストを送る (スプレッドシートへのロック競合を防ぐため直列実行)
+            async function startSerialDelivery() {
+                for (let i = 0; i < selectedClasses.length; i++) {
+                    const classNum = selectedClasses[i];
+                    if (deliverBtn) {
+                        deliverBtn.textContent = `配信中 (${i + 1}/${selectedClasses.length})...`;
+                    }
+                    const targetClass = `${gradeVal}-${classNum}`;
+                    const payload = {
+                        action: 'deliver_test',
+                        testName: name,
+                        targetClass: targetClass,
+                        range: rangeParam,
+                        format: format,
+                        questionCount: qCount,
+                        orderType: orderType,
+                        passingScore: passingScore,
+                        requiredStreak: requiredStreak,
+                        deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : '',
+                        selectedWords: JSON.stringify(selectedWords)
+                    };
+
+                    try {
+                        const res = await fetch(GAS_WEBAPP_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'text/plain;charset=utf-8'
+                            },
+                            body: JSON.stringify(payload)
+                        });
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                            console.error(`Error delivering to ${targetClass}:`, data.message);
+                        }
+                    } catch (err) {
+                        errorCount++;
+                        console.error(`Network error delivering to ${targetClass}:`, err);
+                    }
+                }
+
                 if (deliverBtn) {
                     deliverBtn.disabled = false;
                     deliverBtn.textContent = origText;
                 }
-                if (data.status === 'success') {
-                    alert("テストを配信しました。");
+
+                if (successCount === selectedClasses.length) {
+                    alert(`テストを配信しました。（対象クラス: ${selectedClasses.sort((a,b)=>a-b).join(', ')}組）`);
                     // フォームクリア
                     document.getElementById('test-input-name').value = '';
                     document.getElementById('test-input-deadline').value = '';
                     document.getElementById('test-input-ignore-phrases').checked = false;
                     document.getElementById('test-input-enable-passing-score').checked = false;
                     togglePassingScoreFields();
+                    clearClassToggleSelections();
+                    reloadActiveTestsForTeacher();
+                } else if (successCount > 0) {
+                    alert(`${successCount}クラスの配信に成功し、${errorCount}クラスの配信に失敗しました。`);
                     reloadActiveTestsForTeacher();
                 } else {
-                    alert("テストの配信に失敗しました: " + (data.message || "Unknown error"));
+                    alert("すべてのクラスへのテストの配信に失敗しました。");
                 }
-            })
-            .catch(err => {
-                if (deliverBtn) {
-                    deliverBtn.disabled = false;
-                    deliverBtn.textContent = origText;
-                }
-                console.error("Error delivering test:", err);
-                alert("テストの配信に失敗しました。ネットワーク接続を確認してください。");
-            });
+            }
+
+            startSerialDelivery();
         }
 
         // --- Navigation ---
@@ -8230,6 +8434,7 @@
                 
                 cachedTeacherData = Array.isArray(historyData) ? historyData : [];
                 searchTeacherData(); // 履歴データを描画（ここでローダーが消え、テーブルコンテナが表示される）
+                renderClassToggleButtons(); // クラス選択トグルの初期化/描画
 
                 // 2. 次にバグ報告・改善要望データを取得（直列に実行してロック競合を防ぐ、タイムアウト付き）
                 return fetchWithTimeout(GAS_WEBAPP_URL + "?action=getReports", {
