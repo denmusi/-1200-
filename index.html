@@ -339,11 +339,17 @@
             position: relative;
         }
 
-        .student-info-badge {
+        .student-header-container {
             position: absolute;
             top: -20px;
             right: 0;
             z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .student-info-badge {
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -375,8 +381,10 @@
             margin-top: 15px !important;
             padding: 0 10px;
         }
-        .student-info-badge {
+        .student-header-container {
             top: 15px;
+        }
+        .student-info-badge {
             font-size: 0.65rem;
             max-width: 140px;
             white-space: nowrap;
@@ -2776,15 +2784,15 @@
             <div class="card" style="padding: 24px; margin-bottom: 20px;">
                 <div class="input-group" style="margin-bottom: 16px;">
                     <label for="student-grade">学年 (半角数字のみ)</label>
-                    <input type="text" id="student-grade" placeholder="例: 1" inputmode="numeric" pattern="[0-9]*" oninput="validateAndSaveStudentInfo()">
+                    <input type="text" id="student-grade" placeholder="例: 1" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="validateAndSaveStudentInfo()" onchange="validateAndSaveStudentInfo()" onblur="validateAndSaveStudentInfo()">
                 </div>
                 <div class="input-group" style="margin-bottom: 16px;">
                     <label for="student-class">クラス (組/半角数字のみ)</label>
-                    <input type="text" id="student-class" placeholder="例: 2" inputmode="numeric" pattern="[0-9]*" oninput="validateAndSaveStudentInfo()">
+                    <input type="text" id="student-class" placeholder="例: 2" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="validateAndSaveStudentInfo()" onchange="validateAndSaveStudentInfo()" onblur="validateAndSaveStudentInfo()">
                 </div>
                 <div class="input-group" style="margin-bottom: 24px;">
                     <label for="student-number">出席番号 (番/半角数字のみ)</label>
-                    <input type="text" id="student-number" placeholder="例: 15" inputmode="numeric" pattern="[0-9]*" oninput="validateAndSaveStudentInfo()">
+                    <input type="text" id="student-number" placeholder="例: 15" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="validateAndSaveStudentInfo()" onchange="validateAndSaveStudentInfo()" onblur="validateAndSaveStudentInfo()">
                 </div>
                 <button class="btn btn-primary" onclick="confirmStudentLogin()" style="width: 100%;">確定してメニューへ</button>
             </div>
@@ -2794,11 +2802,16 @@
 
         <!-- SCREEN 1: Setup & Welcome Screen -->
         <div id="screen-setup" class="screen">
-            <!-- Student Info Badge -->
-            <div class="student-info-badge" onclick="showScreen('screen-student-login')">
-                <span style="margin-right: 4px;">👤</span>
-                <span id="student-info-display">登録情報: 未設定</span>
-                <span style="color: var(--primary); margin-left: 4px; font-size: 0.68rem; text-decoration: underline;">[変更]</span>
+            <!-- Student Info Badge & Refresh Button -->
+            <div class="student-header-container">
+                <div class="student-info-badge" onclick="showScreen('screen-student-login')">
+                    <span style="margin-right: 4px;">👤</span>
+                    <span id="student-info-display">登録情報: 未設定</span>
+                    <span style="color: var(--primary); margin-left: 4px; font-size: 0.68rem; text-decoration: underline;">[変更]</span>
+                </div>
+                <button id="btn-test-refresh" onclick="manualRefreshTests()" style="cursor: pointer; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); width: 28px; height: 28px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--primary); transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.15);" title="テスト情報を更新">
+                    <span id="refresh-icon" style="display: inline-block; transition: transform 0.6s ease;">🔄</span>
+                </button>
             </div>
 
             <!-- 日間・週間ランキングボタン -->
@@ -4088,6 +4101,15 @@
                     fetchActiveTestsForStudent();
                 });
             }
+
+            // 起動時に自動ポーリングタイマーをセット (60秒ごとにアクティブならテストを取得)
+            setInterval(() => {
+                const setupScreen = document.getElementById('screen-setup');
+                const isMenuVisible = setupScreen && setupScreen.classList.contains('active');
+                if (isMenuVisible && studentGrade && studentClass && studentNumber) {
+                    fetchActiveTestsForStudent();
+                }
+            }, 60000);
         }
  
         function updateStudentInfoDisplay() {
@@ -5348,6 +5370,32 @@
                     }
                 })
                 .catch(err => console.error("Failed to fetch active tests:", err));
+        }
+
+        // 手動でのテスト一覧更新処理
+        function manualRefreshTests() {
+            const icon = document.getElementById('refresh-icon');
+            if (icon) {
+                icon.style.transform = 'rotate(360deg)';
+                setTimeout(() => {
+                    icon.style.transform = 'rotate(0deg)';
+                }, 600);
+            }
+            
+            if (studentGrade && studentClass && studentNumber) {
+                const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
+                showToast("テスト情報を更新中...");
+                fetchSyncDataFromServer(sKey).then(() => {
+                    fetchActiveTestsForStudent();
+                    showToast("更新が完了しました。");
+                }).catch(err => {
+                    console.warn("Manual refresh failed:", err);
+                    fetchActiveTestsForStudent();
+                    showToast("更新が完了しました。");
+                });
+            } else {
+                showToast("生徒情報が登録されていません。", true);
+            }
         }
 
         function updateTestAlertUI() {
