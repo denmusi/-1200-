@@ -5736,11 +5736,14 @@
             const container = document.getElementById('test-list-container');
             if (!popup || !container) return;
 
+            // 受験完了していない未受験・開始済みのテストだけを抽出
+            const pendingTests = activeTests.filter(t => t.status !== 'completed');
+
             container.innerHTML = '';
-            if (activeTests.length === 0) {
-                container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px 0;">現在配信されているテストはありません。</p>';
+            if (pendingTests.length === 0) {
+                container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px 0;">現在受験が必要なテストはありません。</p>';
             } else {
-                activeTests.forEach(test => {
+                pendingTests.forEach(test => {
                     const deadlineDate = test.deadline ? new Date(test.deadline) : null;
                     const formattedDeadline = deadlineDate ? `${deadlineDate.getMonth() + 1}/${deadlineDate.getDate()} ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}` : '期限なし';
                     
