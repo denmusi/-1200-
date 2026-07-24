@@ -3113,7 +3113,10 @@
                     <p style="color:var(--text-primary); font-size:1.05rem; font-weight:700; margin: 0;" id="fc-progress-text">カード 0 / 0</p>
                 </div>
 
-                <div class="quiz-header-buttons" style="z-index: 60;">
+                <div class="quiz-header-buttons" style="z-index: 60; display: flex; gap: 8px;">
+                    <button class="btn-icon-circle" id="btn-fc-toggle-note" onclick="toggleFcNoteDisplay()" title="メモを表示する">
+                        <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </button>
                     <button class="btn-icon-circle" onclick="speakFcCurrentWord()" title="音声を再生">
                         <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
                     </button>
@@ -3129,9 +3132,12 @@
                         <div class="fc-card-word" id="fc-card-front-text">English</div>
                     </div>
                     <!-- Back side -->
-                    <div class="fc-card-side fc-card-back" id="fc-card-back-content">
+                    <div class="fc-card-side fc-card-back" id="fc-card-back-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
                         <div class="fc-card-label" id="fc-card-back-label">MEANING</div>
-                        <div class="fc-card-word" id="fc-card-back-text">日本語</div>
+                        <div class="fc-card-word" id="fc-card-back-text" style="margin-bottom: 10px;">日本語</div>
+                        <div id="fc-card-back-note" style="margin-top: 15px; padding: 8px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.05); font-size: 0.85rem; color: var(--text-muted); max-width: 85%; text-align: center; border-left: 3px solid var(--accent); display: none; word-break: break-all; line-height: 1.4;">
+                            📝 <span id="fc-card-back-note-text"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4005,6 +4011,7 @@
         // Audio Context
         let audioCtx = null;
         let wordNotes = {};
+        let fcShowNotes = true;
 
         // --- Init App ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -4073,6 +4080,10 @@
             } else {
                 wrongCounts = {};
             }
+
+            // Load fcShowNotes setting
+            const savedFcShowNotes = localStorage.getItem('vocab_fc_show_notes');
+            fcShowNotes = savedFcShowNotes === null ? true : (savedFcShowNotes === 'true');
 
             // Load and apply Theme settings
             const savedTheme = localStorage.getItem('vocab_theme') || 'dark';
@@ -9578,6 +9589,7 @@
             fcInitialCount = fcActiveDeck.length;
 
             showScreen('screen-flashcard-play');
+            updateFcNoteToggleUI();
             loadFcCard();
         }
 
@@ -9625,6 +9637,20 @@
                             speak(currentWord.en);
                         }
                     }, 300);
+                }
+            }
+
+            // 単語メモの表示制御
+            const noteEl = document.getElementById('fc-card-back-note');
+            const noteTextEl = document.getElementById('fc-card-back-note-text');
+            if (noteEl && noteTextEl) {
+                const note = wordNotes[currentWord.id] || '';
+                if (fcShowNotes && note.trim() !== '') {
+                    noteTextEl.innerText = note;
+                    noteEl.style.display = 'block';
+                } else {
+                    noteTextEl.innerText = '';
+                    noteEl.style.display = 'none';
                 }
             }
         }
@@ -9720,6 +9746,53 @@
         // Complete sessions and transitions back to book setup dashboard
         function finishFlashcardSession() {
             showScreen('screen-setup');
+        }
+
+        // Toggles the visibility of word notes in flashcard mode
+        function toggleFcNoteDisplay() {
+            fcShowNotes = !fcShowNotes;
+            localStorage.setItem('vocab_fc_show_notes', fcShowNotes ? 'true' : 'false');
+            
+            // ボタンの見た目を更新
+            updateFcNoteToggleUI();
+            
+            // カードのメモ表示を即時更新
+            const currentWord = fcActiveDeck[fcCurrentIndex];
+            if (currentWord) {
+                const noteEl = document.getElementById('fc-card-back-note');
+                const noteTextEl = document.getElementById('fc-card-back-note-text');
+                if (noteEl && noteTextEl) {
+                    const note = wordNotes[currentWord.id] || '';
+                    if (fcShowNotes && note.trim() !== '') {
+                        noteTextEl.innerText = note;
+                        noteEl.style.display = 'block';
+                    } else {
+                        noteEl.style.display = 'none';
+                    }
+                }
+            }
+            
+            showToast(fcShowNotes ? "メモを表示します" : "メモを非表示にします");
+        }
+
+        // Updates the styling of the fc note toggle button based on setting
+        function updateFcNoteToggleUI() {
+            const btn = document.getElementById('btn-fc-toggle-note');
+            if (btn) {
+                if (fcShowNotes) {
+                    btn.style.opacity = '1';
+                    btn.style.background = 'var(--accent-glow)';
+                    btn.style.color = 'var(--accent)';
+                    btn.style.borderColor = 'var(--accent)';
+                    btn.title = "メモを表示中 (タップで非表示)";
+                } else {
+                    btn.style.opacity = '0.5';
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'var(--text-muted)';
+                    btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                    btn.title = "メモを非表示中 (タップで表示)";
+                }
+            }
         }
     </script>
 </body>
