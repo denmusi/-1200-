@@ -2669,6 +2669,10 @@
             transform: rotateY(180deg);
         }
 
+        .fc-card.no-transition {
+            transition: none !important;
+        }
+
         .fc-card-side {
             position: absolute;
             width: 100%;
@@ -9621,7 +9625,10 @@
 
             const cardElement = document.getElementById('fc-card-element');
             if (cardElement) {
+                cardElement.classList.add('no-transition');
                 cardElement.classList.remove('is-flipped');
+                cardElement.offsetHeight; // Force reflow
+                cardElement.classList.remove('no-transition');
             }
 
             const currentWord = fcActiveDeck[fcCurrentIndex];
