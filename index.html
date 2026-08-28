@@ -9555,7 +9555,6 @@
             document.getElementById(screenId).classList.add('active');
             
             if(screenId === 'screen-setup') {
-                document.getElementById('setup-subtitle').innerText = `単語データ ${wordData.length} 語 読込完了！`;
                 clearSetupError();
             } else if (screenId === 'screen-wordbook') {
                 initWordbook();
@@ -14604,6 +14603,7 @@
 
             const toggleIcon = document.getElementById('mode-toggle-icon');
             const toggleLabel = document.getElementById('mode-toggle-label');
+            const titleEl = document.getElementById('setup-title');
             
             const wordsRange = document.getElementById('words-range-container');
             const sentencesRange = document.getElementById('sentences-range-container');
@@ -14616,6 +14616,7 @@
             if (mode === 'words') {
                 if (toggleIcon) toggleIcon.textContent = '💬';
                 if (toggleLabel) toggleLabel.innerHTML = '暗唱例文に<br>切り替え';
+                if (titleEl) titleEl.textContent = 'ターゲット1200クイズメーカー';
                 
                 if (wordsRange) wordsRange.style.display = 'flex';
                 if (sentencesRange) sentencesRange.style.display = 'none';
@@ -14626,6 +14627,7 @@
             } else {
                 if (toggleIcon) toggleIcon.textContent = '🔤';
                 if (toggleLabel) toggleLabel.innerHTML = '英単語に<br>切り替え';
+                if (titleEl) titleEl.textContent = '暗唱例文クイズメーカー';
                 
                 if (wordsRange) wordsRange.style.display = 'none';
                 if (sentencesRange) sentencesRange.style.display = 'block';
