@@ -374,7 +374,7 @@
 
         /* デフォルト（スマートフォン等の狭い画面幅）でのメインメニューヘッダー被り対策 */
         #screen-setup {
-            padding-top: 175px; /* ボタンが縦に2つ並ぶため拡張 */
+            padding-top: 255px; /* ボタンが縦に3つ並ぶため拡張 */
         }
         #screen-setup h1 {
             font-size: 1.5rem !important;
@@ -403,11 +403,70 @@
             height: 72px !important;
             font-size: 0.6rem !important;
         }
+        #btn-test-confirm-nav {
+            top: 175px !important; /* ランキングボタンの下に並べる */
+            width: 72px !important;
+            height: 72px !important;
+            font-size: 0.6rem !important;
+        }
+
+        /* 件数バッジ用スタイル */
+        .badge-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border-radius: 50%;
+            width: 19px;
+            height: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg-card);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+            z-index: 12;
+            line-height: 1;
+        }
+
+        /* テストポップアップ内タブスタイル */
+        .test-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .test-tab-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .test-tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .test-tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);
+        }
 
         /* 画面幅が十分に広い（PCやタブレット等）場合 */
         @media (min-width: 600px) {
             #screen-setup {
-                padding-top: 150px; /* PC時もボタン縦並びに合わせて広げる */
+                padding-top: 240px; /* PC時もボタン縦3並び表示に対応して広げる */
             }
             #screen-setup h1 {
                 font-size: 2.3rem !important;
@@ -427,6 +486,12 @@
             }
             #btn-ranking-nav {
                 top: 70px !important;
+                width: 80px !important;
+                height: 80px !important;
+                font-size: 0.65rem !important;
+            }
+            #btn-test-confirm-nav {
+                top: 160px !important;
                 width: 80px !important;
                 height: 80px !important;
                 font-size: 0.65rem !important;
@@ -2768,16 +2833,7 @@
 </head>
 <body>
 
-    <!-- 先生からの配信テスト用ポップアップ一覧 -->
-    <div id="test-list-popup" class="test-popup-overlay" style="display: none;">
-        <div class="test-popup-content">
-            <h3 style="margin-top:0; margin-bottom:16px;">📝 配信されているテスト</h3>
-            <div id="test-list-container" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;">
-                <!-- 動的にテストが流し込まれる -->
-            </div>
-            <button class="btn btn-secondary" onclick="closeTestListPopup()">閉じる</button>
-        </div>
-    </div>
+
 
     <!-- テスト開始確認ポップアップ -->
     <div id="test-confirm-popup" class="test-popup-overlay" style="display: none;">
@@ -2863,12 +2919,12 @@
                 日間・週間<br>ランキング
             </button>
 
-            <!-- 配信テスト通知ボタン (配信中のみ表示) -->
-            <div id="test-alert-container" style="display: none; margin: 12px auto 20px auto; text-align: center; max-width: 400px;">
-                <button class="btn" id="btn-test-alert" onclick="openTestListPopup()" style="width: 100%; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.3); background: rgba(99, 102, 241, 0.08); color: var(--primary); font-weight: 600; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease;">
-                    <span>🔔</span> <span id="btn-test-alert-text">テストが届いています (0件)</span>
-                </button>
-            </div>
+            <!-- テスト確認ボタン -->
+            <button class="btn btn-secondary" id="btn-test-confirm-nav" onclick="showTestListScreen()" style="position: absolute; top: 160px; left: 0px; width: 80px; height: 80px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                <span style="font-size: 1.3rem; margin-bottom: 2px;">📝</span>
+                テスト<br>確認
+                <div id="test-badge-count" class="badge-count" style="display: none;">0</div>
+            </button>
 
             <h1 style="margin-top: 40px;">ターゲット1200クイズメーカー</h1>
 
@@ -3222,6 +3278,29 @@
                     <button class="btn btn-secondary" style="min-height: 48px; border-color: rgba(99, 102, 241, 0.3); font-weight: 600;" onclick="selectSpecialListFormat('ja-en-spelling')">✏️ 日本語 → 英語スペリング</button>
                     <button class="btn btn-secondary" style="min-height: 40px; margin-top: 10px; border: none; background: transparent; color: var(--text-muted); font-size: 0.85rem;" onclick="closeSpecialListFormatModal()">キャンセル</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: Test List Screen -->
+        <div id="screen-test-list" class="screen">
+            <!-- Back to Welcome Screen -->
+            <button class="btn btn-secondary" onclick="showScreen('screen-setup')" style="position: absolute; top: 16px; left: 16px; width: auto; min-height: unset; padding: 8px 16px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; border-radius: 12px; z-index: 10;">
+                <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+                メニューに戻る
+            </button>
+
+            <h1 style="margin-top: 40px;">📝 テスト確認</h1>
+            <p class="subtitle" style="margin-bottom: 20px;">配信されたテストの受験と状況確認ができます</p>
+
+            <!-- Tabs -->
+            <div class="test-tabs" style="margin-bottom: 20px;">
+                <button class="test-tab-btn active" id="tab-test-pending" onclick="switchTestTab('pending')">未クリア</button>
+                <button class="test-tab-btn" id="tab-test-completed" onclick="switchTestTab('completed')">クリア済み</button>
+            </div>
+
+            <!-- Scrollable test list container (max-height を廃止し、より広く表示可能に) -->
+            <div id="test-list-container" style="overflow-y: auto; margin-bottom: 20px;">
+                <!-- Dynamic list items -->
             </div>
         </div>
 
@@ -5670,6 +5749,7 @@
 
         function exitToHome() {
             // テストモードの解除とフック削除
+            const wasTesting = isTestingMode;
             if (isTestingMode) {
                 isTestingMode = false;
                 currentActiveTest = null;
@@ -5694,7 +5774,11 @@
             if (scrollTopBtn) scrollTopBtn.classList.remove('visible');
             window.scrollTo(0, 0);
 
-            showScreen('screen-setup');
+            if (wasTesting) {
+                showTestListScreen();
+            } else {
+                showScreen('screen-setup');
+            }
         }
 
         function handleTestBeforeUnload(e) {
@@ -5754,71 +5838,127 @@
             }
         }
 
+        let currentTestTab = 'pending';
+
         function updateTestAlertUI() {
-            const alertContainer = document.getElementById('test-alert-container');
-            const alertText = document.getElementById('btn-test-alert-text');
-            if (!alertContainer) return;
+            const badgeCountEl = document.getElementById('test-badge-count');
+            if (!badgeCountEl) return;
 
             // 受験完了していない未受験・開始済みのテストだけを件数として表示
             const pendingTests = activeTests.filter(t => t.status !== 'completed');
 
             if (pendingTests.length > 0) {
-                alertContainer.style.display = 'block';
-                if (alertText) {
-                    alertText.innerText = `テストが届いています (${pendingTests.length}件)`;
-                }
+                badgeCountEl.innerText = pendingTests.length;
+                badgeCountEl.style.display = 'flex';
             } else {
-                alertContainer.style.display = 'none';
+                badgeCountEl.style.display = 'none';
+            }
+
+            // もしテスト確認画面がアクティブなら、リスト表示も更新する
+            const testListScreen = document.getElementById('screen-test-list');
+            if (testListScreen && testListScreen.classList.contains('active')) {
+                renderTestList();
             }
         }
 
-        function openTestListPopup() {
-            const popup = document.getElementById('test-list-popup');
-            const container = document.getElementById('test-list-container');
-            if (!popup || !container) return;
+        function showTestListScreen() {
+            // 初期状態は「未クリア」タブをアクティブにする
+            currentTestTab = 'pending';
+            
+            const pendingTab = document.getElementById('tab-test-pending');
+            const completedTab = document.getElementById('tab-test-completed');
+            if (pendingTab && completedTab) {
+                pendingTab.classList.add('active');
+                completedTab.classList.remove('active');
+            }
 
-            // 受験完了していない未受験・開始済みのテストだけを抽出
-            const pendingTests = activeTests.filter(t => t.status !== 'completed');
+            renderTestList();
+            showScreen('screen-test-list');
+        }
+
+        function switchTestTab(tabName) {
+            currentTestTab = tabName;
+            
+            const pendingTab = document.getElementById('tab-test-pending');
+            const completedTab = document.getElementById('tab-test-completed');
+            
+            if (pendingTab && completedTab) {
+                if (tabName === 'pending') {
+                    pendingTab.classList.add('active');
+                    completedTab.classList.remove('active');
+                } else {
+                    completedTab.classList.add('active');
+                    pendingTab.classList.remove('active');
+                }
+            }
+            
+            renderTestList();
+        }
+
+        function renderTestList() {
+            const container = document.getElementById('test-list-container');
+            if (!container) return;
 
             container.innerHTML = '';
-            if (pendingTests.length === 0) {
-                container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px 0;">現在受験が必要なテストはありません。</p>';
+            
+            let testsToRender = [];
+            if (currentTestTab === 'pending') {
+                // 未クリアのテスト (status !== 'completed')
+                testsToRender = activeTests.filter(t => t.status !== 'completed');
             } else {
-                pendingTests.forEach(test => {
-                    const deadlineDate = test.deadline ? new Date(test.deadline) : null;
-                    const formattedDeadline = deadlineDate ? `${deadlineDate.getMonth() + 1}/${deadlineDate.getDate()} ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}` : '期限なし';
-                    
-                    const pScore = test.passingScore || test.questionCount;
-                    const reqStreak = test.requiredStreak || 1;
-                    const cStreak = test.currentStreak || 0;
-                    
-                    const badgeLabel = `<span class="test-badge badge-allow">${pScore}問 / ${test.questionCount}問で合格</span>`;
-                    const streakLabel = reqStreak > 1 ? `<span>進捗: ${reqStreak}回連続合格が必要（現在 ${cStreak}回連続中）</span>` : '';
-
-                    const item = document.createElement('div');
-                    item.className = 'test-list-item';
-                    item.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                            <strong style="font-size:1.05rem;">${test.testName}</strong>
-                            ${badgeLabel}
-                        </div>
-                        <div style="font-size:0.85rem; color:#64748b; margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
-                            <span>範囲: No. ${test.range.replace('-np', '')}</span>
-                            <span>形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'}</span>
-                            ${streakLabel}
-                            <span>提出期限: ${formattedDeadline}</span>
-                        </div>
-                        <button class="btn btn-primary" style="width:100%; padding:10px; font-size:0.9rem;" onclick="showTestConfirm('${test.testId}')">テストを受ける</button>
-                    `;
-                    container.appendChild(item);
-                });
+                // クリア済みのテスト (status === 'completed')
+                testsToRender = activeTests.filter(t => t.status === 'completed');
             }
-            popup.style.display = 'flex';
-        }
 
-        function closeTestListPopup() {
-            const popup = document.getElementById('test-list-popup');
-            if (popup) popup.style.display = 'none';
+            if (testsToRender.length === 0) {
+                if (currentTestTab === 'pending') {
+                    container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px 0;">現在受験が必要なテストはありません。</p>';
+                } else {
+                    container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px 0;">クリア済みのテストはありません。</p>';
+                }
+                return;
+            }
+
+            testsToRender.forEach(test => {
+                const deadlineDate = test.deadline ? new Date(test.deadline) : null;
+                const formattedDeadline = deadlineDate ? `${deadlineDate.getMonth() + 1}/${deadlineDate.getDate()} ${deadlineDate.getHours()}:${String(deadlineDate.getMinutes()).padStart(2, '0')}` : '期限なし';
+                
+                const pScore = test.passingScore || test.questionCount;
+                const reqStreak = test.requiredStreak || 1;
+                const cStreak = test.currentStreak || 0;
+                
+                let badgeLabel = '';
+                let streakLabel = '';
+                let actionButtonHtml = '';
+
+                if (currentTestTab === 'pending') {
+                    badgeLabel = `<span class="test-badge badge-allow">${pScore}問 / ${test.questionCount}問で合格</span>`;
+                    streakLabel = reqStreak > 1 ? `<span>進捗: ${reqStreak}回連続合格が必要（現在 ${cStreak}回連続中）</span>` : '';
+                    actionButtonHtml = `<button class="btn btn-primary" style="width:100%; padding:10px; font-size:0.9rem;" onclick="showTestConfirm('${test.testId}')">テストを受ける</button>`;
+                } else {
+                    badgeLabel = `<span class="test-badge badge-allow" style="background:rgba(16, 185, 129, 0.15); border-color:var(--success); color:var(--success);">✅ クリア完了</span>`;
+                    streakLabel = `<span>合格基準: ${pScore}問 / ${test.questionCount}問</span><br>` + 
+                                  (reqStreak > 1 ? `<span>進捗: ${reqStreak}回連続合格達成！</span>` : '');
+                    actionButtonHtml = `<button class="btn" style="width:100%; padding:10px; font-size:0.9rem; background:rgba(255,255,255,0.05); color:var(--text-muted); border:1px solid var(--border); cursor:not-allowed;" disabled>合格・クリア済み（再受験不可）</button>`;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'test-list-item';
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                        <strong style="font-size:1.05rem;">${test.testName}</strong>
+                        ${badgeLabel}
+                    </div>
+                    <div style="font-size:0.85rem; color:#64748b; margin-bottom:12px; display:flex; flex-direction:column; gap:4px;">
+                        <span>範囲: No. ${test.range.replace('-np', '')}</span>
+                        <span>形式: ${test.format === 'en-ja' ? '英→日 四択' : test.format === 'ja-en' ? '日→英 四択' : 'スペリング'}</span>
+                        ${streakLabel}
+                        <span>提出期限: ${formattedDeadline}</span>
+                    </div>
+                    ${actionButtonHtml}
+                `;
+                container.appendChild(item);
+            });
         }
 
         let pendingTestObj = null;
@@ -5836,7 +5976,6 @@
             if (!test) return;
 
             pendingTestObj = test;
-            closeTestListPopup();
 
             const popup = document.getElementById('test-confirm-popup');
             const meta = document.getElementById('test-confirm-meta');
