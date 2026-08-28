@@ -2822,7 +2822,11 @@
         }
     
 /* --- SENTENCE QUIZ STYLES --- */
-.tray-area {
+        #screen-quiz-sentence.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .tray-area {
             min-height: 90px;
             border-bottom: 2px dashed var(--border);
             padding: 10px 0;
@@ -3534,7 +3538,7 @@
         </div>
 
         <!-- SCREEN 2.5: Sentence Quiz Screen -->
-        <div id="screen-quiz-sentence" class="screen" style="display: none; position: relative; flex-direction: column;">
+        <div id="screen-quiz-sentence" class="screen" style="position: relative;">
             <div class="quiz-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                 <button id="btn-sentence-quiz-exit" class="btn-icon-circle" onclick="abortSentenceQuiz();" title="中断してホームへ">
                     <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
