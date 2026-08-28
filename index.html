@@ -374,7 +374,7 @@
 
         /* デフォルト（スマートフォン等の狭い画面幅）でのメインメニューヘッダー被り対策 */
         #screen-setup {
-            padding-top: 255px; /* ボタンが縦に3つ並ぶため拡張 */
+            padding-top: 175px; /* 2x2グリッド配置に合わせて縮小 */
         }
         #screen-setup h1 {
             font-size: 1.5rem !important;
@@ -391,23 +391,23 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        #btn-mypage-nav {
-            top: 15px !important;
-            width: 72px !important;
-            height: 72px !important;
-            font-size: 0.6rem !important;
+
+        /* 2x2グリッド配置ナビゲーションボタン */
+        .nav-buttons-grid {
+            position: absolute;
+            top: 15px;
+            left: 0px;
+            display: grid;
+            grid-template-columns: repeat(2, 64px);
+            grid-template-rows: repeat(2, 64px);
+            gap: 5px;
+            z-index: 10;
         }
-        #btn-ranking-nav {
-            top: 95px !important; /* マイページボタンの下に並べる */
-            width: 72px !important;
-            height: 72px !important;
-            font-size: 0.6rem !important;
-        }
-        #btn-test-confirm-nav {
-            top: 175px !important; /* ランキングボタンの下に並べる */
-            width: 72px !important;
-            height: 72px !important;
-            font-size: 0.6rem !important;
+        .nav-buttons-grid .btn-secondary {
+            font-size: 0.58rem !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
         }
 
         /* 件数バッジ用スタイル */
@@ -466,7 +466,7 @@
         /* 画面幅が十分に広い（PCやタブレット等）場合 */
         @media (min-width: 600px) {
             #screen-setup {
-                padding-top: 240px; /* PC時もボタン縦3並び表示に対応して広げる */
+                padding-top: 155px; /* PC用余白 */
             }
             #screen-setup h1 {
                 font-size: 2.3rem !important;
@@ -478,23 +478,14 @@
                 font-size: 0.72rem;
                 max-width: none;
             }
-            #btn-mypage-nav {
-                top: -20px !important;
-                width: 80px !important;
-                height: 80px !important;
-                font-size: 0.65rem !important;
+            .nav-buttons-grid {
+                top: -20px;
+                grid-template-columns: repeat(2, 72px);
+                grid-template-rows: repeat(2, 72px);
+                gap: 6px;
             }
-            #btn-ranking-nav {
-                top: 70px !important;
-                width: 80px !important;
-                height: 80px !important;
-                font-size: 0.65rem !important;
-            }
-            #btn-test-confirm-nav {
-                top: 160px !important;
-                width: 80px !important;
-                height: 80px !important;
-                font-size: 0.65rem !important;
+            .nav-buttons-grid .btn-secondary {
+                font-size: 0.62rem !important;
             }
         }
 
@@ -3162,29 +3153,32 @@
                 </button>
             </div>
 
-            <!-- マイページボタン -->
-            <button class="btn btn-secondary" id="btn-mypage-nav" onclick="showMypageScreen()" style="position: absolute; top: -20px; left: 0px; width: 80px; height: 80px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
-                <span style="font-size: 1.3rem; margin-bottom: 2px;">📊</span>
-                マイページ
-            </button>
+            <!-- 左上ナビゲーションボタン群 (2x2 グリッド) -->
+            <div class="nav-buttons-grid">
+                <!-- モード切り替えボタン -->
+                <button class="btn btn-secondary" id="btn-mode-toggle-nav" onclick="toggleMainMode()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span id="mode-toggle-icon" style="font-size: 1.3rem; margin-bottom: 2px;">💬</span>
+                    <span id="mode-toggle-label">暗唱例文に<br>切り替え</span>
+                </button>
 
-            <!-- 日間・週間ランキングボタン -->
-            <button class="btn btn-secondary" id="btn-ranking-nav" onclick="showRankingScreen()" style="position: absolute; top: 70px; left: 0px; width: 80px; height: 80px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
-                <span style="font-size: 1.3rem; margin-bottom: 2px;">🏆</span>
-                日間・週間<br>ランキング
-            </button>
+                <!-- マイページボタン -->
+                <button class="btn btn-secondary" id="btn-mypage-nav" onclick="showMypageScreen()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span style="font-size: 1.3rem; margin-bottom: 2px;">📊</span>
+                    マイページ
+                </button>
 
-            <!-- テスト確認ボタン -->
-            <button class="btn btn-secondary" id="btn-test-confirm-nav" onclick="showTestListScreen()" style="position: absolute; top: 160px; left: 0px; width: 80px; height: 80px; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.65rem; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
-                <span style="font-size: 1.3rem; margin-bottom: 2px;">📝</span>
-                テスト<br>確認
-                <div id="test-badge-count" class="badge-count" style="display: none;">0</div>
-            </button>
+                <!-- ランキングボタン -->
+                <button class="btn btn-secondary" id="btn-ranking-nav" onclick="showRankingScreen()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span style="font-size: 1.3rem; margin-bottom: 2px;">🏆</span>
+                    ランキング
+                </button>
 
-            <!-- モード切り替えタブ -->
-            <div class="main-mode-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 12px; border: 1px solid var(--border); margin-top: 40px; position: relative; z-index: 10;">
-                <button id="btn-mode-words" class="tab-btn active" onclick="switchMainMode('words')" style="flex: 1; padding: 10px; font-weight: 600; border-radius: 8px; border: none; background: var(--primary); color: #fff; cursor: pointer; transition: all 0.2s ease;">英単語クイズ</button>
-                <button id="btn-mode-sentences" class="tab-btn" onclick="switchMainMode('sentences')" style="flex: 1; padding: 10px; font-weight: 600; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;">暗唱例文クイズ</button>
+                <!-- テスト確認ボタン -->
+                <button class="btn btn-secondary" id="btn-test-confirm-nav" onclick="showTestListScreen()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; position: relative;">
+                    <span style="font-size: 1.3rem; margin-bottom: 2px;">📝</span>
+                    テスト確認
+                    <div id="test-badge-count" class="badge-count" style="display: none;">0</div>
+                </button>
             </div>
 
             <h1 id="setup-title" style="margin-top: 20px;">ターゲット1200クイズメーカー</h1>
@@ -3611,7 +3605,7 @@
 
             <!-- Submit / Continue Button -->
             <button id="btn-sentence-quiz-submit" class="btn btn-primary" onclick="submitSentenceAnswer()" style="margin-top: auto; margin-bottom: 8px;">
-                回答を確認する
+                <span>回答を確認する</span>
             </button>
         </div>
 
@@ -3699,10 +3693,12 @@
                 </div>
             </div>
 
-            <!-- タブ切り替え -->
-            <div style="display: flex; border-bottom: 2px solid var(--border); margin-bottom: 16px;">
-                <button id="tab-mypage-practice" class="tab-btn active" onclick="switchMypageTab('practice')" style="flex: 1; padding: 10px; font-weight: 600; font-size: 0.9rem; border: none; background: none; border-bottom: 2px solid var(--primary); color: var(--primary); cursor: pointer; transition: all 0.2s;">練習の記録</button>
-                <button id="tab-mypage-test" class="tab-btn" onclick="switchMypageTab('test')" style="flex: 1; padding: 10px; font-weight: 600; font-size: 0.9rem; border: none; background: none; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; transition: all 0.2s;">テストの記録</button>
+            <!-- 切り替えボタン (2x2 グリッド) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+                <button id="btn-mypage-words-practice" class="btn btn-secondary active" onclick="switchMypageTab('words-practice')" style="padding: 10px; font-weight: 600; font-size: 0.85rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--primary); color: #fff; border: 1px solid var(--primary);">英単語・練習</button>
+                <button id="btn-mypage-words-test" class="btn btn-secondary" onclick="switchMypageTab('words-test')" style="padding: 10px; font-weight: 600; font-size: 0.85rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);">英単語・テスト</button>
+                <button id="btn-mypage-sentences-practice" class="btn btn-secondary" onclick="switchMypageTab('sentences-practice')" style="padding: 10px; font-weight: 600; font-size: 0.85rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);">暗唱例文・練習</button>
+                <button id="btn-mypage-sentences-test" class="btn btn-secondary" onclick="switchMypageTab('sentences-test')" style="padding: 10px; font-weight: 600; font-size: 0.85rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid var(--border);">暗唱例文・テスト</button>
             </div>
 
             <!-- ローダー -->
@@ -4437,6 +4433,44 @@
     </div>
 
     <script>
+        // グローバルエラーキャッチャー（開発・デバッグ用）
+        window.addEventListener('error', function(e) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.position = 'fixed';
+            errorDiv.style.bottom = '0';
+            errorDiv.style.left = '0';
+            errorDiv.style.right = '0';
+            errorDiv.style.background = '#ff3333';
+            errorDiv.style.color = '#ffffff';
+            errorDiv.style.padding = '15px';
+            errorDiv.style.fontSize = '14px';
+            errorDiv.style.zIndex = '100000';
+            errorDiv.style.fontFamily = 'monospace';
+            errorDiv.style.maxHeight = '200px';
+            errorDiv.style.overflowY = 'auto';
+            errorDiv.style.whiteSpace = 'pre-wrap';
+            errorDiv.textContent = '【JSエラー検出】 ' + e.message + ' at ' + e.filename + ':' + e.lineno + ':' + e.colno;
+            document.body.appendChild(errorDiv);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.position = 'fixed';
+            errorDiv.style.bottom = '0';
+            errorDiv.style.left = '0';
+            errorDiv.style.right = '0';
+            errorDiv.style.background = '#ff5533';
+            errorDiv.style.color = '#ffffff';
+            errorDiv.style.padding = '15px';
+            errorDiv.style.fontSize = '14px';
+            errorDiv.style.zIndex = '100000';
+            errorDiv.style.fontFamily = 'monospace';
+            errorDiv.style.maxHeight = '200px';
+            errorDiv.style.overflowY = 'auto';
+            errorDiv.style.whiteSpace = 'pre-wrap';
+            errorDiv.textContent = '【Promiseエラー検出】 ' + e.reason;
+            document.body.appendChild(errorDiv);
+        });
+
         // --- Ranking System Logic ---
         let studentNickname = "";
         let rankingQuizType = "en-ja";
@@ -8064,8 +8098,9 @@
         }
 
         // --- My Page Logic ---
-        let mypageTab = 'practice'; // 'practice' or 'test'
+        let mypageTab = 'words-practice'; // 'words-practice', 'words-test', 'sentences-practice', 'sentences-test'
         let mypageData = null;
+        let activeMainMode = 'words'; // 'words' | 'sentences'
 
         function showMypageScreen() {
             // 生徒情報が未設定の場合はエラーを表示
@@ -8113,7 +8148,7 @@
                     document.getElementById('mypage-content-container').style.display = 'block';
                     if (data && data.status === 'success') {
                         mypageData = data;
-                        renderMypage(data);
+                        switchMypageTab(mypageTab || 'words-practice');
                     } else {
                         showToast("履歴データの取得に失敗しました。", true);
                     }
@@ -8127,18 +8162,50 @@
         }
 
         function renderMypage(data) {
-            // 1. 練習サマリーの計算
+            // 1. サマリーの計算（選択されたモード（英単語か暗唱例文）の全練習履歴を対象に計算する）
+            let summaryPractice = [];
+            if (data.practice && data.practice.length > 0) {
+                summaryPractice = data.practice.filter(item => {
+                    const isSentence = item.quizType && (
+                        item.quizType.includes("暗唱例文") || 
+                        item.quizType.includes("例文") || 
+                        item.quizType.includes("Sentence")
+                    );
+                    if (mypageTab.startsWith('words-')) {
+                        return !isSentence;
+                    } else {
+                        return isSentence;
+                    }
+                });
+            }
+
             let totalPracticeQ = 0;
             let totalPracticeCorrect = 0;
-            const practiceTbody = document.getElementById('mypage-practice-tbody');
+            summaryPractice.forEach(item => {
+                const qCount = parseInt(item.totalQuestions, 10) || 0;
+                const cCount = parseInt(item.correctCount, 10) || 0;
+                totalPracticeQ += qCount;
+                totalPracticeCorrect += cCount;
+            });
 
-            if (data.practice && data.practice.length > 0) {
-                practiceTbody.innerHTML = '';
-                data.practice.forEach(item => {
+            // サマリー表示の更新
+            document.getElementById('mypage-total-questions').textContent = `${totalPracticeQ}問`;
+            const avgRate = totalPracticeQ > 0 ? Math.round((totalPracticeCorrect / totalPracticeQ) * 100) : 0;
+            document.getElementById('mypage-avg-rate').textContent = `${avgRate}%`;
+
+            // 2. 練習履歴の表示（描画対象のみフィルタリング）
+            const practiceTbody = document.getElementById('mypage-practice-tbody');
+            practiceTbody.innerHTML = '';
+            
+            let filteredPractice = [];
+            if (mypageTab === 'words-practice' || mypageTab === 'sentences-practice') {
+                filteredPractice = summaryPractice; // すでに上の summaryPractice でフィルタ済み
+            }
+
+            if (filteredPractice.length > 0) {
+                filteredPractice.forEach(item => {
                     const qCount = parseInt(item.totalQuestions, 10) || 0;
                     const cCount = parseInt(item.correctCount, 10) || 0;
-                    totalPracticeQ += qCount;
-                    totalPracticeCorrect += cCount;
 
                     let formattedDate = item.timestamp || "";
                     if (formattedDate.includes(" ")) {
@@ -8150,7 +8217,7 @@
                     tr.innerHTML = `
                         <td style="padding: 10px; color:var(--text-muted);">${formattedDate}</td>
                         <td style="padding: 10px; font-weight:600;">${item.quizType}</td>
-                        <td style="padding: 10px;">${item.rangeInfo}番</td>
+                        <td style="padding: 10px;">${item.rangeInfo}${mypageTab.startsWith('words-') ? '番' : ''}</td>
                         <td style="padding: 10px; text-align: right; font-weight:700; color:var(--primary);">${cCount}/${qCount}問</td>
                     `;
                     practiceTbody.appendChild(tr);
@@ -8159,19 +8226,31 @@
                 practiceTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-muted);">練習の記録がありません。</td></tr>';
             }
 
-            // サマリー表示の更新
-            document.getElementById('mypage-total-questions').textContent = `${totalPracticeQ}問`;
-            const avgRate = totalPracticeQ > 0 ? Math.round((totalPracticeCorrect / totalPracticeQ) * 100) : 0;
-            document.getElementById('mypage-avg-rate').textContent = `${avgRate}%`;
-
-            // 2. テスト履歴の表示
+            // 3. テスト履歴の表示
             const testTbody = document.getElementById('mypage-test-tbody');
             const testTheadTr = document.getElementById('mypage-test-thead-tr');
+            testTbody.innerHTML = '';
+
+            let filteredTest = [];
             if (data.test && data.test.length > 0) {
-                testTbody.innerHTML = '';
-                
+                filteredTest = data.test.filter(item => {
+                    const isSentence = item.testName && (
+                        item.testName.includes("暗唱例文") || 
+                        item.testName.includes("例文") || 
+                        item.testName.includes("Sentence")
+                    );
+                    if (mypageTab === 'words-test') {
+                        return !isSentence;
+                    } else if (mypageTab === 'sentences-test') {
+                        return isSentence;
+                    }
+                    return false;
+                });
+            }
+
+            if (filteredTest.length > 0) {
                 // 連続合格の合格条件が課されているテストが1つでもあるか確認
-                const hasStreakCondition = data.test.some(item => item.requiredStreak && item.requiredStreak > 1);
+                const hasStreakCondition = filteredTest.some(item => item.requiredStreak && item.requiredStreak > 1);
                 
                 if (testTheadTr) {
                     if (hasStreakCondition) {
@@ -8192,7 +8271,7 @@
                     }
                 }
 
-                data.test.forEach(item => {
+                filteredTest.forEach(item => {
                     let formattedDate = item.timestamp || "";
                     if (formattedDate.includes(" ")) {
                         if (formattedDate.includes("T")) {
@@ -8259,41 +8338,50 @@
                     testTbody.appendChild(tr);
                 });
             } else {
-                testTbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-muted);">テストの受験履歴がありません。</td></tr>';
+                testTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">テストの受験履歴がありません。</td></tr>';
             }
-            
-            switchMypageTab('practice');
         }
 
         function switchMypageTab(tab) {
             mypageTab = tab;
-            const practiceTabBtn = document.getElementById('tab-mypage-practice');
-            const testTabBtn = document.getElementById('tab-mypage-test');
+            
+            const btns = {
+                'words-practice': document.getElementById('btn-mypage-words-practice'),
+                'words-test': document.getElementById('btn-mypage-words-test'),
+                'sentences-practice': document.getElementById('btn-mypage-sentences-practice'),
+                'sentences-test': document.getElementById('btn-mypage-sentences-test')
+            };
+
+            for (const key in btns) {
+                const btn = btns[key];
+                if (btn) {
+                    if (key === tab) {
+                        btn.classList.add('active');
+                        btn.style.background = 'var(--primary)';
+                        btn.style.color = '#fff';
+                        btn.style.borderColor = 'var(--primary)';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.style.background = 'rgba(255,255,255,0.05)';
+                        btn.style.color = 'var(--text-muted)';
+                        btn.style.borderColor = 'var(--border)';
+                    }
+                }
+            }
+
             const practiceSec = document.getElementById('mypage-practice-section');
             const testSec = document.getElementById('mypage-test-section');
 
-            if (tab === 'practice') {
-                practiceTabBtn.classList.add('active');
-                practiceTabBtn.style.color = 'var(--primary)';
-                practiceTabBtn.style.borderBottomColor = 'var(--primary)';
-                
-                testTabBtn.classList.remove('active');
-                testTabBtn.style.color = 'var(--text-muted)';
-                testTabBtn.style.borderBottomColor = 'transparent';
+            if (tab.endsWith('-practice')) {
+                if (practiceSec) practiceSec.style.display = 'block';
+                if (testSec) testSec.style.display = 'none';
+            } else if (tab.endsWith('-test')) {
+                if (practiceSec) practiceSec.style.display = 'none';
+                if (testSec) testSec.style.display = 'block';
+            }
 
-                practiceSec.style.display = 'block';
-                testSec.style.display = 'none';
-            } else {
-                testTabBtn.classList.add('active');
-                testTabBtn.style.color = 'var(--primary)';
-                testTabBtn.style.borderBottomColor = 'var(--primary)';
-                
-                practiceTabBtn.classList.remove('active');
-                practiceTabBtn.style.color = 'var(--text-muted)';
-                practiceTabBtn.style.borderBottomColor = 'transparent';
-
-                practiceSec.style.display = 'none';
-                testSec.style.display = 'block';
+            if (mypageData && document.getElementById('mypage-loader').style.display === 'none') {
+                renderMypage(mypageData);
             }
         }
 
@@ -13903,7 +13991,8 @@
             if (sentenceQuizCountSetting === 'all') {
                 count = sourcePool.length;
             } else {
-                count = Math.min(parseInt(sentenceQuizCountSetting), sourcePool.length);
+                const parsedCount = parseInt(sentenceQuizCountSetting);
+                count = isNaN(parsedCount) || parsedCount <= 0 ? 10 : Math.min(parsedCount, sourcePool.length);
             }
 
             currentSentenceQuestions = sourcePool.slice(0, count);
@@ -13918,10 +14007,19 @@
         function loadSentenceQuestion() {
             isSentenceFeedbackState = false;
             
+            const question = currentSentenceQuestions[currentSentenceIndex];
+            if (!question) {
+                alert('エラー: 出題データが存在しないか、読み込めませんでした。設定画面に戻ります。');
+                showScreen('screen-setup');
+                return;
+            }
+
             // UIリセット
             const btnSubmit = document.getElementById('btn-sentence-quiz-submit');
             if (btnSubmit) {
-                btnSubmit.querySelector('span').textContent = '回答を確認する';
+                const span = btnSubmit.querySelector('span');
+                if (span) span.textContent = '回答を確認する';
+                else btnSubmit.textContent = '回答を確認する';
                 btnSubmit.className = 'btn btn-primary';
             }
             const feedbackBox = document.getElementById('sentence-feedback-box');
@@ -13931,8 +14029,6 @@
             }
             const diffGroup = document.getElementById('sentence-feedback-diff-group');
             if (diffGroup) diffGroup.style.display = 'none';
-
-            const question = currentSentenceQuestions[currentSentenceIndex];
 
             // プログレス
             const progressText = document.getElementById('sentence-quiz-progress-text');
@@ -14193,7 +14289,10 @@
             const btnSubmit = document.getElementById('btn-sentence-quiz-submit');
             if (btnSubmit) {
                 const isLast = currentSentenceIndex === currentSentenceQuestions.length - 1;
-                btnSubmit.querySelector('span').textContent = isLast ? '結果を表示する' : '次の問題へ';
+                const txt = isLast ? '結果を表示する' : '次の問題へ';
+                const span = btnSubmit.querySelector('span');
+                if (span) span.textContent = txt;
+                else btnSubmit.textContent = txt;
             }
 
             isSentenceFeedbackState = true;
@@ -14489,11 +14588,22 @@
             }
         }
 
+        // メインモードの交互トグル切り替え
+        function toggleMainMode() {
+            if (activeMainMode === 'words') {
+                switchMainMode('sentences');
+            } else {
+                switchMainMode('words');
+            }
+        }
+
         // メインモード切り替え（英単語クイズ / 暗唱例文クイズ）
         function switchMainMode(mode) {
             playMenuClickSound();
-            const btnWords = document.getElementById('btn-mode-words');
-            const btnSentences = document.getElementById('btn-mode-sentences');
+            activeMainMode = mode;
+
+            const toggleIcon = document.getElementById('mode-toggle-icon');
+            const toggleLabel = document.getElementById('mode-toggle-label');
             
             const wordsRange = document.getElementById('words-range-container');
             const sentencesRange = document.getElementById('sentences-range-container');
@@ -14504,16 +14614,8 @@
             const btnStartSentences = document.getElementById('btn-start-sentences-quiz');
 
             if (mode === 'words') {
-                if (btnWords) {
-                    btnWords.classList.add('active');
-                    btnWords.style.background = 'var(--primary)';
-                    btnWords.style.color = '#fff';
-                }
-                if (btnSentences) {
-                    btnSentences.classList.remove('active');
-                    btnSentences.style.background = 'transparent';
-                    btnSentences.style.color = 'var(--text-muted)';
-                }
+                if (toggleIcon) toggleIcon.textContent = '💬';
+                if (toggleLabel) toggleLabel.innerHTML = '暗唱例文に<br>切り替え';
                 
                 if (wordsRange) wordsRange.style.display = 'flex';
                 if (sentencesRange) sentencesRange.style.display = 'none';
@@ -14522,16 +14624,8 @@
                 if (btnStartWords) btnStartWords.style.display = 'block';
                 if (btnStartSentences) btnStartSentences.style.display = 'none';
             } else {
-                if (btnSentences) {
-                    btnSentences.classList.add('active');
-                    btnSentences.style.background = 'var(--primary)';
-                    btnSentences.style.color = '#fff';
-                }
-                if (btnWords) {
-                    btnWords.classList.remove('active');
-                    btnWords.style.background = 'transparent';
-                    btnWords.style.color = 'var(--text-muted)';
-                }
+                if (toggleIcon) toggleIcon.textContent = '🔤';
+                if (toggleLabel) toggleLabel.innerHTML = '英単語に<br>切り替え';
                 
                 if (wordsRange) wordsRange.style.display = 'none';
                 if (sentencesRange) sentencesRange.style.display = 'block';
