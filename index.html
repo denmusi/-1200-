@@ -2820,6 +2820,271 @@
             align-items: center;
             justify-content: center;
         }
+
+        .container.container-wide {
+            max-width: 1200px;
+        }
+
+        /* --- SENTENCE BOOK PREMIUM STYLES --- */
+        #screen-sentencebook.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .sentence-list-item {
+            display: flex;
+            flex-direction: column;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.01);
+            margin-bottom: 8px;
+            border: 1px solid transparent;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            min-height: 52px;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        [data-theme="light"] .sentence-list-item {
+            background: rgba(0, 0, 0, 0.01);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+        }
+        .sentence-list-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+        [data-theme="light"] .sentence-list-item:hover {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        .sentence-list-item.open {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(99, 102, 241, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        [data-theme="light"] .sentence-list-item.open {
+            background: rgba(0, 0, 0, 0.015);
+            border-color: rgba(79, 70, 229, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .sentence-main-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+            min-height: 52px;
+        }
+        .sentence-col-id {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            width: 54px;
+            flex-shrink: 0;
+            text-align: left;
+        }
+        .sentence-col-sec {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        [data-theme="light"] .sentence-col-sec {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        .sentence-text-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .sentence-english {
+            font-size: 1.02rem;
+            font-weight: 700;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-family: 'Outfit', 'Inter', sans-serif;
+            transition: white-space 0.2s;
+        }
+        .sentence-list-item.open .sentence-english {
+            white-space: normal;
+        }
+        .sentence-japanese {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: white-space 0.2s;
+        }
+        .sentence-list-item.open .sentence-japanese {
+            white-space: normal;
+        }
+        
+        /* 左右レイアウト（画面幅768px以上かつアコーディオンが閉じてる場合） */
+        @media (min-width: 768px) {
+            .sentence-list-item:not(.open) .sentence-text-group {
+                flex-direction: row;
+                align-items: center;
+                gap: 24px;
+            }
+            .sentence-list-item:not(.open) .sentence-english {
+                flex: 1.3;
+                font-size: 1.05rem;
+            }
+            .sentence-list-item:not(.open) .sentence-japanese {
+                flex: 1;
+                font-size: 0.92rem;
+            }
+        }
+        
+        .sentence-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .sentence-action-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        [data-theme="light"] .sentence-action-btn {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        .sentence-action-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        [data-theme="light"] .sentence-action-btn:hover {
+            background: #f1f5f9;
+        }
+        .sentence-action-btn.bookmark-btn.active {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.25);
+        }
+        
+        /* Accordion Panel Styles */
+        .sentence-accordion-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(0, 0, 0, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        [data-theme="light"] .sentence-accordion-panel {
+            background: rgba(0, 0, 0, 0.01);
+            border-top-color: rgba(0, 0, 0, 0.02);
+        }
+        .sentence-list-item.open .sentence-accordion-panel {
+            max-height: 300px;
+        }
+        .sentence-accordion-content {
+            padding: 16px;
+        }
+        .sentence-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        @media (min-width: 768px) {
+            .sentence-detail-grid {
+                grid-template-columns: 200px 1fr;
+            }
+        }
+        .sentence-detail-stats {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+        }
+        [data-theme="light"] .sentence-detail-stats {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        .detail-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .sentence-detail-note {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sentence-note-header {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .sentence-note-input-row {
+            display: flex;
+            gap: 8px;
+        }
+        .sentence-note-input {
+            flex-grow: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.92rem;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s;
+        }
+        [data-theme="light"] .sentence-note-input {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.12);
+        }
+        .sentence-note-input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        [data-theme="light"] .sentence-note-input:focus {
+            background: #ffffff;
+        }
+        .sentence-note-save-btn {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .sentence-note-save-btn:hover {
+            opacity: 0.9;
+        }
     
 /* --- SENTENCE QUIZ STYLES --- */
         #screen-quiz-sentence.active {
@@ -3379,11 +3644,11 @@
             </div>
             
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 16px;">
-                <button class="btn btn-secondary" onclick="showScreen('screen-wordbook')">単語帳モード</button>
-                <button class="btn btn-secondary" onclick="showScreen('screen-bookmarks')">ブックマークリスト</button>
+                <button class="btn btn-secondary" id="btn-wordbook-bottom" onclick="showScreen('screen-wordbook')">単語帳モード</button>
+                <button class="btn btn-secondary" id="btn-bookmarks-bottom" onclick="showScreen('screen-bookmarks')">ブックマークリスト</button>
             </div>
             
-            <button class="btn btn-secondary" onclick="showScreen('screen-weak-words')">間違えやすい単語</button>
+            <button class="btn btn-secondary" id="btn-weak-words-bottom" onclick="showScreen('screen-weak-words')">間違えやすい単語</button>
 
             <!-- Flashcard Mode Button -->
             <button class="btn btn-primary" onclick="openFlashcardSetup()" style="margin-top: 12px; background: linear-gradient(135deg, #ec4899, #f43f5e); border: none; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25); border-radius: 14px; font-weight: 700; letter-spacing: 0.5px;">
@@ -4013,6 +4278,50 @@
             <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
         </div>
 
+        <!-- SCREEN 4.5: Sentencebook Mode (With Search & Bookmarks) -->
+        <div id="screen-sentencebook" class="screen">
+            <div class="list-header-bar">
+                <button class="btn-icon-circle" onclick="exitToHome()" title="戻る">
+                    <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <h1>例文リスト一覧</h1>
+            </div>
+
+            <!-- Search Area -->
+            <div class="list-search-container input-group" style="position: relative;">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" id="sentencebook-search-input" placeholder="英語、日本語、メモ、またはLesson名を入力して検索..." autocomplete="off" oninput="handleSentencebookSearch()">
+            </div>
+
+            <!-- Filter Chips Container -->
+            <div class="filter-chips-container">
+                <button class="filter-chip" id="filter-chip-sentence-bookmark" onclick="toggleSentencebookFilter('bookmark')">★ ブックマーク</button>
+                <button class="filter-chip" id="filter-chip-sentence-note" onclick="toggleSentencebookFilter('note')">📝 メモあり</button>
+                <button class="filter-chip" id="filter-chip-sentence-weak" onclick="toggleSentencebookFilter('weak')">⚠️ 要復習（間違えた例文）</button>
+            </div>
+
+            <!-- Progress Label Area -->
+            <div id="sentencebook-progress-panel" style="padding: 0 16px 8px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                <span id="sentencebook-seekbar-label-id">No. ---</span>
+                <span id="sentencebook-seekbar-label-progress">0 / 0</span>
+            </div>
+
+            <!-- Flex container for Sentence List and Vertical Seekbar -->
+            <div style="display: flex; gap: 8px; align-items: stretch; flex: 1; min-height: 0; margin-bottom: 16px; position: relative;">
+                <!-- Sentence List Area with Lazy Loading -->
+                <div class="list-scroll-area" id="sentencebook-list-container" onscroll="handleSentencebookScroll()" style="flex: 1; margin-bottom: 0;">
+                    <!-- Sentence list items -->
+                </div>
+                
+                <!-- Vertical SeekBar Container -->
+                <div id="sentencebook-seekbar-container" style="display: flex; align-items: center; justify-content: center; width: 28px; position: relative; padding: 0;">
+                    <input type="range" id="sentencebook-seekbar" min="1" max="100" value="1" style="position: absolute; width: 100px; height: 6px; transform: rotate(90deg); transform-origin: center; accent-color: #818cf8; cursor: pointer; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);" oninput="handleSentencebookSeek(this.value)">
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="exitToHome()">ホームに戻る</button>
+        </div>
+
         <!-- SCREEN 5: Weak Words Screen (4+ mistakes) -->
         <div id="screen-weak-words" class="screen">
             <div class="list-header-bar">
@@ -4433,8 +4742,10 @@
     <!-- Toast Overlay -->
     <div class="toast-notification" id="toast-element">
         <svg style="width:20px;height:20px;color:var(--success)" fill="none" stroke="currentColor" viewBox="0 0 24 24" id="toast-icon"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <span id="toast-text">Toast message</span>
+        <span id="toast-text">Toast message</span>
     </div>
+
+    </div> <!-- Close app-container -->
 
     <script>
         // グローバルエラーキャッチャー（開発・デバッグ用）
@@ -9558,10 +9869,21 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) {
+                if (screenId === 'screen-sentencebook') {
+                    appContainer.classList.add('container-wide');
+                } else {
+                    appContainer.classList.remove('container-wide');
+                }
+            }
+            
             if(screenId === 'screen-setup') {
                 clearSetupError();
             } else if (screenId === 'screen-wordbook') {
                 initWordbook();
+            } else if (screenId === 'screen-sentencebook') {
+                initSentencebook();
             } else if (screenId === 'screen-weak-words') {
                 renderWeakWords();
             } else if (screenId === 'screen-bookmarks') {
@@ -13852,6 +14174,17 @@
            ========================================================================== */
         let sentenceBookmarks = {};
         let sentenceStats = {};
+        let sentenceNotes = {};
+        let sentencebookDisplayCount = 50;
+        let sentencebookFilteredList = [];
+        let sentencebookFilterType = null;
+        let isSentencebookSeeking = false;
+        let sentencebookActiveTab = 'all';
+        let activeSentencebookFilters = { bookmark: false, note: false, weak: false };
+        let sentencebookSearchQuery = '';
+        let sentencebookRenderLimit = 30;
+        let sentencebookAccordionStates = {};
+        
         let currentSentenceQuestions = [];
         let currentSentenceIndex = 0;
         let sentenceIncorrectList = [];
@@ -13871,6 +14204,7 @@
         function initSentenceQuiz() {
             loadSentenceBookmarks();
             loadSentenceStats();
+            loadSentenceNotes();
             buildGlobalSentenceWordPool();
             setupSentenceConfigUI();
         }
@@ -13899,6 +14233,394 @@
 
         function saveSentenceStats() {
             localStorage.setItem('target1200_sentence_stats', JSON.stringify(sentenceStats));
+        }
+
+        function loadSentenceNotes() {
+            try {
+                const saved = localStorage.getItem('target1200_sentence_notes');
+                sentenceNotes = saved ? JSON.parse(saved) : {};
+            } catch(e) {
+                sentenceNotes = {};
+            }
+        }
+
+        function saveSentenceNotes() {
+            localStorage.setItem('target1200_sentence_notes', JSON.stringify(sentenceNotes));
+        }
+
+        function speakSentenceStr(text) {
+            const cleanText = getSentenceCleanEnglish(text);
+            speak(cleanText);
+        }
+
+        // 例文リスト画面の制御
+        function initSentencebook() {
+            const searchInput = document.getElementById('sentencebook-search-input');
+            if (searchInput) searchInput.value = '';
+            sentencebookSearchQuery = '';
+            
+            activeSentencebookFilters = { bookmark: false, note: false, weak: false };
+            document.querySelectorAll('#screen-sentencebook .filter-chip').forEach(c => c.classList.remove('active'));
+
+            applySentencebookFiltering();
+            
+            sentencebookRenderLimit = 30;
+            renderSentencebookList();
+            
+            syncSentencebookSeekBar();
+        }
+
+        function selectSentencebookFilter(type) {
+            playMenuClickSound();
+            sentencebookActiveTab = type;
+            
+            const tabs = ['all', 'bookmark', 'notes'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`sentencebook-tab-${t}`);
+                if (el) {
+                    if (t === type) {
+                        el.classList.add('active');
+                    } else {
+                        el.classList.remove('active');
+                    }
+                }
+            });
+
+            applySentencebookFiltering();
+            sentencebookRenderLimit = 30;
+            renderSentencebookList();
+            
+            const listContainer = document.getElementById('sentencebook-list-container');
+            if (listContainer) listContainer.scrollTop = 0;
+            
+            syncSentencebookSeekBar();
+        }
+
+        function applySentencebookFiltering() {
+            if (typeof sentenceData === 'undefined' || !Array.isArray(sentenceData)) {
+                sentencebookFilteredList = [];
+                return;
+            }
+
+            let list = sentenceData.map((item, idx) => ({ ...item, globalIndex: idx + 1 }));
+
+            // 1. フィルターチップによるフィルタ
+            if (activeSentencebookFilters.bookmark) {
+                list = list.filter(item => sentenceBookmarks[item.id]);
+            }
+            if (activeSentencebookFilters.note) {
+                list = list.filter(item => sentenceNotes[item.id] && sentenceNotes[item.id].trim() !== '');
+            }
+            if (activeSentencebookFilters.weak) {
+                list = list.filter(item => {
+                    const stats = sentenceStats[item.id];
+                    return stats && (stats.wrong > 0);
+                });
+            }
+
+            // 2. 検索クエリによるフィルタ
+            if (sentencebookSearchQuery.trim() !== '') {
+                const q = sentencebookSearchQuery.toLowerCase().trim();
+                list = list.filter(item => {
+                    const eng = (item.english || '').toLowerCase();
+                    const jpn = (item.japanese || '').toLowerCase();
+                    const note = (sentenceNotes[item.id] || '').toLowerCase();
+                    const lesson = (item.lesson || '').toLowerCase();
+                    const idStr = String(item.id);
+                    return eng.includes(q) || jpn.includes(q) || note.includes(q) || lesson.includes(q) || idStr.includes(q);
+                });
+            }
+
+            sentencebookFilteredList = list;
+        }
+
+        function toggleSentencebookFilter(type) {
+            playMenuClickSound();
+            activeSentencebookFilters[type] = !activeSentencebookFilters[type];
+            
+            const chip = document.getElementById(`filter-chip-sentence-${type}`);
+            if (chip) {
+                if (activeSentencebookFilters[type]) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            }
+            
+            applySentencebookFiltering();
+            sentencebookRenderLimit = 30;
+            renderSentencebookList();
+            
+            const listContainer = document.getElementById('sentencebook-list-container');
+            if (listContainer) listContainer.scrollTop = 0;
+            
+            syncSentencebookSeekBar();
+        }
+
+        function handleSentencebookSearch() {
+            const input = document.getElementById('sentencebook-search-input');
+            sentencebookSearchQuery = input ? input.value : '';
+            applySentencebookFiltering();
+            sentencebookRenderLimit = 30;
+            renderSentencebookList();
+            
+            const listContainer = document.getElementById('sentencebook-list-container');
+            if (listContainer) listContainer.scrollTop = 0;
+            
+            syncSentencebookSeekBar();
+        }
+
+        function speakSentenceByIndex(id) {
+            const item = sentenceData.find(s => String(s.id) === String(id));
+            if (item) {
+                speakSentenceStr(item.english);
+            }
+        }
+
+        function renderSentencebookList() {
+            const listContainer = document.getElementById('sentencebook-list-container');
+            if (!listContainer) return;
+
+            const itemsToShow = sentencebookFilteredList.slice(0, sentencebookRenderLimit);
+
+            if (itemsToShow.length === 0) {
+                listContainer.innerHTML = '<div style="padding: 24px; text-align: center; color: #8e8e93;">該当する例文がありません</div>';
+                return;
+            }
+
+            let html = '';
+            itemsToShow.forEach(item => {
+                const isBookmarked = !!sentenceBookmarks[item.id];
+                const stats = sentenceStats[item.id] || { correct: 0, wrong: 0 };
+                const total = stats.correct + stats.wrong;
+                const rate = total > 0 ? Math.round((stats.correct / total) * 100) : null;
+                const rateText = rate !== null ? `${rate}%` : '-';
+                const noteVal = sentenceNotes[item.id] || '';
+                const isAccordionOpen = sentencebookAccordionStates[item.id] ? 'open' : '';
+                const lessonShort = item.lesson ? item.lesson.split(' ')[0] : '';
+                
+                html += `
+                <div class="sentence-list-item ${isAccordionOpen}" id="sentence-item-${item.id}">
+                    <!-- メイン行 -->
+                    <div class="sentence-main-row" onclick="toggleSentenceAccordion('${item.id}')">
+                        <div class="sentence-col-id">No.${item.id}</div>
+                        <div class="sentence-col-sec">${lessonShort}</div>
+                        
+                        <div class="sentence-text-group">
+                            <div class="sentence-english">${escapeHtml(item.english)}</div>
+                            <div class="sentence-japanese">${escapeHtml(item.japanese)}</div>
+                        </div>
+                        
+                        <div class="sentence-actions" onclick="event.stopPropagation();">
+                            <button class="sentence-action-btn speak-btn" onclick="speakSentenceByIndex('${item.id}')" title="音声再生">🔊</button>
+                            <button class="sentence-action-btn bookmark-btn ${isBookmarked ? 'active' : ''}" onclick="toggleSentencebookBookmark('${item.id}')" title="お気に入り">★</button>
+                        </div>
+                    </div>
+                    
+                    <!-- アコーディオンパネル -->
+                    <div class="sentence-accordion-panel">
+                        <div class="sentence-accordion-content">
+                            <div class="sentence-detail-grid">
+                                <div class="sentence-detail-stats">
+                                    <span class="detail-label">正答率:</span>
+                                    <span class="detail-value">${rateText} (${stats.correct}/${total}回)</span>
+                                </div>
+                                <div class="sentence-detail-note">
+                                    <div class="sentence-note-header">
+                                        <span>📝 メモ欄</span>
+                                    </div>
+                                    <div class="sentence-note-input-row">
+                                        <input type="text" id="sentence-note-input-${item.id}" class="sentence-note-input" value="${escapeHtml(noteVal)}" placeholder="メモを入力..." />
+                                        <button class="sentence-note-save-btn" onclick="saveSentenceNoteFromUI('${item.id}')">保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            if (sentencebookRenderLimit < sentencebookFilteredList.length) {
+                html += `
+                <div class="list-load-more" style="text-align: center; padding: 16px; color: #8e8e93; font-size: 14px;">
+                    スクロールしてさらに読み込み...
+                </div>
+                `;
+            }
+
+            listContainer.innerHTML = html;
+        }
+
+        function toggleSentencebookBookmark(id) {
+            playMenuClickSound();
+            if (sentenceBookmarks[id]) {
+                delete sentenceBookmarks[id];
+            } else {
+                sentenceBookmarks[id] = true;
+            }
+            saveSentenceBookmarks();
+
+            const itemEl = document.getElementById(`sentence-item-${id}`);
+            if (itemEl) {
+                const btn = itemEl.querySelector('.bookmark-btn');
+                if (btn) {
+                    if (sentenceBookmarks[id]) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            }
+
+            if (activeSentencebookFilters.bookmark) {
+                applySentencebookFiltering();
+                renderSentencebookList();
+                syncSentencebookSeekBar();
+            }
+        }
+
+        function toggleSentenceAccordion(id) {
+            playMenuClickSound();
+            const itemEl = document.getElementById(`sentence-item-${id}`);
+            if (!itemEl) return;
+
+            const isOpen = itemEl.classList.contains('open');
+            if (isOpen) {
+                itemEl.classList.remove('open');
+                sentencebookAccordionStates[id] = false;
+            } else {
+                itemEl.classList.add('open');
+                sentencebookAccordionStates[id] = true;
+            }
+        }
+
+        function saveSentenceNoteFromUI(id) {
+            playMenuClickSound();
+            const input = document.getElementById(`sentence-note-input-${id}`);
+            if (!input) return;
+            
+            const val = input.value.trim();
+            if (val === '') {
+                delete sentenceNotes[id];
+            } else {
+                sentenceNotes[id] = val;
+            }
+            saveSentenceNotes();
+            
+            showToast('メモを保存しました');
+            
+            if (activeSentencebookFilters.note && val === '') {
+                applySentencebookFiltering();
+                renderSentencebookList();
+                syncSentencebookSeekBar();
+            }
+        }
+
+        let sentencebookSeekTimeout = null;
+
+        function syncSentencebookSeekBar() {
+            const seekbar = document.getElementById('sentencebook-seekbar');
+            if (!seekbar) return;
+            seekbar.max = sentencebookFilteredList.length;
+
+            const labelId = document.getElementById('sentencebook-seekbar-label-id');
+            const labelProgress = document.getElementById('sentencebook-seekbar-label-progress');
+            const seekbarContainer = document.getElementById('sentencebook-seekbar-container');
+            const progressPanel = document.getElementById('sentencebook-progress-panel');
+
+            if (sentencebookFilteredList.length === 0) {
+                if (seekbarContainer) seekbarContainer.style.visibility = 'hidden';
+                if (progressPanel) progressPanel.style.display = 'none';
+                return;
+            }
+            if (seekbarContainer) seekbarContainer.style.visibility = 'visible';
+            if (progressPanel) progressPanel.style.display = 'flex';
+
+            setTimeout(() => {
+                const container = document.getElementById('sentencebook-list-container');
+                const sb = document.getElementById('sentencebook-seekbar');
+                if (container && sb) {
+                    const height = container.clientHeight;
+                    sb.style.width = `${Math.max(100, height - 32)}px`;
+                }
+            }, 50);
+
+            const currentItem = sentencebookFilteredList[0];
+            seekbar.value = 1;
+            labelId.innerText = currentItem ? `No. ${currentItem.id} ${currentItem.english}` : 'No. ---';
+            labelProgress.innerText = `1 / ${sentencebookFilteredList.length}`;
+        }
+
+        function handleSentencebookSeek(value) {
+            isSentencebookSeeking = true;
+            if (sentencebookSeekTimeout) clearTimeout(sentencebookSeekTimeout);
+
+            const targetIdx = parseInt(value) - 1;
+            if (targetIdx < 0 || targetIdx >= sentencebookFilteredList.length) return;
+
+            const container = document.getElementById('sentencebook-list-container');
+
+            if (targetIdx >= container.children.length) {
+                sentencebookRenderLimit = targetIdx + 25;
+                renderSentencebookList();
+            }
+
+            const currentItem = sentencebookFilteredList[targetIdx];
+            const labelId = document.getElementById('sentencebook-seekbar-label-id');
+            const labelProgress = document.getElementById('sentencebook-seekbar-label-progress');
+            if (currentItem) {
+                labelId.innerText = `No. ${currentItem.id} ${currentItem.english}`;
+                labelProgress.innerText = `${value} / ${sentencebookFilteredList.length}`;
+            }
+
+            const targetEl = container.children[targetIdx];
+            if (targetEl) {
+                container.scrollTop = targetEl.offsetTop - container.offsetTop;
+            }
+
+            sentencebookSeekTimeout = setTimeout(() => {
+                isSentencebookSeeking = false;
+            }, 300);
+        }
+
+        function handleSentencebookScroll() {
+            const container = document.getElementById('sentencebook-list-container');
+            if (!container) return;
+
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
+                if (container.children.length < sentencebookFilteredList.length) {
+                    sentencebookRenderLimit += 30;
+                    renderSentencebookList();
+                }
+            }
+
+            if (!isSentencebookSeeking && sentencebookFilteredList.length > 0) {
+                const items = container.querySelectorAll('.sentence-list-item');
+                const containerTop = container.getBoundingClientRect().top;
+                let visibleIdx = -1;
+
+                for (let i = 0; i < items.length; i++) {
+                    const rect = items[i].getBoundingClientRect();
+                    if (rect.bottom >= containerTop + 10) {
+                        visibleIdx = i;
+                        break;
+                    }
+                }
+
+                if (visibleIdx !== -1) {
+                    const seekbar = document.getElementById('sentencebook-seekbar');
+                    const labelId = document.getElementById('sentencebook-seekbar-label-id');
+                    const labelProgress = document.getElementById('sentencebook-seekbar-label-progress');
+
+                    const currentItem = sentencebookFilteredList[visibleIdx];
+                    if (currentItem && seekbar) {
+                        seekbar.value = visibleIdx + 1;
+                        labelId.innerText = `No. ${currentItem.id} ${currentItem.english}`;
+                        labelProgress.innerText = `${visibleIdx + 1} / ${sentencebookFilteredList.length}`;
+                    }
+                }
+            }
         }
 
         function buildGlobalSentenceWordPool() {
@@ -14616,6 +15338,8 @@
             
             const btnStartWords = document.getElementById('btn-start-words-quiz');
             const btnStartSentences = document.getElementById('btn-start-sentences-quiz');
+            
+            const btnBottomLeft = document.getElementById('btn-wordbook-bottom');
 
             if (mode === 'words') {
                 if (toggleIcon) toggleIcon.textContent = '💬';
@@ -14628,6 +15352,11 @@
                 if (sentencesFormat) sentencesFormat.style.display = 'none';
                 if (btnStartWords) btnStartWords.style.display = 'block';
                 if (btnStartSentences) btnStartSentences.style.display = 'none';
+                
+                if (btnBottomLeft) {
+                    btnBottomLeft.textContent = '📖 単語リスト';
+                    btnBottomLeft.setAttribute('onclick', "showScreen('screen-wordbook')");
+                }
             } else {
                 if (toggleIcon) toggleIcon.textContent = '🔤';
                 if (toggleLabel) toggleLabel.innerHTML = '英単語に<br>切り替え';
@@ -14639,6 +15368,11 @@
                 if (sentencesFormat) sentencesFormat.style.display = 'block';
                 if (btnStartWords) btnStartWords.style.display = 'none';
                 if (btnStartSentences) btnStartSentences.style.display = 'block';
+                
+                if (btnBottomLeft) {
+                    btnBottomLeft.textContent = '📖 例文リスト';
+                    btnBottomLeft.setAttribute('onclick', "showScreen('screen-sentencebook')");
+                }
                 
                 updateSentenceDummyVisibility();
             }
