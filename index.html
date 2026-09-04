@@ -5131,7 +5131,7 @@
                 {
                                 "id": "56",
                                 "english": "It can be quite hot even in November.",
-                                "japanese": "月でもかなり暑いことがある。",
+                                "japanese": "11月でもかなり暑いことがある。",
                                 "lesson": "Ch.4 助動詞"
                 },
                 {
@@ -5148,7 +5148,7 @@
                 },
                 {
                                 "id": "59",
-                                "english": "I ask you a question?",
+                                "english": "May I ask you a question?",
                                 "japanese": "質問をしてもよろしいですか。",
                                 "lesson": "Ch.4 助動詞"
                 },
@@ -14627,7 +14627,8 @@
             const words = new Set();
             if (typeof sentenceData !== 'undefined' && Array.isArray(sentenceData)) {
                 sentenceData.forEach(item => {
-                    const tokens = tokenizeSentenceStr(item.english);
+                    const cleanEng = getSentenceCleanEnglish(item.english);
+                    const tokens = tokenizeSentenceStr(cleanEng);
                     tokens.forEach(w => words.add(stripSentenceBrackets(w.toLowerCase())));
                 });
             }
@@ -14802,7 +14803,8 @@
             const tray = document.getElementById('sentence-word-tray');
             if (tray) tray.innerHTML = '';
 
-            const correctTokens = tokenizeSentenceStr(question.english);
+            const cleanEnglish = getSentenceCleanEnglish(question.english);
+            const correctTokens = tokenizeSentenceStr(cleanEnglish);
             const processedTokens = correctTokens.map((tok, idx) => {
                 if (idx === 0 && tok !== 'I') {
                     return tok.charAt(0).toLowerCase() + tok.slice(1);
@@ -15055,7 +15057,8 @@
 
         function tokenizeSentenceStr(str) {
             let clean = str.trim().replace(/\.+$/, "");
-            return clean.split(/\s+/).filter(w => w.length > 0);
+            let rawTokens = clean.split(/\s+/).filter(w => w.length > 0);
+            return rawTokens.map(w => w.replace(/[,!?;:]+$/, "")).filter(w => w.length > 0);
         }
 
         function normalizeSentenceStr(str) {
