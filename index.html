@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Prevent stale caching on Safari / Mobile browsers -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Target 1200 四択クイズ</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
@@ -3531,7 +3535,7 @@
                 <div class="form-group" id="dummy-config-group" style="margin-top: 14px;">
                     <label for="input-dummy" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px;">ダミー（妨害）単語数</label>
                     <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);">
-                        <input type="range" id="input-dummy" min="0" max="4" value="2" oninput="document.getElementById('dummy-val').textContent = this.value" style="flex: 1; cursor: pointer; accent-color: var(--primary);">
+                        <input type="range" id="input-dummy" min="0" max="4" value="2" oninput="const _e_dummy_val = document.getElementById('dummy-val'); if (_e_dummy_val) _e_dummy_val.textContent = this.value" style="flex: 1; cursor: pointer; accent-color: var(--primary);">
                         <span id="dummy-val" style="font-weight: 700; font-size: 0.95rem; color: var(--primary); min-width: 15px; text-align: center;">2</span>
                     </div>
                 </div>
@@ -8165,6 +8169,7 @@
 
         // 小テスト機能用のグローバル状態変数
         let activeTests = [];         // 生徒向けの現在有効なテストリスト
+let isFetchingActiveTests = false; // テスト情報取得中フラグ
         let currentActiveTest = null;  // 受験中のテストオブジェクト
         let isTestingMode = false;    // テストモード中フラグ
         let activeTeacherTests = [];  // 先生画面用の配信済みテストリスト
@@ -8437,10 +8442,10 @@
             // ローダーの表示と中身の初期化
             document.getElementById('mypage-loader').style.display = 'block';
             document.getElementById('mypage-content-container').style.display = 'none';
-            document.getElementById('mypage-total-questions').textContent = '0問';
-            document.getElementById('mypage-avg-rate').textContent = '0%';
-            document.getElementById('mypage-practice-tbody').innerHTML = '';
-            document.getElementById('mypage-test-tbody').innerHTML = '';
+            const _e_mypage_total_questions = document.getElementById('mypage-total-questions'); if (_e_mypage_total_questions) _e_mypage_total_questions.textContent = '0問';
+            const _e_mypage_avg_rate = document.getElementById('mypage-avg-rate'); if (_e_mypage_avg_rate) _e_mypage_avg_rate.textContent = '0%';
+            const _e_mypage_practice_tbody = document.getElementById('mypage-practice-tbody'); if (_e_mypage_practice_tbody) _e_mypage_practice_tbody.innerHTML = '';
+            const _e_mypage_test_tbody = document.getElementById('mypage-test-tbody'); if (_e_mypage_test_tbody) _e_mypage_test_tbody.innerHTML = '';
 
             const sKey = `${studentGrade}-${studentClass}.${studentNumber}`;
             fetchPersonalHistoryFromServer(sKey);
@@ -8451,7 +8456,7 @@
                 showToast("サーバーURLが設定されていません(スタンドアロンモード)。", true);
                 document.getElementById('mypage-loader').style.display = 'none';
                 document.getElementById('mypage-content-container').style.display = 'block';
-                document.getElementById('mypage-practice-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">スタンドアロンモードでは履歴を表示できません。</td></tr>';
+                const _e_mypage_practice_tbody = document.getElementById('mypage-practice-tbody'); if (_e_mypage_practice_tbody) _e_mypage_practice_tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-muted);">スタンドアロンモードでは履歴を表示できません。</td></tr>';
                 return;
             }
 
@@ -8504,9 +8509,9 @@
             });
 
             // サマリー表示の更新
-            document.getElementById('mypage-total-questions').textContent = `${totalPracticeQ}問`;
+            const _e_mypage_total_questions = document.getElementById('mypage-total-questions'); if (_e_mypage_total_questions) _e_mypage_total_questions.textContent = `${totalPracticeQ}問`;
             const avgRate = totalPracticeQ > 0 ? Math.round((totalPracticeCorrect / totalPracticeQ) * 100) : 0;
-            document.getElementById('mypage-avg-rate').textContent = `${avgRate}%`;
+            const _e_mypage_avg_rate = document.getElementById('mypage-avg-rate'); if (_e_mypage_avg_rate) _e_mypage_avg_rate.textContent = `${avgRate}%`;
 
             // 2. 練習履歴の表示（描画対象のみフィルタリング）
             const practiceTbody = document.getElementById('mypage-practice-tbody');
@@ -8792,13 +8797,13 @@
             const name = inputEl.value.trim();
             
             if (!name) {
-                errorEl.textContent = "ニックネームを入力してください。";
+                if (errorEl) errorEl.textContent = "ニックネームを入力してください。";
                 errorEl.style.display = 'block';
                 return;
             }
             
             if (name.length > 12) {
-                errorEl.textContent = "ニックネームは12文字以内で入力してください。";
+                if (errorEl) errorEl.textContent = "ニックネームは12文字以内で入力してください。";
                 errorEl.style.display = 'block';
                 return;
             }
@@ -8846,7 +8851,7 @@
                     showToast("ニックネームを登録しました");
                 } else {
                     // 重複などのエラー
-                    errorEl.textContent = res.message || "ニックネームの登録に失敗しました。";
+                    if (errorEl) errorEl.textContent = res.message || "ニックネームの登録に失敗しました。";
                     errorEl.style.display = 'block';
                 }
             })
@@ -8856,7 +8861,7 @@
                     btnEl.disabled = false;
                     btnEl.textContent = originalText;
                 }
-                errorEl.textContent = "サーバーとの通信に失敗しました。時間をおいて再度お試しください。";
+                if (errorEl) errorEl.textContent = "サーバーとの通信に失敗しました。時間をおいて再度お試しください。";
                 errorEl.style.display = 'block';
             });
         }
@@ -8993,9 +8998,9 @@
             if (currentStudentKey !== "0-0.0" && myRanking) {
                 const myRankDisplay = document.getElementById('my-rank-display');
                 if (myRanking.rank > 0) {
-                    myRankDisplay.textContent = `${myRanking.rank} 位 (${myRanking.count} 問)`;
+                    if (myRankDisplay) myRankDisplay.textContent = `${myRanking.rank} 位 (${myRanking.count} 問)`;
                 } else {
-                    myRankDisplay.textContent = `圏外 (0 問)`;
+                    if (myRankDisplay) myRankDisplay.textContent = `圏外 (0 問)`;
                 }
                 document.getElementById('my-rank-summary').style.display = 'flex';
             }
@@ -9460,13 +9465,13 @@
                 localStorage.removeItem('vocab_words_data');
                 wordData = [];
                 document.getElementById('excel-file').value = '';
-                document.getElementById('upload-visual').innerHTML = `
+                const _e_upload_visual = document.getElementById('upload-visual'); if (_e_upload_visual) _e_upload_visual.innerHTML = `
                     <svg style="width:52px;height:52px;color:var(--primary);margin-bottom:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                     <h3 style="margin-bottom: 8px; font-weight:700;">単語ファイルを読み込む</h3>
                     <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom: 12px;">ターゲット1200wordlist.xlsx を選択</p>
                     <p style="color:rgba(255,255,255,0.3); font-size:0.8rem;">A列:ID / B列:英語 / C列:日本語訳（1行目ヘッダー）</p>
                 `;
-                document.getElementById('load-status').innerText = '';
+                const _e_load_status = document.getElementById('load-status'); if (_e_load_status) _e_load_status.innerText = '';
                 showScreen('screen-data-load');
             }
         }
@@ -9542,7 +9547,7 @@
                 btn.type = 'button';
                 btn.className = 'class-toggle-btn';
                 btn.setAttribute('data-class', classNum);
-                btn.innerText = `${classNum}組`;
+                if (btn) btn.innerText = `${classNum}組`;
                 
                 // スタイル設計（プレミアムなボタンスタイル）
                 Object.assign(btn.style, {
@@ -9941,23 +9946,32 @@
             const grade = parseInt(studentGrade, 10) || 0;
             const clazz = parseInt(studentClass, 10) || 0;
             const number = parseInt(studentNumber, 10) || 0;
-            
+
             if (grade <= 0 || clazz <= 0 || number <= 0) {
                 return;
             }
-            
+
             const sKey = `${grade}-${clazz}.${number}`;
             const url = `${GAS_WEBAPP_URL}?action=get_active_tests&studentKey=${encodeURIComponent(sKey)}`;
-            
+
+            isFetchingActiveTests = true;
+            renderTestList();
+
             fetch(url)
                 .then(res => res.json())
                 .then(data => {
+                    isFetchingActiveTests = false;
                     if (Array.isArray(data)) {
                         activeTests = data;
                         updateTestAlertUI();
                     }
+                    renderTestList();
                 })
-                .catch(err => console.error("Failed to fetch active tests:", err));
+                .catch(err => {
+                    console.error("Failed to fetch active tests:", err);
+                    isFetchingActiveTests = false;
+                    renderTestList();
+                });
         }
 
         // 手動でのテスト一覧更新処理
@@ -9996,7 +10010,7 @@
             const pendingTests = activeTests.filter(t => t.status !== 'completed');
 
             if (pendingTests.length > 0) {
-                badgeCountEl.innerText = pendingTests.length;
+                if (badgeCountEl) badgeCountEl.innerText = pendingTests.length;
                 badgeCountEl.style.display = 'flex';
             } else {
                 badgeCountEl.style.display = 'none';
@@ -10012,7 +10026,7 @@
         function showTestListScreen() {
             // 初期状態は「未クリア」タブをアクティブにする
             currentTestTab = 'pending';
-            
+
             const pendingTab = document.getElementById('tab-test-pending');
             const completedTab = document.getElementById('tab-test-completed');
             if (pendingTab && completedTab) {
@@ -10020,8 +10034,9 @@
                 completedTab.classList.remove('active');
             }
 
-            renderTestList();
             showScreen('screen-test-list');
+            fetchActiveTestsForStudent();
+            renderTestList();
         }
 
         function switchTestTab(tabName) {
@@ -10048,6 +10063,16 @@
             if (!container) return;
 
             container.innerHTML = '';
+
+            if (isFetchingActiveTests) {
+                container.innerHTML = `
+                    <div id="test-list-loading" style="text-align: center; padding: 40px 20px;">
+                        <span class="spinner" style="display:inline-block; width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></span>
+                        <p style="margin-top:12px; color:var(--text-muted); font-size:0.9rem;">最新のテスト情報を読み込み中...</p>
+                    </div>
+                `;
+                return;
+            }
             
             let testsToRender = [];
             if (currentTestTab === 'pending') {
@@ -10611,8 +10636,8 @@
             if (qToggleIcon) qToggleIcon.innerText = '▼';
 
             panel.style.display = 'block';
-            title.innerText = "読み込み中...";
-            metaEl.innerText = "-";
+            if (title) title.innerText = "読み込み中...";
+            if (metaEl) metaEl.innerText = "-";
             tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:12px; color:var(--text-muted);">データを取得中...</td></tr>';
             weaknessList.innerHTML = '<p style="color:var(--text-muted); margin:0;">取得中...</p>';
 
@@ -10787,14 +10812,14 @@
                             });
                         }
                     } else {
-                        title.innerText = "⚠️ 読み込み失敗";
+                        if (title) title.innerText = "⚠️ 読み込み失敗";
                         tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">${data.message || 'エラーが発生しました'}</td></tr>`;
                         weaknessList.innerHTML = '<p style="color:#ef4444; margin:0;">読み込み失敗</p>';
                     }
                 })
                 .catch(err => {
                     console.error("Error viewing test detail:", err);
-                    title.innerText = "⚠️ 読み込み失敗";
+                    if (title) title.innerText = "⚠️ 読み込み失敗";
                     tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">通信エラーが発生しました。</td></tr>';
                     weaknessList.innerHTML = '<p style="color:#ef4444; margin:0;">通信エラー</p>';
                 });
@@ -10807,10 +10832,10 @@
             
             if (container.style.display === 'none') {
                 container.style.display = 'block';
-                icon.innerText = '▲';
+                if (icon) icon.innerText = '▲';
             } else {
                 container.style.display = 'none';
-                icon.innerText = '▼';
+                if (icon) icon.innerText = '▼';
             }
         }
 
@@ -10964,14 +10989,14 @@
                     btn.style.background = 'rgba(255, 193, 7, 0.2)';
                     btn.style.borderColor = 'rgba(255, 193, 7, 0.4)';
                     btn.style.color = '#ffc107';
-                    icon.innerText = '💡';
+                    if (icon) icon.innerText = '💡';
                     if (text) text.innerText = 'スペリングヒントを表示しない';
                     btn.title = "ヒント非表示（文字数のみ表示）に切り替え";
                 } else {
                     btn.style.background = 'rgba(255,255,255,0.05)';
                     btn.style.borderColor = 'rgba(255,255,255,0.1)';
                     btn.style.color = 'var(--text-muted)';
-                    icon.innerText = '🔌';
+                    if (icon) icon.innerText = '🔌';
                     if (text) text.innerText = 'スペリングヒントを表示する';
                     btn.title = "ヒント表示（頭文字を表示）に切り替え";
                 }
@@ -11003,7 +11028,7 @@
                 hintStr += ' ' + brackets.join(' ');
             }
             
-            hintBox.innerText = `スペルヒント: ${hintStr} (${cleanWord.length}文字)`;
+            if (hintBox) hintBox.innerText = `スペルヒント: ${hintStr} (${cleanWord.length}文字)`;
         }
 
         function updateSettingLabels() {
@@ -11022,7 +11047,7 @@
                 typeDesc = '単元テスト (英日30問 + スペル20問)';
             }
             
-            document.getElementById('toggle-type-desc').innerText = typeDesc;
+            const _e_toggle_type_desc = document.getElementById('toggle-type-desc'); if (_e_toggle_type_desc) _e_toggle_type_desc.innerText = typeDesc;
             
             // 完全ランダムトグルの表示制御
             const completeRandomCard = document.getElementById('setting-complete-random-card');
@@ -11038,10 +11063,10 @@
                 isCompleteRandom = false;
             }
 
-            document.getElementById('toggle-mode-desc').innerText = isInfinite ? '無限エンドレス' : '問題数指定';
-            document.getElementById('toggle-order-desc').innerText = isSeq ? '番号順 (昇順)' : 'シャッフル (ランダム)';
-            document.getElementById('toggle-progress-desc').innerText = isBtnProgress ? '「次の問題」ボタンを表示して進行' : '画面タップで次の問題へ';
-            document.getElementById('toggle-landscape-desc').innerText = isLandscape ? '横画面モード（上部問題・下部2x2選択肢）' : '縦画面モード（縦1列表示）';
+            const _e_toggle_mode_desc = document.getElementById('toggle-mode-desc'); if (_e_toggle_mode_desc) _e_toggle_mode_desc.innerText = isInfinite ? '無限エンドレス' : '問題数指定';
+            const _e_toggle_order_desc = document.getElementById('toggle-order-desc'); if (_e_toggle_order_desc) _e_toggle_order_desc.innerText = isSeq ? '番号順 (昇順)' : 'シャッフル (ランダム)';
+            const _e_toggle_progress_desc = document.getElementById('toggle-progress-desc'); if (_e_toggle_progress_desc) _e_toggle_progress_desc.innerText = isBtnProgress ? '「次の問題」ボタンを表示して進行' : '画面タップで次の問題へ';
+            const _e_toggle_landscape_desc = document.getElementById('toggle-landscape-desc'); if (_e_toggle_landscape_desc) _e_toggle_landscape_desc.innerText = isLandscape ? '横画面モード（上部問題・下部2x2選択肢）' : '縦画面モード（縦1列表示）';
             
             localStorage.setItem('setting_landscape_mode', isLandscape ? 'true' : 'false');
             if (isLandscape) {
@@ -11060,7 +11085,7 @@
             const phrasesInput = document.getElementById('setting-show-phrases');
             if (phrasesInput) {
                 const isPhrases = phrasesInput.checked;
-                document.getElementById('toggle-phrases-desc').innerText = isPhrases ? 'オン' : 'オフ';
+                const _e_toggle_phrases_desc = document.getElementById('toggle-phrases-desc'); if (_e_toggle_phrases_desc) _e_toggle_phrases_desc.innerText = isPhrases ? 'オン' : 'オフ';
             }
         }
 
@@ -11192,7 +11217,7 @@
             const icon = document.getElementById('toast-icon');
             const text = document.getElementById('toast-text');
             
-            text.innerText = message;
+            if (text) text.innerText = message;
             if (isSuccess) {
                 icon.style.color = 'var(--success)';
                 icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
@@ -11567,14 +11592,14 @@
             const fill = document.getElementById('quiz-progress-fill');
             
             if (isInfiniteMode) {
-                progText.innerText = `回答: ${quizIndex}問 / 得点: ${totalPoints}点 (無限)`;
+                if (progText) progText.innerText = `回答: ${quizIndex}問 / 得点: ${totalPoints}点 (無限)`;
                 fill.style.width = '100%';
             } else {
-                progText.innerText = `単語 ${quizIndex + 1} / ${targetQuestionCount} (得点: ${totalPoints}点)`;
+                if (progText) progText.innerText = `単語 ${quizIndex + 1} / ${targetQuestionCount} (得点: ${totalPoints}点)`;
                 fill.style.width = `${(quizIndex / targetQuestionCount) * 100}%`;
             }
 
-            document.getElementById('quiz-word-id').innerText = `ID: No. ${currentWord.id}`;
+            const _e_quiz_word_id = document.getElementById('quiz-word-id'); if (_e_quiz_word_id) _e_quiz_word_id.innerText = `ID: No. ${currentWord.id}`;
 
             const promptBox = document.getElementById('quiz-word-text');
             const hintBox = document.getElementById('quiz-word-hint');
@@ -11588,18 +11613,18 @@
             if (activeQuizType === 'en-ja') {
                 choicesContainer.style.display = 'grid';
                 spellingContainer.style.display = 'none';
-                promptBox.innerText = currentWord.en;
-                hintBox.innerText = '';
+                if (promptBox) promptBox.innerText = currentWord.en;
+                if (hintBox) hintBox.innerText = '';
                 speak(currentWord.en);
             } else if (activeQuizType === 'ja-en') {
                 choicesContainer.style.display = 'grid';
                 spellingContainer.style.display = 'none';
-                promptBox.innerText = currentWord.ja;
-                hintBox.innerText = '英語を選んでください';
+                if (promptBox) promptBox.innerText = currentWord.ja;
+                if (hintBox) hintBox.innerText = '英語を選んでください';
             } else if (activeQuizType === 'ja-en-spelling') {
                 choicesContainer.style.display = 'none';
                 spellingContainer.style.display = 'block';
-                promptBox.innerText = currentWord.ja;
+                if (promptBox) promptBox.innerText = currentWord.ja;
                 
                 // Reset text field
                 // Reset text field
@@ -11808,7 +11833,7 @@
                 if (translation) {
                     const transSpan = document.createElement('span');
                     transSpan.className = 'choice-translation';
-                    transSpan.innerText = translation;
+                    if (transSpan) transSpan.innerText = translation;
                     btn.appendChild(transSpan);
                 }
                 
@@ -11834,11 +11859,11 @@
 
             if (isCorrect) {
                 correctCount++;
-                fbTitle.innerText = "正解！";
-                fbDesc.innerHTML = `正解： <b>${displayCorrect}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (${earnedPoints}点獲得)</span>${noteHtml}`;
+                if (fbTitle) fbTitle.innerText = "正解！";
+                if (fbDesc) fbDesc.innerHTML = `正解： <b>${displayCorrect}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (${earnedPoints}点獲得)</span>${noteHtml}`;
             } else {
-                fbTitle.innerText = "不正解";
-                fbDesc.innerHTML = `正解： <b>${displayCorrect}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (0点)</span>${noteHtml}`;
+                if (fbTitle) fbTitle.innerText = "不正解";
+                if (fbDesc) fbDesc.innerHTML = `正解： <b>${displayCorrect}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (0点)</span>${noteHtml}`;
                 
                 const wId = correctWord.id;
                 wrongCounts[wId] = (wrongCounts[wId] || 0) + 1;
@@ -11894,7 +11919,7 @@
             const cleanWord = baseText.replace(/\s+/g, '');
             const targetLen = cleanWord.length;
             
-            counter.innerText = `${currentLen} / ${targetLen} 文字`;
+            if (counter) counter.innerText = `${currentLen} / ${targetLen} 文字`;
             if (currentLen === targetLen) {
                 counter.classList.add('match');
             } else {
@@ -11968,19 +11993,19 @@
                 spellingInputField.style.borderColor = '#10b981';
                 spellingInputField.style.boxShadow = '0 0 10px rgba(16, 185, 129, 0.2)';
                 correctCount++;
-                fbTitle.innerText = "正解！";
-                fbDesc.innerHTML = `あなたの回答： <b style="color:var(--success);">${rawDisplayInput}</b><br>正解： <b>${correctWord.en}</b><br>意味： <b>${correctWord.ja}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (${earnedPoints}点獲得)</span>${noteHtml}`;
+                if (fbTitle) fbTitle.innerText = "正解！";
+                if (fbDesc) fbDesc.innerHTML = `あなたの回答： <b style="color:var(--success);">${rawDisplayInput}</b><br>正解： <b>${correctWord.en}</b><br>意味： <b>${correctWord.ja}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (${earnedPoints}点獲得)</span>${noteHtml}`;
             } else {
                 spellingInputField.classList.add('incorrect');
                 spellingInputField.style.borderColor = '#ef4444';
                 spellingInputField.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.2)';
-                fbTitle.innerText = "不正解";
+                if (fbTitle) fbTitle.innerText = "不正解";
                 
                 const wId = correctWord.id;
                 wrongCounts[wId] = (wrongCounts[wId] || 0) + 1;
                 saveWrongCounts();
 
-                fbDesc.innerHTML = `あなたの回答： <span style="color:var(--error);">${rawDisplayInput || '(未入力)'}</span><br>正解： <b>${correctWord.en}</b><br>意味： <b>${correctWord.ja}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (0点)</span>${noteHtml}`;
+                if (fbDesc) fbDesc.innerHTML = `あなたの回答： <span style="color:var(--error);">${rawDisplayInput || '(未入力)'}</span><br>正解： <b>${correctWord.en}</b><br>意味： <b>${correctWord.ja}</b><br><span style="font-size:0.85rem; opacity:0.8;">解答時間: ${elapsedSeconds.toFixed(2)}秒 (0点)</span>${noteHtml}`;
             }
             
             fbBox.className = 'answer-feedback active ' + (isCorrect ? 'correct' : 'incorrect');
@@ -12059,17 +12084,22 @@
                 rank = 'C';
             }
             
-            document.getElementById('result-score').innerText = `${pct}%`;
-            document.getElementById('result-correct-count').innerText = `${correctCount} / ${totalCount}`;
-            document.getElementById('result-points').innerText = `${totalPoints} / ${maxPoints}`;
+            const resScore = document.getElementById('result-score');
+            if (resScore) resScore.innerText = `${pct}%`;
+            const resCorrect = document.getElementById('result-correct-count');
+            if (resCorrect) resCorrect.innerText = `${correctCount} / ${totalCount}`;
+            const resPoints = document.getElementById('result-points');
+            if (resPoints) resPoints.innerText = `${totalPoints} / ${maxPoints}`;
             
             const rankEl = document.getElementById('result-rank');
-            rankEl.innerText = rank;
-            rankEl.className = 'stat-val rank-badge';
-            rankEl.classList.add(`rank-${rank.toLowerCase()}`);
-            rankEl.style.color = '';
+            if (rankEl) {
+                rankEl.innerText = rank;
+                rankEl.className = 'stat-val rank-badge';
+                rankEl.classList.add(`rank-${rank.toLowerCase()}`);
+                rankEl.style.color = '';
+            }
             
-            if (!isTestingMode) {
+            if (rangeInfo && !isTestingMode) {
                 if (sourceListType === 'range') {
                     rangeInfo.innerText = `範囲: ID No. ${sessionRange.from} から ${sessionRange.to}`;
                 } else if (sourceListType === 'weak') {
@@ -12365,8 +12395,8 @@
             // Sync with first word initially
             const currentWord = wordbookFilteredList[0];
             seekbar.value = 1;
-            labelId.innerText = currentWord ? `No. ${currentWord.id} ${currentWord.en}` : 'No. ---';
-            labelProgress.innerText = `1 / ${wordbookFilteredList.length}`;
+            if (labelId) labelId.innerText = currentWord ? `No. ${currentWord.id} ${currentWord.en}` : 'No. ---';
+            if (labelProgress) labelProgress.innerText = `1 / ${wordbookFilteredList.length}`;
         }
 
         function handleWordbookSeek(value) {
@@ -12389,8 +12419,8 @@
             const labelId = document.getElementById('wordbook-seekbar-label-id');
             const labelProgress = document.getElementById('wordbook-seekbar-label-progress');
             if (currentWord) {
-                labelId.innerText = `No. ${currentWord.id} ${currentWord.en}`;
-                labelProgress.innerText = `${value} / ${wordbookFilteredList.length}`;
+                if (labelId) labelId.innerText = `No. ${currentWord.id} ${currentWord.en}`;
+                if (labelProgress) labelProgress.innerText = `${value} / ${wordbookFilteredList.length}`;
             }
             
             // Scroll to the targeted word container element
@@ -12694,8 +12724,8 @@
                     const currentWord = wordbookFilteredList[visibleIdx];
                     if (currentWord && seekbar) {
                         seekbar.value = visibleIdx + 1;
-                        labelId.innerText = `No. ${currentWord.id} ${currentWord.en}`;
-                        labelProgress.innerText = `${visibleIdx + 1} / ${wordbookFilteredList.length}`;
+                        if (labelId) labelId.innerText = `No. ${currentWord.id} ${currentWord.en}`;
+                        if (labelProgress) labelProgress.innerText = `${visibleIdx + 1} / ${wordbookFilteredList.length}`;
                     }
                 }
             }
@@ -12794,15 +12824,15 @@
                                       .sort((a,b) => wrongCounts[b.id] - wrongCounts[a.id]);
 
             const infoEl = document.getElementById('weak-words-info');
-            infoEl.innerText = `累積4回以上間違えた苦手単語リスト (${weakWords.length} 語)`;
+            if (infoEl) infoEl.innerText = `累積4回以上間違えた苦手単語リスト (${weakWords.length} 語)`;
 
             const startQuizBtn = document.getElementById('btn-start-weak-quiz');
             if (weakWords.length < 1) {
                 startQuizBtn.disabled = true;
-                startQuizBtn.innerText = "テスト開始には最低1語必要です";
+                if (startQuizBtn) startQuizBtn.innerText = "テスト開始には最低1語必要です";
             } else {
                 startQuizBtn.disabled = false;
-                startQuizBtn.innerText = "このリストで復習テストを開始";
+                if (startQuizBtn) startQuizBtn.innerText = "このリストで復習テストを開始";
             }
 
             if (weakWords.length === 0) {
@@ -12879,15 +12909,15 @@
 
             const bookmarkedWords = wordData.filter(w => bookmarks.has(w.id));
             const infoEl = document.getElementById('bookmarks-info');
-            infoEl.innerText = `ブックマークに登録された単語リスト (${bookmarkedWords.length} 語)`;
+            if (infoEl) infoEl.innerText = `ブックマークに登録された単語リスト (${bookmarkedWords.length} 語)`;
 
             const startQuizBtn = document.getElementById('btn-start-bookmark-quiz');
             if (bookmarkedWords.length < 1) {
                 startQuizBtn.disabled = true;
-                startQuizBtn.innerText = "テスト開始には最低1語必要です";
+                if (startQuizBtn) startQuizBtn.innerText = "テスト開始には最低1語必要です";
             } else {
                 startQuizBtn.disabled = false;
-                startQuizBtn.innerText = "このリストで復習テストを開始";
+                if (startQuizBtn) startQuizBtn.innerText = "このリストで復習テストを開始";
             }
 
             if (bookmarkedWords.length === 0) {
@@ -13079,7 +13109,7 @@
 
             const password = passInput.value.trim();
             if (!password) {
-                errorEl.innerText = "パスワードを入力してください。";
+                if (errorEl) errorEl.innerText = "パスワードを入力してください。";
                 errorEl.style.display = 'block';
                 return;
             }
@@ -13089,7 +13119,7 @@
                 errorEl.style.display = 'none';
                 showScreen('screen-teacher-portal');
             } else {
-                errorEl.innerText = "パスワードが正しくありません。";
+                if (errorEl) errorEl.innerText = "パスワードが正しくありません。";
                 errorEl.style.display = 'block';
             }
         }
@@ -13865,7 +13895,7 @@
 
         function updateFcSettingLabels() {
             const isRandom = document.getElementById('fc-setting-order').checked;
-            document.getElementById('fc-toggle-order-desc').innerText = isRandom ? "シャッフル (ランダム)" : "ID番号順";
+            const _e_fc_toggle_order_desc = document.getElementById('fc-toggle-order-desc'); if (_e_fc_toggle_order_desc) _e_fc_toggle_order_desc.innerText = isRandom ? "シャッフル (ランダム)" : "ID番号順";
         }
 
         // Starts the flashcard session by filtering, sorting, and establishing decks
@@ -13958,20 +13988,20 @@
 
             if (fcSettingDirection === 'en-ja') {
                 // Front: English, Back: Japanese
-                frontLabel.innerText = `No. ${currentWord.id} - WORD`;
-                frontText.innerText = currentWord.en;
-                backLabel.innerText = `No. ${currentWord.id} - MEANING`;
-                backText.innerText = currentWord.ja;
+                if (frontLabel) frontLabel.innerText = `No. ${currentWord.id} - WORD`;
+                if (frontText) frontText.innerText = currentWord.en;
+                if (backLabel) backLabel.innerText = `No. ${currentWord.id} - MEANING`;
+                if (backText) backText.innerText = currentWord.ja;
             } else {
                 // Front: Japanese, Back: English
-                frontLabel.innerText = `No. ${currentWord.id} - MEANING`;
-                frontText.innerText = currentWord.ja;
-                backLabel.innerText = `No. ${currentWord.id} - WORD`;
-                backText.innerText = currentWord.en;
+                if (frontLabel) frontLabel.innerText = `No. ${currentWord.id} - MEANING`;
+                if (frontText) frontText.innerText = currentWord.ja;
+                if (backLabel) backLabel.innerText = `No. ${currentWord.id} - WORD`;
+                if (backText) backText.innerText = currentWord.en;
             }
 
             // Update HUD progress text
-            document.getElementById('fc-progress-text').innerText = `カード ${fcCurrentIndex + 1} / ${fcActiveDeck.length} (残り ${fcActiveDeck.length - fcCurrentIndex}枚)`;
+            const _e_fc_progress_text = document.getElementById('fc-progress-text'); if (_e_fc_progress_text) _e_fc_progress_text.innerText = `カード ${fcCurrentIndex + 1} / ${fcActiveDeck.length} (残り ${fcActiveDeck.length - fcCurrentIndex}枚)`;
 
             // Trigger Speech TTS automatically if English is on the front
             if (fcSettingTts) {
@@ -13991,10 +14021,10 @@
             if (noteEl && noteTextEl) {
                 const note = wordNotes[currentWord.id] || '';
                 if (fcShowNotes && note.trim() !== '') {
-                    noteTextEl.innerText = note;
+                    if (noteTextEl) noteTextEl.innerText = note;
                     noteEl.style.display = 'block';
                 } else {
-                    noteTextEl.innerText = '';
+                    if (noteTextEl) noteTextEl.innerText = '';
                     noteEl.style.display = 'none';
                 }
             }
@@ -14138,7 +14168,7 @@
                 if (noteEl && noteTextEl) {
                     const note = wordNotes[currentWord.id] || '';
                     if (fcShowNotes && note.trim() !== '') {
-                        noteTextEl.innerText = note;
+                        if (noteTextEl) noteTextEl.innerText = note;
                         noteEl.style.display = 'block';
                     } else {
                         noteEl.style.display = 'none';
@@ -14548,8 +14578,8 @@
 
             const currentItem = sentencebookFilteredList[0];
             seekbar.value = 1;
-            labelId.innerText = currentItem ? `No. ${currentItem.id} ${currentItem.english}` : 'No. ---';
-            labelProgress.innerText = `1 / ${sentencebookFilteredList.length}`;
+            if (labelId) labelId.innerText = currentItem ? `No. ${currentItem.id} ${currentItem.english}` : 'No. ---';
+            if (labelProgress) labelProgress.innerText = `1 / ${sentencebookFilteredList.length}`;
         }
 
         function handleSentencebookSeek(value) {
@@ -14570,8 +14600,8 @@
             const labelId = document.getElementById('sentencebook-seekbar-label-id');
             const labelProgress = document.getElementById('sentencebook-seekbar-label-progress');
             if (currentItem) {
-                labelId.innerText = `No. ${currentItem.id} ${currentItem.english}`;
-                labelProgress.innerText = `${value} / ${sentencebookFilteredList.length}`;
+                if (labelId) labelId.innerText = `No. ${currentItem.id} ${currentItem.english}`;
+                if (labelProgress) labelProgress.innerText = `${value} / ${sentencebookFilteredList.length}`;
             }
 
             const targetEl = container.children[targetIdx];
@@ -14616,8 +14646,8 @@
                     const currentItem = sentencebookFilteredList[visibleIdx];
                     if (currentItem && seekbar) {
                         seekbar.value = visibleIdx + 1;
-                        labelId.innerText = `No. ${currentItem.id} ${currentItem.english}`;
-                        labelProgress.innerText = `${visibleIdx + 1} / ${sentencebookFilteredList.length}`;
+                        if (labelId) labelId.innerText = `No. ${currentItem.id} ${currentItem.english}`;
+                        if (labelProgress) labelProgress.innerText = `${visibleIdx + 1} / ${sentencebookFilteredList.length}`;
                     }
                 }
             }
@@ -14659,12 +14689,12 @@
                 // ブックマークと要復習も追加
                 const optB = document.createElement('option');
                 optB.value = 'bookmark';
-                optB.textContent = '★ ブックマークのみ';
+                if (optB) optB.textContent = '★ ブックマークのみ';
                 selectRange.appendChild(optB);
 
                 const optW = document.createElement('option');
                 optW.value = 'incorrect';
-                optW.textContent = '⚠ 要復習（過去に間違えた問題）';
+                if (optW) optW.textContent = '⚠ 要復習（過去に間違えた問題）';
                 selectRange.appendChild(optW);
             }
         }
