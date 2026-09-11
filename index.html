@@ -341,13 +341,14 @@
 
         #screen-setup {
             position: relative;
+            padding-top: 130px; /* 左上3x2グリッドボタン群の領域を考慮した余白 */
         }
 
         .student-header-container {
             position: absolute;
-            top: -20px;
-            right: 0;
-            z-index: 10;
+            top: 12px;
+            right: 12px;
+            z-index: 20;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -367,6 +368,10 @@
             transition: all 0.2s ease;
             margin: 0;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .student-info-badge:hover {
@@ -376,42 +381,58 @@
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
         }
 
-        /* デフォルト（スマートフォン等の狭い画面幅）でのメインメニューヘッダー被り対策 */
-        #screen-setup {
-            padding-top: 175px; /* 2x2グリッド配置に合わせて縮小 */
-        }
         #screen-setup h1 {
             font-size: 1.5rem !important;
-            margin-top: 5px !important;
+            margin-top: 0px !important;
             padding: 0 10px;
         }
-        .student-header-container {
-            top: 15px;
-        }
-        .student-info-badge {
-            font-size: 0.65rem;
-            max-width: 140px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
 
-        /* 2x2グリッド配置ナビゲーションボタン */
+        /* 左上固定 3x2正方形グリッド配置ナビゲーションボタン */
         .nav-buttons-grid {
             position: absolute;
-            top: 15px;
-            left: 0px;
+            top: 12px;
+            left: 12px;
             display: grid;
-            grid-template-columns: repeat(2, 64px);
-            grid-template-rows: repeat(2, 64px);
+            grid-template-columns: repeat(3, 56px);
+            grid-template-rows: repeat(2, 52px);
             gap: 5px;
-            z-index: 10;
+            z-index: 20;
+            width: 178px;
+            height: 109px;
         }
         .nav-buttons-grid .btn-secondary {
-            font-size: 0.58rem !important;
-            width: 100% !important;
-            height: 100% !important;
+            font-size: 0.55rem !important;
+            width: 56px !important;
+            height: 52px !important;
             margin: 0 !important;
+            padding: 2px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-sizing: border-box;
+        }
+
+        /* 先生メモスタイル */
+        .teacher-memo-container {
+            background: rgba(99, 102, 241, 0.08);
+            border-left: 3.5px solid var(--primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .teacher-memo-title {
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 3px;
+        }
+        .teacher-memo-text {
+            font-size: 0.88rem;
+            color: var(--text-main);
+            line-height: 1.4;
         }
 
         /* 件数バッジ用スタイル */
@@ -435,61 +456,34 @@
             line-height: 1;
         }
 
-        /* テストポップアップ内タブスタイル */
-        .test-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 4px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-        .test-tab-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .test-tab-btn:hover {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.02);
-        }
-        .test-tab-btn.active {
-            background: var(--primary);
-            color: #ffffff;
-            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.25);
-        }
-
         /* 画面幅が十分に広い（PCやタブレット等）場合 */
         @media (min-width: 600px) {
             #screen-setup {
-                padding-top: 155px; /* PC用余白 */
+                padding-top: 135px;
             }
             #screen-setup h1 {
-                font-size: 2.3rem !important;
-                margin-top: 15px !important;
+                font-size: 2.1rem !important;
+                margin-top: 0px !important;
                 padding: 0;
             }
             .student-info-badge {
-                top: -20px;
-                font-size: 0.72rem;
+                font-size: 0.75rem;
                 max-width: none;
             }
+            /* PC画面でも3x2グリッドを維持 */
             .nav-buttons-grid {
-                top: -20px;
-                grid-template-columns: repeat(2, 72px);
-                grid-template-rows: repeat(2, 72px);
+                top: 12px;
+                left: 12px;
+                grid-template-columns: repeat(3, 62px);
+                grid-template-rows: repeat(2, 54px);
                 gap: 6px;
+                width: 198px;
+                height: 114px;
             }
             .nav-buttons-grid .btn-secondary {
-                font-size: 0.62rem !important;
+                font-size: 0.58rem !important;
+                width: 62px !important;
+                height: 54px !important;
             }
         }
 
@@ -3348,7 +3342,65 @@
 }
 
 /* --- END SENTENCE QUIZ STYLES --- */
-</style>
+
+        /* --- Textbook Mode & Teacher Memo Styles --- */
+        .mode-pill {
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .mode-pill.active {
+            background: var(--primary);
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+        /* --- Separate & Distinct Memo Styles --- */
+        .teacher-memo-container {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-left: 4px solid var(--primary);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+        }
+        .teacher-memo-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        .teacher-memo-tag {
+            font-size: 0.68rem;
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .teacher-memo-text {
+            font-size: 0.88rem;
+            color: var(--text-main);
+            line-height: 1.45;
+            word-break: break-word;
+        }
+        .student-note-section-title {
+            font-size: 0.82rem;
+            color: #f59e0b;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+    </style>
 </head>
 <body>
 
@@ -3428,29 +3480,41 @@
 
             <!-- 左上ナビゲーションボタン群 (2x2 グリッド) -->
             <div class="nav-buttons-grid">
-                <!-- モード切り替えボタン -->
-                <button class="btn btn-secondary" id="btn-mode-toggle-nav" onclick="toggleMainMode()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
-                    <span id="mode-toggle-icon" style="font-size: 1.3rem; margin-bottom: 2px;">💬</span>
-                    <span id="mode-toggle-label">暗唱例文に<br>切り替え</span>
-                </button>
-
-                <!-- マイページボタン -->
-                <button class="btn btn-secondary" id="btn-mypage-nav" onclick="showMypageScreen()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
-                    <span style="font-size: 1.3rem; margin-bottom: 2px;">📊</span>
+                <!-- 上段 1: マイページ -->
+                <button class="btn btn-secondary" id="btn-mypage-nav" onclick="showMypageScreen()" style="padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; border-radius: 10px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span style="font-size: 1.15rem; margin-bottom: 1px;">📊</span>
                     マイページ
                 </button>
 
-                <!-- ランキングボタン -->
-                <button class="btn btn-secondary" id="btn-ranking-nav" onclick="showRankingScreen()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
-                    <span style="font-size: 1.3rem; margin-bottom: 2px;">🏆</span>
+                <!-- 上段 2: ランキング -->
+                <button class="btn btn-secondary" id="btn-ranking-nav" onclick="showRankingScreen()" style="padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; border-radius: 10px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span style="font-size: 1.15rem; margin-bottom: 1px;">🏆</span>
                     ランキング
                 </button>
 
-                <!-- テスト確認ボタン -->
-                <button class="btn btn-secondary" id="btn-test-confirm-nav" onclick="showTestListScreen()" style="padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.25; border-radius: 12px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; position: relative;">
-                    <span style="font-size: 1.3rem; margin-bottom: 2px;">📝</span>
+                <!-- 上段 3: テスト確認 -->
+                <button class="btn btn-secondary" id="btn-test-confirm-nav" onclick="showTestListScreen()" style="padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; border-radius: 10px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; position: relative;">
+                    <span style="font-size: 1.15rem; margin-bottom: 1px;">📝</span>
                     テスト確認
                     <div id="test-badge-count" class="badge-count" style="display: none;">0</div>
+                </button>
+
+                <!-- 下段 1: ターゲット1200切り替え（'words'選択時は非表示） -->
+                <button class="btn btn-secondary btn-mode-nav" id="btn-mode-words-nav" onclick="switchMainMode('words')" style="padding: 2px; display: none; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; border-radius: 10px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span style="font-size: 1.15rem; margin-bottom: 1px;">🔤</span>
+                    ターゲット<br>切り替え
+                </button>
+
+                <!-- 下段 2: 教科書単語切り替え -->
+                <button class="btn btn-secondary btn-mode-nav" id="btn-mode-textbook-nav" onclick="switchMainMode('textbook')" style="padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; border-radius: 10px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span style="font-size: 1.15rem; margin-bottom: 1px;">📚</span>
+                    教科書単語<br>切り替え
+                </button>
+
+                <!-- 下段 3: 暗唱例文切り替え -->
+                <button class="btn btn-secondary btn-mode-nav" id="btn-mode-sentences-nav" onclick="switchMainMode('sentences')" style="padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; border-radius: 10px; border-color: rgba(99, 102, 241, 0.4); color: var(--primary); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10;">
+                    <span style="font-size: 1.15rem; margin-bottom: 1px;">💬</span>
+                    暗唱例文<br>切り替え
                 </button>
             </div>
 
@@ -3468,6 +3532,14 @@
                     <label for="range-to">終了番号</label>
                     <input type="number" id="range-to" min="1" placeholder="例: 100">
                 </div>
+            </div>
+
+            <!-- Range Picker (教科書新出単語用) -->
+            <div id="textbook-range-container" class="input-group" style="display: none; margin-bottom: 16px;">
+                <label for="select-textbook-lesson">出題範囲（Lesson）</label>
+                <select id="select-textbook-lesson" style="background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 1rem; width: 100%; outline: none; cursor: pointer; min-height: 48px;">
+                    <option value="all">すべてのLesson</option>
+                </select>
             </div>
 
             <!-- Range Picker (暗唱例文用) -->
@@ -3541,10 +3613,10 @@
                 </div>
             </div>
 
-            <!-- Settings Grid (2 columns toggles arranged in rows) -->
+            <!-- Settings Grid -->
             <div class="settings-grid">
-                <!-- 1行目: 出題順序, モード -->
-                <div class="toggle-card">
+                <!-- 1. 出題順序 -->
+                <div class="toggle-card" id="toggle-card-order">
                     <div class="toggle-label">
                         <span class="toggle-title">出題順序</span>
                         <span class="toggle-desc" id="toggle-order-desc">シャッフル (ランダム)</span>
@@ -3555,7 +3627,8 @@
                     </label>
                 </div>
 
-                <div class="toggle-card">
+                <!-- 2. モード -->
+                <div class="toggle-card" id="toggle-card-mode">
                     <div class="toggle-label">
                         <span class="toggle-title">モード</span>
                         <span class="toggle-desc" id="toggle-mode-desc">問題数指定 (20問)</span>
@@ -3566,8 +3639,8 @@
                     </label>
                 </div>
 
-                <!-- 2行目: 音声読み上げ, 効果音 -->
-                <div class="toggle-card">
+                <!-- 3. 音声読み上げ -->
+                <div class="toggle-card" id="toggle-card-tts">
                     <div class="toggle-label">
                         <span class="toggle-title">音声読み上げ</span>
                         <span class="toggle-desc">英語発音を再生</span>
@@ -3578,7 +3651,8 @@
                     </label>
                 </div>
 
-                <div class="toggle-card">
+                <!-- 4. 効果音 -->
+                <div class="toggle-card" id="toggle-card-sound">
                     <div class="toggle-label">
                         <span class="toggle-title">効果音</span>
                         <span class="toggle-desc">正誤時のサウンド</span>
@@ -3589,42 +3663,8 @@
                     </label>
                 </div>
 
-                <!-- 3行目: 解答後の進行, 画面レイアウト -->
-                <div class="toggle-card">
-                    <div class="toggle-label">
-                        <span class="toggle-title">解答後の進行</span>
-                        <span class="toggle-desc" id="toggle-progress-desc">画面タップで次の問題へ</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="setting-progress" onchange="updateSettingLabels()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="toggle-card">
-                    <div class="toggle-label">
-                        <span class="toggle-title">画面レイアウト</span>
-                        <span class="toggle-desc" id="toggle-landscape-desc">横画面モード（上部問題・下部2x2選択肢）</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="setting-landscape" checked onchange="handleManualLandscapeToggle()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <!-- 4行目: ダークモード, スペリングヒント -->
-                <div class="toggle-card">
-                    <div class="toggle-label">
-                        <span class="toggle-title">ダークモード</span>
-                        <span class="toggle-desc" id="toggle-theme-desc">ダークテーマで表示</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="setting-theme" checked onchange="toggleTheme()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="toggle-card">
+                <!-- 5. 熟語を表示する -->
+                <div class="toggle-card" id="toggle-card-phrases">
                     <div class="toggle-label">
                         <span class="toggle-title">熟語を表示する</span>
                         <span class="toggle-desc" id="toggle-phrases-desc">オフ</span>
@@ -3635,7 +3675,20 @@
                     </label>
                 </div>
 
-                <div class="toggle-card" id="setting-complete-random-card" style="display: none;">
+                <!-- 6. ダークモード -->
+                <div class="toggle-card" id="toggle-card-theme">
+                    <div class="toggle-label">
+                        <span class="toggle-title">ダークモード</span>
+                        <span class="toggle-desc" id="toggle-theme-desc">ダークテーマで表示</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-theme" checked onchange="toggleTheme()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <!-- 7. 完全ランダム出題 -->
+                <div class="toggle-card" id="setting-complete-random-card">
                     <div class="toggle-label">
                         <span class="toggle-title">完全ランダム出題</span>
                         <span class="toggle-desc" id="toggle-complete-random-desc">同じ単語が重複して出題される</span>
@@ -3646,7 +3699,7 @@
                     </label>
                 </div>
             </div>
-            
+
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top: 16px;">
                 <button class="btn btn-secondary" id="btn-wordbook-bottom" onclick="showScreen('screen-wordbook')">単語帳モード</button>
                 <button class="btn btn-secondary" id="btn-bookmarks-bottom" onclick="showScreen('screen-bookmarks')">ブックマークリスト</button>
@@ -3781,11 +3834,18 @@
                         <div class="fc-card-word" id="fc-card-front-text">English</div>
                     </div>
                     <!-- Back side -->
-                    <div class="fc-card-side fc-card-back" id="fc-card-back-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
+                    <div class="fc-card-side fc-card-back" id="fc-card-back-content" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 16px; max-height: 250px; overflow-y: auto; width: 100%;">
                         <div class="fc-card-label" id="fc-card-back-label">MEANING</div>
-                        <div class="fc-card-word" id="fc-card-back-text" style="margin-bottom: 10px;">日本語</div>
-                        <div id="fc-card-back-note" style="margin-top: 15px; padding: 8px 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.05); font-size: 0.85rem; color: var(--text-muted); max-width: 85%; text-align: center; border-left: 3px solid var(--accent); display: none; word-break: break-all; line-height: 1.4;">
-                            📝 <span id="fc-card-back-note-text"></span>
+                        <div class="fc-card-word" id="fc-card-back-text" style="margin-bottom: 12px;">日本語</div>
+                        <!-- 📌 先生からのメモ (独立枠) -->
+                        <div id="fc-card-back-teacher-note" style="margin-top: 6px; padding: 8px 12px; border-radius: 8px; background: rgba(99, 102, 241, 0.12); font-size: 0.82rem; color: var(--primary); width: 92%; text-align: left; border-left: 3.5px solid var(--primary); border: 1px solid rgba(99, 102, 241, 0.25); display: none; word-break: break-word; line-height: 1.4;">
+                            <div style="font-weight: 700; margin-bottom: 2px;">📌 先生からのメモ <span style="font-size: 0.65rem; background: rgba(99,102,241,0.2); padding: 1px 4px; border-radius: 3px; margin-left: 4px;">公式解説</span></div>
+                            <span id="fc-card-back-teacher-note-text"></span>
+                        </div>
+                        <!-- ✍️ 自分用メモ (独立枠) -->
+                        <div id="fc-card-back-note" style="margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: rgba(245, 158, 11, 0.08); font-size: 0.82rem; color: var(--text-main); width: 92%; text-align: left; border-left: 3.5px solid #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); display: none; word-break: break-word; line-height: 1.4;">
+                            <div style="font-weight: 700; color: #f59e0b; margin-bottom: 2px;">✍️ 自分用メモ</div>
+                            <span id="fc-card-back-note-text"></span>
                         </div>
                     </div>
                 </div>
@@ -4243,6 +4303,13 @@
                     <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
                 <h1>単語帳一覧</h1>
+                <button class="btn btn-sm btn-teacher-memo-toggle" onclick="toggleTeacherMemo()" id="btn-wordbook-teacher-memo-toggle" style="margin-left: auto; padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.2); color: var(--primary); font-weight: bold; cursor: pointer;">📌 先生メモ: ON</button>
+            </div>
+
+            <!-- Wordbook Source Tabs -->
+            <div class="wordbook-source-tabs" style="display: flex; gap: 8px; margin: 0 0 12px 0; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px; border: 1px solid var(--border);">
+                <button id="tab-wb-words" class="mode-pill active" onclick="switchWordbookSource('words')" style="flex: 1; padding: 8px; font-size: 0.8rem; font-weight: bold; border-radius: 8px; background: var(--primary); color: white; border: none; cursor: pointer;">🔤 ターゲット1200</button>
+                <button id="tab-wb-textbook" class="mode-pill" onclick="switchWordbookSource('textbook')" style="flex: 1; padding: 8px; font-size: 0.8rem; font-weight: bold; border-radius: 8px; background: transparent; color: var(--text-muted); border: none; cursor: pointer;">📚 教科書単語</button>
             </div>
 
             <!-- Search Area -->
@@ -8217,6 +8284,10 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             if (typeof initSentenceQuiz === 'function') {
                 initSentenceQuiz();
             }
+            if (typeof fetchTextbookWords === 'function') {
+                fetchTextbookWords();
+            }
+            initTextbookLessonSelector();
             
             // 画面リサイズ（回転等）時にフォントサイズを動的に追従させる
             window.addEventListener('resize', adjustQuizWordFontSize);
@@ -8420,7 +8491,100 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
         // --- My Page Logic ---
         let mypageTab = 'words-practice'; // 'words-practice', 'words-test', 'sentences-practice', 'sentences-test'
         let mypageData = null;
-        let activeMainMode = 'words'; // 'words' | 'sentences'
+        let activeMainMode = 'words'; // 'words' | 'sentences' | 'textbook'
+        const DEFAULT_TEXTBOOK_WORDS = [{"id": 1, "lesson": "Lesson 1", "en": "top", "ja": "頂上、最高の", "teacherMemo": "名詞・形容詞。top of ~ で「〜の頂上」。"}, {"id": 2, "lesson": "Lesson 1", "en": "sightseeing", "ja": "観光", "teacherMemo": "名詞。go sightseeing で「観光に行く」。"}, {"id": 3, "lesson": "Lesson 1", "en": "countless", "ja": "数え切れないほどの", "teacherMemo": "形容詞。count (数える) + less (ナイ)。"}, {"id": 4, "lesson": "Lesson 1", "en": "construction", "ja": "建設、工事", "teacherMemo": "名詞。動詞形は construct (建設する)。"}, {"id": 5, "lesson": "Lesson 1", "en": "donor", "ja": "寄付者、ドナー", "teacherMemo": "名詞。動詞形は donate (寄付する)。"}, {"id": 6, "lesson": "Lesson 1", "en": "sharp", "ja": "急な、鋭い、くっきりとした", "teacherMemo": "形容詞。sharp contrast で「鮮やかな対照」。"}, {"id": 7, "lesson": "Lesson 1", "en": "contrast", "ja": "対照、コントラスト", "teacherMemo": "名詞。in contrast to ~ で「〜と対照的に」。"}, {"id": 8, "lesson": "Lesson 1", "en": "exotic", "ja": "異国風の、エキゾチックな", "teacherMemo": "形容詞。異国情緒あふれる様子を表します。"}, {"id": 9, "lesson": "Lesson 1", "en": "appeal", "ja": "魅力、訴えかける", "teacherMemo": "名詞・動詞。appeal to ~ で「〜にアピールする」。"}, {"id": 10, "lesson": "Lesson 1", "en": "be famous for", "ja": "〜で有名である", "teacherMemo": "重要熟語。be famous for ~。"}, {"id": 11, "lesson": "Lesson 1", "en": "look at", "ja": "〜を見る", "teacherMemo": "基本熟語。look at ~。"}, {"id": 12, "lesson": "Lesson 1", "en": "between A and B", "ja": "AとBの間に［で］", "teacherMemo": "基本群前置詞。between A and B。"}, {"id": 13, "lesson": "Lesson 1", "en": "nowadays", "ja": "今日では、近頃は", "teacherMemo": "副詞。these days と同義。"}, {"id": 14, "lesson": "Lesson 1", "en": "seek", "ja": "探しの求める、求める", "teacherMemo": "動詞。seek - sought - sought。"}, {"id": 15, "lesson": "Lesson 1", "en": "skier", "ja": "スキーをする人、スキーヤー", "teacherMemo": "名詞。ski + er。"}, {"id": 16, "lesson": "Lesson 1", "en": "snowborder", "ja": "スノーボーダー、スノーボードをする人", "teacherMemo": "名詞。snowboard + er。"}, {"id": 17, "lesson": "Lesson 1", "en": "mecca", "ja": "メッカ、聖地", "teacherMemo": "名詞。あこがれの地を指します。"}, {"id": 18, "lesson": "Lesson 1", "en": "not only A but also B", "ja": "AだけでなくBも", "teacherMemo": "重要構文。not only A but also B。"}, {"id": 19, "lesson": "Lesson 1", "en": "that is", "ja": "すなわち、つまり", "teacherMemo": "接続詞的表現。that is (to say)。"}, {"id": 20, "lesson": "Lesson 1", "en": "stand for", "ja": "〜を表す、〜の略である", "teacherMemo": "重要熟語。stand for ~。"}, {"id": 21, "lesson": "Lesson 1", "en": "from all around the world", "ja": "世界中から", "teacherMemo": "頻出フレーズ。from all around the world。"}, {"id": 22, "lesson": "Lesson 1", "en": "come and experience", "ja": "来て体験する", "teacherMemo": "フレーズ。come and ~ で「〜しに来る」。"}, {"id": 23, "lesson": "Lesson 1", "en": "be popular with", "ja": "〜に人気がある", "teacherMemo": "重要熟語。be popular with [among] ~。"}, {"id": 24, "lesson": "Lesson 1", "en": "ninja", "ja": "忍者", "teacherMemo": "名詞。"}, {"id": 25, "lesson": "Lesson 1", "en": "costume", "ja": "衣装、コスチューム", "teacherMemo": "名詞。舞台や仮装の衣装。"}, {"id": 26, "lesson": "Lesson 1", "en": "training", "ja": "訓練、トレーニング", "teacherMemo": "名詞。動詞形は train。"}, {"id": 27, "lesson": "Lesson 1", "en": "lesson", "ja": "レッスン、授業、稽古", "teacherMemo": "名詞。take a lesson で「レッスンを受ける」。"}, {"id": 28, "lesson": "Lesson 1", "en": "all over ~", "ja": "〜中で、〜のいたるところで", "teacherMemo": "重要前置詞フレーズ。all over ~。"}, {"id": 29, "lesson": "Lesson 1", "en": "such as ~", "ja": "〜のような", "teacherMemo": "例示を表すフレーズ。such as ~。"}, {"id": 30, "lesson": "Lesson 1", "en": "provide A for B", "ja": "BにAを提供する", "teacherMemo": "重要構文。provide A for B。"}, {"id": 31, "lesson": "Lesson 2", "en": "creature", "ja": "生物、生き物", "teacherMemo": "名詞。create (創造する) から生じた語。"}, {"id": 32, "lesson": "Lesson 2", "en": "bay", "ja": "湾、入江", "teacherMemo": "名詞。Tokyo Bay (東京湾)。"}, {"id": 33, "lesson": "Lesson 2", "en": "organ", "ja": "発光器官、器官", "teacherMemo": "名詞。発光器官や内臓などの器官。"}, {"id": 34, "lesson": "Lesson 2", "en": "flash", "ja": "発光する、点滅する", "teacherMemo": "動詞・名詞。パッと光る様子。"}, {"id": 35, "lesson": "Lesson 2", "en": "pattern", "ja": "パターン、模様", "teacherMemo": "名詞。規則的な模様。"}, {"id": 36, "lesson": "Lesson 2", "en": "glow", "ja": "光る、輝く", "teacherMemo": "動詞。やわらかく光を放つ。"}, {"id": 37, "lesson": "Lesson 2", "en": "various", "ja": "様々な、多様な", "teacherMemo": "形容詞。名詞形は variety。"}, {"id": 38, "lesson": "Lesson 2", "en": "symbol", "ja": "象徴、シンボル", "teacherMemo": "名詞。symbol of ~ で「〜の象徴」。"}, {"id": 39, "lesson": "Lesson 2", "en": "come from", "ja": "〜の出身である、〜に由来する", "teacherMemo": "重要熟語。come from ~。"}, {"id": 40, "lesson": "Lesson 2", "en": "give off", "ja": "（光・においなど）を発する、出す", "teacherMemo": "重要熟語。give off ~。"}, {"id": 41, "lesson": "Lesson 2", "en": "distract", "ja": "（気を）そらす、気を散らす", "teacherMemo": "動詞。distract A from B。"}, {"id": 42, "lesson": "Lesson 2", "en": "predator", "ja": "捕食者、天敵", "teacherMemo": "名詞。獲物を捕食する動物。"}, {"id": 43, "lesson": "Lesson 2", "en": "poem", "ja": "詩", "teacherMemo": "名詞。1つの詩作品。"}, {"id": 44, "lesson": "Lesson 2", "en": "mate", "ja": "仲間、配偶者", "teacherMemo": "名詞。"}, {"id": 45, "lesson": "Lesson 2", "en": "attract", "ja": "引きつける、惹きつける", "teacherMemo": "動詞。名詞形は attraction。"}, {"id": 46, "lesson": "Lesson 2", "en": "purpose", "ja": "目的、意図", "teacherMemo": "名詞。on purpose で「わざと」。"}, {"id": 47, "lesson": "Lesson 2", "en": "century", "ja": "世紀、100年間", "teacherMemo": "名詞。the 21st century (21世紀)。"}, {"id": 48, "lesson": "Lesson 2", "en": "turn on", "ja": "（明かり・スイッチなどを）つける", "teacherMemo": "熟語。対義語は turn off。"}, {"id": 49, "lesson": "Lesson 2", "en": "turn off", "ja": "（明かり・スイッチなどを）消す", "teacherMemo": "熟語。対義語は turn on。"}, {"id": 50, "lesson": "Lesson 2", "en": "look for", "ja": "〜を探す", "teacherMemo": "基本熟語。look for ~。"}, {"id": 51, "lesson": "Lesson 2", "en": "medicine", "ja": "薬、医学", "teacherMemo": "名詞。take medicine で「薬を飲む」。"}, {"id": 52, "lesson": "Lesson 2", "en": "treatment", "ja": "治療、処置", "teacherMemo": "名詞。動詞形は treat。"}, {"id": 53, "lesson": "Lesson 2", "en": "detection", "ja": "発見、検出", "teacherMemo": "名詞。動詞形は detect。"}, {"id": 54, "lesson": "Lesson 2", "en": "luminous", "ja": "発光する、光る", "teacherMemo": "形容詞。光を放つ。"}, {"id": 55, "lesson": "Lesson 2", "en": "protein", "ja": "タンパク質", "teacherMemo": "名詞。"}, {"id": 56, "lesson": "Lesson 2", "en": "cell", "ja": "細胞", "teacherMemo": "名詞。単細胞・多細胞。"}, {"id": 57, "lesson": "Lesson 2", "en": "brighten", "ja": "明るくする、輝かせる", "teacherMemo": "動詞。bright (明るい) + en。"}, {"id": 58, "lesson": "Lesson 2", "en": "study", "ja": "研究する、勉強する", "teacherMemo": "動詞・名詞。"}, {"id": 59, "lesson": "Lesson 2", "en": "put A into B", "ja": "AをBに入れる", "teacherMemo": "基本フレーズ。put A into B。"}, {"id": 60, "lesson": "Lesson 2", "en": "improve", "ja": "向上させる、改善する", "teacherMemo": "動詞。名詞形は improvement。"}, {"id": 61, "lesson": "Lesson 2", "en": "discover", "ja": "発見する", "teacherMemo": "動詞。名詞形は discovery。"}, {"id": 62, "lesson": "Lesson 3", "en": "swing", "ja": "振りかぶること、スイング", "teacherMemo": "名詞・動詞。バットなどのスイング。"}, {"id": 63, "lesson": "Lesson 3", "en": "muscle", "ja": "筋肉", "teacherMemo": "名詞。muscle tissue。"}, {"id": 64, "lesson": "Lesson 3", "en": "height", "ja": "身長、高さ", "teacherMemo": "名詞。形容詞形は high。"}, {"id": 65, "lesson": "Lesson 3", "en": "congratulate", "ja": "祝う、祝福する", "teacherMemo": "動詞。congratulate A on B。"}, {"id": 66, "lesson": "Lesson 3", "en": "one of ~", "ja": "〜のうちの1つ［1人］", "teacherMemo": "重要フレーズ。後ろは複数名詞。"}, {"id": 67, "lesson": "Lesson 3", "en": "make up for", "ja": "〜を補う、埋め合わせる", "teacherMemo": "重要熟語。make up for ~。"}, {"id": 68, "lesson": "Lesson 3", "en": "pretend to do", "ja": "〜するふりをする", "teacherMemo": "重要構文。pretend to do。"}, {"id": 69, "lesson": "Lesson 3", "en": "outstanding", "ja": "傑出した、優れた", "teacherMemo": "形容詞。際立ってすぐれた。"}, {"id": 70, "lesson": "Lesson 3", "en": "discourage", "ja": "ガッカリさせる、やる気を失わせる", "teacherMemo": "動詞。対義語は encourage。"}, {"id": 71, "lesson": "Lesson 3", "en": "truly", "ja": "本当に、誠に", "teacherMemo": "副詞。形容詞形は true。"}, {"id": 72, "lesson": "Lesson 3", "en": "professional", "ja": "プロの、専門的な", "teacherMemo": "形容詞・名詞。略して pro。"}, {"id": 73, "lesson": "Lesson 3", "en": "unfortunately", "ja": "残念ながら、あいにく", "teacherMemo": "副詞。対義語は fortunately。"}, {"id": 74, "lesson": "Lesson 3", "en": "ache", "ja": "痛む、痛むこと", "teacherMemo": "動詞・名詞。headache (頭痛)。"}, {"id": 75, "lesson": "Lesson 3", "en": "make it to", "ja": "〜にたどり着く、〜に出席する", "teacherMemo": "重要熟語。make it to ~。"}, {"id": 76, "lesson": "Lesson 3", "en": "stay away", "ja": "近づかない、離れている", "teacherMemo": "熟語。stay away from ~。"}, {"id": 77, "lesson": "Lesson 3", "en": "for the first time", "ja": "初めて", "teacherMemo": "重要副詞句。for the first time。"}, {"id": 78, "lesson": "Lesson 3", "en": "decide to do", "ja": "〜することを決意する", "teacherMemo": "重要構文。decide to do。"}, {"id": 79, "lesson": "Lesson 3", "en": "develop", "ja": "発達させる、開発する", "teacherMemo": "動詞。名詞形は development。"}, {"id": 80, "lesson": "Lesson 3", "en": "modest", "ja": "控えめな、謙虚な", "teacherMemo": "形容詞。modest attitude。"}, {"id": 81, "lesson": "Lesson 3", "en": "achive", "ja": "達成する、成し遂げる", "teacherMemo": "動詞。名詞形は achievement。"}, {"id": 82, "lesson": "Lesson 3", "en": "come true", "ja": "（夢などが）実現する", "teacherMemo": "重要熟語。come true。"}, {"id": 83, "lesson": "Lesson 3", "en": "realize", "ja": "実現する、理解する", "teacherMemo": "動詞。名詞形は realization。"}, {"id": 84, "lesson": "Lesson 3", "en": "in need", "ja": "困っている、支援を必要としている", "teacherMemo": "熟語。people in need。"}, {"id": 85, "lesson": "Lesson 3", "en": "at a time", "ja": "一度に、一回に", "teacherMemo": "熟語。at a time。"}, {"id": 86, "lesson": "Lesson 4", "en": "miniature", "ja": "ミニチュア、縮小模型", "teacherMemo": "名詞・形容詞。"}, {"id": 87, "lesson": "Lesson 4", "en": "represent", "ja": "表す、表現する、代表する", "teacherMemo": "動詞。名詞形は representation。"}, {"id": 88, "lesson": "Lesson 4", "en": "biofuel", "ja": "バイオ燃料", "teacherMemo": "名詞。bio (生物) + fuel (燃料)。"}, {"id": 89, "lesson": "Lesson 4", "en": "display", "ja": "展示する、表示する", "teacherMemo": "動詞・名詞。on display で「展示中で」。"}, {"id": 90, "lesson": "Lesson 4", "en": "solution", "ja": "解決策、解答", "teacherMemo": "名詞。動詞形は solve。"}, {"id": 91, "lesson": "Lesson 4", "en": "theme", "ja": "テーマ、主題", "teacherMemo": "名詞。"}, {"id": 92, "lesson": "Lesson 4", "en": "everyday", "ja": "毎日の、日常の", "teacherMemo": "形容詞。everyday life (日常生活)。"}, {"id": 93, "lesson": "Lesson 4", "en": "object", "ja": "物体、対象", "teacherMemo": "名詞。動詞では「反対する」。"}, {"id": 94, "lesson": "Lesson 4", "en": "completely", "ja": "完全に、すっかり", "teacherMemo": "副詞。形容詞形は complete。"}, {"id": 95, "lesson": "Lesson 4", "en": "interpret interpret A as B", "ja": "AをBと解釈する", "teacherMemo": "重要構文。interpret A as B。"}, {"id": 96, "lesson": "Lesson 4", "en": "look like", "ja": "〜のように見える", "teacherMemo": "熟語。look like + 名詞。"}, {"id": 97, "lesson": "Lesson 4", "en": "combine A with B", "ja": "AとBを組み合わせる", "teacherMemo": "重要熟語。combine A with B。"}, {"id": 98, "lesson": "Lesson 4", "en": "model", "ja": "模型、モデル", "teacherMemo": "名詞。"}, {"id": 99, "lesson": "Lesson 4", "en": "pastime", "ja": "娯楽、気晴らし、趣味", "teacherMemo": "名詞。pass (過ごす) + time。"}, {"id": 100, "lesson": "Lesson 4", "en": "something else", "ja": "何か他のもの", "teacherMemo": "代名詞フレーズ。"}, {"id": 101, "lesson": "Lesson 4", "en": "see A as B", "ja": "AをBとみなす［見る］", "teacherMemo": "重要構文。see A as B。"}, {"id": 102, "lesson": "Lesson 4", "en": "pebble", "ja": "小石", "teacherMemo": "名詞。丸みのある小石。"}, {"id": 103, "lesson": "Lesson 4", "en": "express", "ja": "表現する", "teacherMemo": "動詞。名詞形は expression。"}, {"id": 104, "lesson": "Lesson 4", "en": "next to", "ja": "〜の隣に", "teacherMemo": "基本前置詞。next to ~。"}, {"id": 105, "lesson": "Lesson 4", "en": "concept", "ja": "概念、コンセプト", "teacherMemo": "名詞。"}, {"id": 106, "lesson": "Lesson 4", "en": "share A with B", "ja": "AをBと共有する", "teacherMemo": "重要熟語。share A with B。"}, {"id": 107, "lesson": "Lesson 4", "en": "social media", "ja": "ソーシャルメディア、SNS", "teacherMemo": "名詞。"}, {"id": 108, "lesson": "Lesson 4", "en": "plane", "ja": "飛行機", "teacherMemo": "名詞。airplane の略。"}, {"id": 109, "lesson": "Lesson 4", "en": "cloud", "ja": "雲", "teacherMemo": "名詞。"}, {"id": 110, "lesson": "Lesson 4", "en": "witty", "ja": "ユーモアのある、機知に富んだ", "teacherMemo": "形容詞。ウィットに富んだ。"}, {"id": 111, "lesson": "Lesson 4", "en": "phrase", "ja": "フレーズ、表現、句", "teacherMemo": "名詞。"}, {"id": 112, "lesson": "Lesson 4", "en": "rhyme", "ja": "押韻する、韻を踏む", "teacherMemo": "動詞・名詞。"}, {"id": 113, "lesson": "Lesson 4", "en": "pursue", "ja": "追求する、推し進める", "teacherMemo": "動詞。pursue a goal。"}, {"id": 114, "lesson": "Lesson 5", "en": "familiar", "ja": "親しみのある、よく知られた", "teacherMemo": "形容詞。be familiar with ~。"}, {"id": 115, "lesson": "Lesson 5", "en": "unique", "ja": "独特な、ユニークな", "teacherMemo": "形容詞。unique to ~ で「〜特有の」。"}, {"id": 116, "lesson": "Lesson 5", "en": "be familiar to", "ja": "〜によく知られている", "teacherMemo": "熟語。A is familiar to B。"}, {"id": 117, "lesson": "Lesson 5", "en": "fact", "ja": "事実", "teacherMemo": "名詞。in fact で「実は」。"}, {"id": 118, "lesson": "Lesson 5", "en": "finger", "ja": "指（足の指以外）", "teacherMemo": "名詞。足の指は toe。"}, {"id": 119, "lesson": "Lesson 5", "en": "enormous", "ja": "巨大な、莫大な", "teacherMemo": "形容詞。very large。"}, {"id": 120, "lesson": "Lesson 5", "en": "herb", "ja": "ハーブ、薬草、草本", "teacherMemo": "名詞。"}, {"id": 121, "lesson": "Lesson 5", "en": "stem", "ja": "（植物の）茎、幹", "teacherMemo": "名詞。"}, {"id": 122, "lesson": "Lesson 5", "en": "throw away", "ja": "（不要なものを）捨て去る", "teacherMemo": "熟語。throw away ~。"}, {"id": 123, "lesson": "Lesson 5", "en": "harvest", "ja": "収穫する、収穫", "teacherMemo": "動詞・名詞。"}, {"id": 124, "lesson": "Lesson 5", "en": "technique", "ja": "技術、手法", "teacherMemo": "名詞。"}, {"id": 125, "lesson": "Lesson 5", "en": "sustainable", "ja": "持続可能な", "teacherMemo": "形容詞。SDGsのS (Sustainable)。"}, {"id": 126, "lesson": "Lesson 5", "en": "resource", "ja": "資源", "teacherMemo": "名詞。natural resources (天然資源)。"}, {"id": 127, "lesson": "Lesson 5", "en": "cut down", "ja": "〜を切り倒す、削減する", "teacherMemo": "熟語。cut down trees。"}, {"id": 128, "lesson": "Lesson 5", "en": "turn A into B", "ja": "AをBに変える", "teacherMemo": "重要熟語。turn A into B。"}, {"id": 129, "lesson": "Lesson 5", "en": "fiber", "ja": "繊維", "teacherMemo": "名詞。dietary fiber (食物繊維)。"}, {"id": 130, "lesson": "Lesson 5", "en": "process", "ja": "加工作業、プロセス", "teacherMemo": "名詞・動詞。"}, {"id": 131, "lesson": "Lesson 5", "en": "business card", "ja": "名詞", "teacherMemo": "名詞。business card。"}, {"id": 132, "lesson": "Lesson 5", "en": "product", "ja": "製品、産物", "teacherMemo": "名詞。動詞形は produce。"}, {"id": 133, "lesson": "Lesson 5", "en": "villager", "ja": "村人、住民", "teacherMemo": "名詞。village + er。"}, {"id": 134, "lesson": "Lesson 5", "en": "lack", "ja": "不足する、〜を欠いている", "teacherMemo": "動詞・名詞。lack of ~。"}, {"id": 135, "lesson": "Lesson 5", "en": "education", "ja": "教育", "teacherMemo": "名詞。動詞形は educate。"}, {"id": 136, "lesson": "Lesson 5", "en": "illegal", "ja": "違法の、不法の", "teacherMemo": "形容詞。対義語は legal。"}, {"id": 137, "lesson": "Lesson 5", "en": "hunt", "ja": "狩猟する、狩る", "teacherMemo": "動詞。名詞形は hunter。"}, {"id": 138, "lesson": "Lesson 5", "en": "wild", "ja": "野生動物、野生の", "teacherMemo": "形容詞・名詞。in the wild。"}, {"id": 139, "lesson": "Lesson 5", "en": "play a ~ part in", "ja": "〜において役割を果たす", "teacherMemo": "重要熟語。play a part in ~。"}, {"id": 140, "lesson": "Lesson 5", "en": "thanks to", "ja": "〜のおかげで", "teacherMemo": "重要前置詞句。thanks to ~。"}, {"id": 141, "lesson": "Lesson 5", "en": "protect", "ja": "保護する、守る", "teacherMemo": "動詞。名詞形は protection。"}, {"id": 142, "lesson": "Lesson 5", "en": "seem", "ja": "〜のように見える［思われる］", "teacherMemo": "動詞。seem to do。"}, {"id": 143, "lesson": "Lesson 6", "en": "following", "ja": "以下の、次のような", "teacherMemo": "形容詞。the following question。"}, {"id": 144, "lesson": "Lesson 6", "en": "behavior", "ja": "行動、振る舞い", "teacherMemo": "名詞。動詞形は behave。"}, {"id": 145, "lesson": "Lesson 6", "en": "quite", "ja": "かなり、非常に", "teacherMemo": "副詞。quite good。"}, {"id": 146, "lesson": "Lesson 6", "en": "natural", "ja": "自然な、当たり前の", "teacherMemo": "形容詞。名詞形は nature。"}, {"id": 147, "lesson": "Lesson 6", "en": "mind", "ja": "心、精神", "teacherMemo": "名詞。change one's mind。"}, {"id": 148, "lesson": "Lesson 6", "en": "experiment", "ja": "実験", "teacherMemo": "名詞。do an experiment。"}, {"id": 149, "lesson": "Lesson 6", "en": "item", "ja": "品物、項目", "teacherMemo": "名詞。"}, {"id": 150, "lesson": "Lesson 6", "en": "in order to", "ja": "〜するために", "teacherMemo": "重要目的表現。in order to do。"}, {"id": 151, "lesson": "Lesson 6", "en": "get back", "ja": "取り戻す、戻る", "teacherMemo": "熟語。get back to ~。"}, {"id": 152, "lesson": "Lesson 6", "en": "find out", "ja": "発見する、知る", "teacherMemo": "重要熟語。find out about ~。"}, {"id": 153, "lesson": "Lesson 6", "en": "rate", "ja": "割合、比率、速度", "teacherMemo": "名詞。at a rate of ~。"}, {"id": 154, "lesson": "Lesson 6", "en": "result", "ja": "結果", "teacherMemo": "名詞。as a result (結果として)。"}, {"id": 155, "lesson": "Lesson 6", "en": "suggest", "ja": "示唆する、提案する", "teacherMemo": "動詞。名詞形は suggestion。"}, {"id": 156, "lesson": "Lesson 6", "en": "naturally", "ja": "自然に、当然", "teacherMemo": "副詞。形容詞形は natural。"}, {"id": 157, "lesson": "Lesson 6", "en": "be on a diet", "ja": "ダイエット中である", "teacherMemo": "熟語。be on a diet。"}, {"id": 158, "lesson": "Lesson 6", "en": "diet", "ja": "ダイエット、食事", "teacherMemo": "名詞。"}, {"id": 159, "lesson": "Lesson 6", "en": "situation", "ja": "状況、立場", "teacherMemo": "名詞。in this situation。"}, {"id": 160, "lesson": "Lesson 6", "en": "wrap", "ja": "包む、巻きつける", "teacherMemo": "動詞。wrap A in B。"}, {"id": 161, "lesson": "Lesson 6", "en": "participant", "ja": "参加者", "teacherMemo": "名詞。動詞形は participate。"}, {"id": 162, "lesson": "Lesson 6", "en": "average", "ja": "平均の、標準的な", "teacherMemo": "形容詞・名詞。on average。"}, {"id": 163, "lesson": "Lesson 6", "en": "hesitate", "ja": "ためらう、躊躇する", "teacherMemo": "動詞。hesitate to do。"}, {"id": 164, "lesson": "Lesson 6", "en": "tend to do", "ja": "〜しがちである、〜する傾向がある", "teacherMemo": "重要熟語。tend to do。"}, {"id": 165, "lesson": "Lesson 6", "en": "unnecessary", "ja": "不要な、不必要な", "teacherMemo": "形容詞。対義語は necessary。"}, {"id": 166, "lesson": "Lesson 6", "en": "purchase", "ja": "購入する、購入品", "teacherMemo": "動詞・名詞。make a purchase。"}, {"id": 167, "lesson": "Lesson 6", "en": "be likely to do", "ja": "〜しそうである、〜する可能性が高い", "teacherMemo": "重要構文。be likely to do。"}, {"id": 168, "lesson": "Lesson 6", "en": "that is to say", "ja": "すなわち、言い換えれば", "teacherMemo": "重要接続表現。that is to say。"}, {"id": 169, "lesson": "Lesson 6", "en": "enter", "ja": "入る、入力する", "teacherMemo": "動詞。名詞形は entrance。"}, {"id": 170, "lesson": "Lesson 6", "en": "save money", "ja": "お金を節約する、貯金する", "teacherMemo": "熟語。save money。"}, {"id": 171, "lesson": "Lesson 7", "en": "whale", "ja": "クジラ", "teacherMemo": "名詞。"}, {"id": 172, "lesson": "Lesson 7", "en": "southern", "ja": "南の、南部の", "teacherMemo": "形容詞。Southern Hemisphere (南半球)。"}, {"id": 173, "lesson": "Lesson 7", "en": "nearly", "ja": "ほぼ、ほぼ〜近く", "teacherMemo": "副詞。nearly 100 years。"}, {"id": 174, "lesson": "Lesson 7", "en": "stomach", "ja": "胃、お腹", "teacherMemo": "名詞。stomachache (腹痛)。"}, {"id": 175, "lesson": "Lesson 7", "en": "tragedy", "ja": "悲劇、惨事", "teacherMemo": "名詞。対義語は comedy。"}, {"id": 176, "lesson": "Lesson 7", "en": "occur", "ja": "発生する、起こる", "teacherMemo": "動詞。happen と同義。"}, {"id": 177, "lesson": "Lesson 7", "en": "turtle", "ja": "ウミガメ、カメ", "teacherMemo": "名詞。sea turtle。"}, {"id": 178, "lesson": "Lesson 7", "en": "victim", "ja": "被害者、犠牲者", "teacherMemo": "名詞。victim of ~。"}, {"id": 179, "lesson": "Lesson 7", "en": "in fact", "ja": "実際に、実は", "teacherMemo": "重要副詞句。in fact。"}, {"id": 180, "lesson": "Lesson 7", "en": "survive", "ja": "生き残る、生き延びる", "teacherMemo": "動詞。名詞形は survival。"}, {"id": 181, "lesson": "Lesson 7", "en": "survey", "ja": "調査", "teacherMemo": "名詞・動詞。conduct a survey。"}, {"id": 182, "lesson": "Lesson 7", "en": "produce", "ja": "生産する、生み出す", "teacherMemo": "動詞。名詞形は product。"}, {"id": 183, "lesson": "Lesson 7", "en": "debris", "ja": "ゴミ、残骸", "teacherMemo": "名詞。marine debris (海洋ゴミ)。"}, {"id": 184, "lesson": "Lesson 7", "en": "end up in", "ja": "最終的に〜に行き着く", "teacherMemo": "重要熟語。end up in ~。"}, {"id": 185, "lesson": "Lesson 7", "en": "decompose", "ja": "分解する", "teacherMemo": "動詞。自然分解。"}, {"id": 186, "lesson": "Lesson 7", "en": "in terms of", "ja": "〜の点から、〜に関して", "teacherMemo": "重要熟語。in terms of ~。"}, {"id": 187, "lesson": "Lesson 7", "en": "weight", "ja": "重量、体重", "teacherMemo": "名詞。動詞形は weigh。"}, {"id": 188, "lesson": "Lesson 7", "en": "to make matters worse", "ja": "さらに悪いことには", "teacherMemo": "重要熟語。to make matters worse。"}, {"id": 189, "lesson": "Lesson 7", "en": "microplastic", "ja": "マイクロプラスチック", "teacherMemo": "名詞。微小なプラスチック片。"}, {"id": 190, "lesson": "Lesson 7", "en": "in turn", "ja": "今度は、結果として", "teacherMemo": "熟語。in turn。"}, {"id": 191, "lesson": "Lesson 7", "en": "consume", "ja": "消費する、摂取する", "teacherMemo": "動詞。名詞形は consumption。"}, {"id": 192, "lesson": "Lesson 7", "en": "break down into", "ja": "〜に分解される", "teacherMemo": "熟語。break down into ~。"}, {"id": 193, "lesson": "Lesson 7", "en": "profit", "ja": "利益", "teacherMemo": "名詞。make a profit。"}, {"id": 194, "lesson": "Lesson 7", "en": "organization", "ja": "組織、団体", "teacherMemo": "名詞。動詞形は organize。"}, {"id": 195, "lesson": "Lesson 7", "en": "found", "ja": "設立する、創設する", "teacherMemo": "動詞。find (見つける) の過去形と同形。"}, {"id": 196, "lesson": "Lesson 7", "en": "invent", "ja": "発明する", "teacherMemo": "動詞。名詞形は invention。"}, {"id": 197, "lesson": "Lesson 7", "en": "aim to do", "ja": "〜することを目指す", "teacherMemo": "熟語。aim to do。"}, {"id": 198, "lesson": "Lesson 7", "en": "remove", "ja": "除去する、取り除く", "teacherMemo": "動詞。名詞形は removal。"}, {"id": 199, "lesson": "Lesson 7", "en": "float", "ja": "浮かぶ、漂う", "teacherMemo": "動詞。float on water。"}, {"id": 200, "lesson": "Lesson 7", "en": "aim", "ja": "目的、狙い", "teacherMemo": "名詞・動詞。with the aim of ~。"}, {"id": 201, "lesson": "Lesson 7", "en": "field", "ja": "分野、畑、現場", "teacherMemo": "名詞。field of study。"}, {"id": 202, "lesson": "Lesson 7", "en": "so far", "ja": "これまでのところ、今まで", "teacherMemo": "重要熟語。so far。"}, {"id": 203, "lesson": "Lesson 7", "en": "without doing", "ja": "〜することなく", "teacherMemo": "熟語。without + 動名詞。"}, {"id": 204, "lesson": "Lesson 7", "en": "reduce", "ja": "減らす、削減する", "teacherMemo": "動詞。名詞形は reduction。"}, {"id": 205, "lesson": "Lesson 7", "en": "reuse", "ja": "再利用する、リユースする", "teacherMemo": "動詞。reuse plastic。"}, {"id": 206, "lesson": "Lesson 7", "en": "marine", "ja": "海の、海洋の", "teacherMemo": "形容詞。marine life (海洋生物)。"}, {"id": 207, "lesson": "Lesson 7", "en": "ourselves", "ja": "私たち自身", "teacherMemo": "代名詞。we の再帰代名詞。"}];
+        let textbookWordsData = [...DEFAULT_TEXTBOOK_WORDS]; // 教科書単語データ
+        let showTeacherMemo = localStorage.getItem('showTeacherMemo') !== 'false'; // 先生メモ表示状態
+        let currentWordbookSource = 'words'; // 'words' | 'textbook'
+
+        function fetchTextbookWords() {
+            fetch('textbook_words.json')
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        textbookWordsData = data;
+                        initTextbookLessonSelector();
+                    }
+                })
+                .catch(err => console.warn("Failed to load textbook_words.json:", err));
+        }
+
+        function initTextbookLessonSelector() {
+            const sel = document.getElementById('select-textbook-lesson');
+            if (!sel) return;
+
+            const lessons = [];
+            const lessonCounts = {};
+            textbookWordsData.forEach(w => {
+                const l = w.lesson || 'その他';
+                if (!lessonCounts[l]) {
+                    lessons.push(l);
+                    lessonCounts[l] = 0;
+                }
+                lessonCounts[l]++;
+            });
+
+            sel.innerHTML = `<option value="all">すべてのLesson (全${textbookWordsData.length}単語)</option>`;
+            lessons.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l;
+                opt.textContent = `${l} (${lessonCounts[l]}単語)`;
+                sel.appendChild(opt);
+            });
+        }
+
+        function toggleTeacherMemo() {
+            showTeacherMemo = !showTeacherMemo;
+            localStorage.setItem('showTeacherMemo', showTeacherMemo ? 'true' : 'false');
+            updateTeacherMemoButtonsUI();
+
+            const wordbookScreen = document.getElementById('screen-wordbook');
+            if (wordbookScreen && wordbookScreen.classList.contains('active')) {
+                renderWordbookList();
+            }
+            const fcPlayScreen = document.getElementById('screen-flashcard-play');
+            if (fcPlayScreen && fcPlayScreen.classList.contains('active')) {
+                loadFcCard();
+            }
+            showToast(showTeacherMemo ? "📌 先生メモを表示に設定しました" : "📌 先生メモを非表示に設定しました");
+        }
+
+        function updateTeacherMemoButtonsUI() {
+            const btns = document.querySelectorAll('.btn-teacher-memo-toggle');
+            btns.forEach(btn => {
+                if (showTeacherMemo) {
+                    btn.innerHTML = '📌 先生メモ: ON';
+                    btn.style.opacity = '1';
+                    btn.style.background = 'rgba(99, 102, 241, 0.2)';
+                    btn.style.borderColor = 'var(--primary)';
+                    btn.style.color = 'var(--primary)';
+                } else {
+                    btn.innerHTML = '📌 先生メモ: OFF';
+                    btn.style.opacity = '0.6';
+                    btn.style.background = 'transparent';
+                    btn.style.borderColor = 'var(--border)';
+                    btn.style.color = 'var(--text-muted)';
+                }
+            });
+        }
+
+        function switchWordbookSource(source) {
+            currentWordbookSource = source;
+            const tabWords = document.getElementById('tab-wb-words');
+            const tabTextbook = document.getElementById('tab-wb-textbook');
+            if (tabWords) {
+                tabWords.style.background = source === 'words' ? 'var(--primary)' : 'transparent';
+                tabWords.style.color = source === 'words' ? 'white' : 'var(--text-muted)';
+            }
+            if (tabTextbook) {
+                tabTextbook.style.background = source === 'textbook' ? 'var(--primary)' : 'transparent';
+                tabTextbook.style.color = source === 'textbook' ? 'white' : 'var(--text-muted)';
+            }
+
+            const listToUse = source === 'textbook' ? textbookWordsData : wordData;
+            wordbookFilteredList = [...listToUse];
+            renderWordbookList();
+        }
 
         function showMypageScreen() {
             // 生徒情報が未設定の場合はエラーを表示
@@ -9162,12 +9326,29 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             localStorage.setItem('vocab_show_phrases', isPhrases ? 'true' : 'false');
         }
 
-        function isPhraseId(id) {
-            return (id >= 201 && id <= 250) ||
-                   (id >= 551 && id <= 610) ||
-                   (id >= 1111 && id <= 1170) ||
-                   (id >= 1371 && id <= 1430) ||
-                   (id >= 1631 && id <= 1700);
+        function isPhraseId(item) {
+            // オブジェクトが直接渡された場合 (e.g. word object)
+            if (item && typeof item === 'object') {
+                if (item.en && typeof item.en === 'string') {
+                    return item.en.trim().includes(' ');
+                }
+            }
+            // IDが渡された場合、現在モードのデータリストから英語文字列を取得して判定
+            const targetList = (typeof activeMainMode !== 'undefined' && activeMainMode === 'textbook' ? textbookWordsData : wordData);
+            const found = targetList.find(w => w.id == item);
+            if (found && found.en) {
+                return found.en.trim().includes(' ');
+            }
+            // IDのみでリストにも無い場合のフォールバック範囲指定
+            const id = parseInt(item, 10);
+            if (!isNaN(id)) {
+                return (id >= 201 && id <= 250) ||
+                       (id >= 551 && id <= 610) ||
+                       (id >= 1111 && id <= 1170) ||
+                       (id >= 1371 && id <= 1430) ||
+                       (id >= 1631 && id <= 1700);
+            }
+            return false;
         }
 
         function filterPhrasesIfNeeded(pool) {
@@ -11031,12 +11212,55 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             if (hintBox) hintBox.innerText = `スペルヒント: ${hintStr} (${cleanWord.length}文字)`;
         }
 
+        
+        function updateSettingVisibility() {
+            const mode = (typeof activeMainMode !== 'undefined') ? activeMainMode : 'words';
+            const quizType = getSelectedQuizType();
+
+            const cardOrder = document.getElementById('toggle-card-order');
+            const cardMode = document.getElementById('toggle-card-mode');
+            const cardTts = document.getElementById('toggle-card-tts');
+            const cardSound = document.getElementById('toggle-card-sound');
+            const cardPhrases = document.getElementById('toggle-card-phrases');
+            const cardTheme = document.getElementById('toggle-card-theme');
+            const cardRandom = document.getElementById('setting-complete-random-card');
+            const phrasesInput = document.getElementById('setting-show-phrases');
+
+            // デフォルト表示状態
+            if (cardOrder) cardOrder.style.display = 'flex';
+            if (cardMode) cardMode.style.display = 'flex';
+            if (cardTts) cardTts.style.display = 'flex';
+            if (cardSound) cardSound.style.display = 'flex';
+            if (cardPhrases) cardPhrases.style.display = 'flex';
+            if (cardTheme) cardTheme.style.display = 'flex';
+            if (cardRandom) cardRandom.style.display = 'flex';
+
+            if (mode === 'words') {
+                if (quizType === 'ja-en-spelling') {
+                    if (cardPhrases) cardPhrases.style.display = 'none';
+                } else if (quizType === 'unit-test') {
+                    if (cardOrder) cardOrder.style.display = 'none';
+                    if (cardMode) cardMode.style.display = 'none';
+                }
+            } else if (mode === 'textbook') {
+                if (phrasesInput) phrasesInput.checked = true;
+                if (cardPhrases) cardPhrases.style.display = 'none';
+
+                if (quizType === 'unit-test') {
+                    if (cardOrder) cardOrder.style.display = 'none';
+                    if (cardMode) cardMode.style.display = 'none';
+                }
+            } else if (mode === 'sentences') {
+                if (cardPhrases) cardPhrases.style.display = 'none';
+            }
+        }
+
         function updateSettingLabels() {
             const quizType = getSelectedQuizType();
             const isInfinite = document.getElementById('setting-mode').checked;
             const isSeq = document.getElementById('setting-order').checked;
-            const isBtnProgress = document.getElementById('setting-progress').checked;
-            const isLandscape = document.getElementById('setting-landscape').checked;
+            const _elProg = document.getElementById('setting-progress'); const isBtnProgress = _elProg ? _elProg.checked : false;
+            const _elLand = document.getElementById('setting-landscape'); const isLandscape = _elLand ? _elLand.checked : true;
             
             let typeDesc = '英単語 → 日本語の選択肢';
             if (quizType === 'ja-en') {
@@ -11049,19 +11273,13 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             
             const _e_toggle_type_desc = document.getElementById('toggle-type-desc'); if (_e_toggle_type_desc) _e_toggle_type_desc.innerText = typeDesc;
             
-            // 完全ランダムトグルの表示制御
-            const completeRandomCard = document.getElementById('setting-complete-random-card');
+            // 完全ランダムトグルの設定状態更新
             const completeRandomInput = document.getElementById('setting-complete-random');
-            if (quizType === 'en-ja' || quizType === 'ja-en') {
-                if (completeRandomCard) completeRandomCard.style.display = 'flex';
-                if (completeRandomInput) {
-                    isCompleteRandom = completeRandomInput.checked;
-                    localStorage.setItem('setting_complete_random', isCompleteRandom ? 'true' : 'false');
-                }
-            } else {
-                if (completeRandomCard) completeRandomCard.style.display = 'none';
-                isCompleteRandom = false;
+            if (completeRandomInput) {
+                isCompleteRandom = completeRandomInput.checked;
+                localStorage.setItem('setting_complete_random', isCompleteRandom ? 'true' : 'false');
             }
+            updateSettingVisibility();
 
             const _e_toggle_mode_desc = document.getElementById('toggle-mode-desc'); if (_e_toggle_mode_desc) _e_toggle_mode_desc.innerText = isInfinite ? '無限エンドレス' : '問題数指定';
             const _e_toggle_order_desc = document.getElementById('toggle-order-desc'); if (_e_toggle_order_desc) _e_toggle_order_desc.innerText = isSeq ? '番号順 (昇順)' : 'シャッフル (ランダム)';
@@ -11236,25 +11454,47 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
         function startQuizFromRange() {
             clearSetupError();
             if (!validateStudentInfoBeforeStart()) return;
-            const from = parseInt(document.getElementById('range-from').value);
-            const to = parseInt(document.getElementById('range-to').value);
 
-            if(isNaN(from) || isNaN(to) || from > to) {
-                showSetupError("正しい範囲の番号を入力してください。");
-                return;
+            let filtered = [];
+            let from = 1;
+            let to = 1200;
+
+            if (activeMainMode === 'textbook') {
+                const selLesson = document.getElementById('select-textbook-lesson').value;
+                if (selLesson === 'all') {
+                    filtered = [...textbookWordsData];
+                    from = '全Lesson';
+                    to = '';
+                } else {
+                    filtered = textbookWordsData.filter(w => w.lesson === selLesson);
+                    from = selLesson;
+                    to = '';
+                }
+                if (filtered.length === 0) {
+                    showSetupError("選択されたLesson内に単語が見つかりませんでした。");
+                    return;
+                }
+            } else {
+                from = parseInt(document.getElementById('range-from').value);
+                to = parseInt(document.getElementById('range-to').value);
+
+                if(isNaN(from) || isNaN(to) || from > to) {
+                    showSetupError("正しい範囲の番号を入力してください。");
+                    return;
+                }
+
+                // 出題範囲の設定をローカルストレージに記憶
+                localStorage.setItem('vocab_range_from', from);
+                localStorage.setItem('vocab_range_to', to);
+
+                filtered = wordData.filter(w => w.id >= from && w.id <= to);
+                if(filtered.length === 0) {
+                    showSetupError("指定された範囲内に英単語が見つかりませんでした。");
+                    return;
+                }
+
+                filtered = filterPhrasesIfNeeded(filtered);
             }
-
-            // 出題範囲の設定をローカルストレージに記憶
-            localStorage.setItem('vocab_range_from', from);
-            localStorage.setItem('vocab_range_to', to);
-
-            let filtered = wordData.filter(w => w.id >= from && w.id <= to);
-            if(filtered.length === 0) {
-                showSetupError("指定された範囲内に英単語が見つかりませんでした。");
-                return;
-            }
-
-            filtered = filterPhrasesIfNeeded(filtered);
 
             if(filtered.length < 1) {
                 showSetupError("出題可能な単語が範囲内にありません。");
@@ -11278,7 +11518,7 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
 
             speechEnabled = document.getElementById('setting-tts').checked;
             soundEnabled = document.getElementById('setting-sound').checked;
-            isButtonProgressMode = document.getElementById('setting-progress').checked;
+            const _elProgStart = document.getElementById('setting-progress'); isButtonProgressMode = _elProgStart ? _elProgStart.checked : false;
             
             if (activeQuizType !== 'unit-test' && !isInfiniteMode) {
                 const countInput = parseInt(document.getElementById('fixed-count').value);
@@ -11365,7 +11605,7 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             isSequentialOrder = document.getElementById('setting-order').checked;
             speechEnabled = document.getElementById('setting-tts').checked;
             soundEnabled = document.getElementById('setting-sound').checked;
-            isButtonProgressMode = document.getElementById('setting-progress').checked;
+            const _elProgStart = document.getElementById('setting-progress'); isButtonProgressMode = _elProgStart ? _elProgStart.checked : false;
             
             if (!isInfiniteMode) {
                 const countInput = parseInt(document.getElementById('fixed-count').value);
@@ -12101,7 +12341,11 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             
             if (rangeInfo && !isTestingMode) {
                 if (sourceListType === 'range') {
-                    rangeInfo.innerText = `範囲: ID No. ${sessionRange.from} から ${sessionRange.to}`;
+                    if (activeMainMode === 'textbook') {
+                        rangeInfo.innerText = `範囲: 教科書単語 (${sessionRange.from}${sessionRange.to ? '〜' + sessionRange.to : ''})`;
+                    } else {
+                        rangeInfo.innerText = `範囲: ID No. ${sessionRange.from} から ${sessionRange.to}`;
+                    }
                 } else if (sourceListType === 'weak') {
                     rangeInfo.innerText = '間違えやすい単語復習';
                 } else if (sourceListType === 'bookmark') {
@@ -12679,7 +12923,8 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
                         </div>
                     </div>
                     <div class="item-expand-detail" id="expand-detail-${w.id}" style="display: none;" onclick="event.stopPropagation();">
-                        <div class="note-container">
+                        <div class="note-container" style="background: rgba(15, 23, 42, 0.4); padding: 10px; border-radius: 10px; border: 1px solid var(--border);">
+                            <div class="student-note-section-title">✍️ 自分用メモ</div>
                             <div class="note-label">自分用メモ</div>
                             <textarea class="note-textarea" id="note-textarea-${w.id}" rows="3" placeholder="この単語に関するメモや類義語などを自由に入力してください..." onblur="setTimeout(() => saveWordNoteFromUI(${w.id}), 150)">${wordNotes[w.id] || ''}</textarea>
                             <div class="note-actions">
@@ -13919,7 +14164,8 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             localStorage.setItem('vocab_range_to', toVal);
 
             // Extract words in range
-            const wordsInRange = wordData.filter(w => {
+            const dataset = activeMainMode === 'textbook' ? textbookWordsData : wordData;
+            const wordsInRange = activeMainMode === 'textbook' ? [...dataset] : dataset.filter(w => {
                 const idNum = parseInt(w.id);
                 return idNum >= fromVal && idNum <= toVal;
             });
@@ -14012,6 +14258,19 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
                             speak(currentWord.en);
                         }
                     }, 300);
+                }
+            }
+
+            // 先生メモの表示制御
+            const teacherNoteEl = document.getElementById('fc-card-back-teacher-note');
+            const teacherNoteTextEl = document.getElementById('fc-card-back-teacher-note-text');
+            if (teacherNoteEl && teacherNoteTextEl) {
+                const tNote = currentWord.teacherMemo || '';
+                if (showTeacherMemo && tNote.trim() !== '') {
+                    teacherNoteTextEl.innerText = tNote;
+                    teacherNoteEl.style.display = 'block';
+                } else {
+                    teacherNoteEl.style.display = 'none';
                 }
             }
 
@@ -15355,60 +15614,82 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             }
         }
 
-        // メインモード切り替え（英単語クイズ / 暗唱例文クイズ）
+        // メインモード切り替え（ターゲット1200 / 教科書単語 / 暗唱例文）
         function switchMainMode(mode) {
             playMenuClickSound();
             activeMainMode = mode;
 
-            const toggleIcon = document.getElementById('mode-toggle-icon');
-            const toggleLabel = document.getElementById('mode-toggle-label');
             const titleEl = document.getElementById('setup-title');
-            
+
             const wordsRange = document.getElementById('words-range-container');
+            const textbookRange = document.getElementById('textbook-range-container');
             const sentencesRange = document.getElementById('sentences-range-container');
             const wordsFormat = document.getElementById('words-format-container');
             const sentencesFormat = document.getElementById('sentences-format-container');
-            
+
             const btnStartWords = document.getElementById('btn-start-words-quiz');
             const btnStartSentences = document.getElementById('btn-start-sentences-quiz');
-            
             const btnBottomLeft = document.getElementById('btn-wordbook-bottom');
 
+            // 選択中モード以外のナビボタンを表示（選択中モードのボタンは非表示）
+            const btnWordsNav = document.getElementById('btn-mode-words-nav');
+            const btnTextbookNav = document.getElementById('btn-mode-textbook-nav');
+            const btnSentencesNav = document.getElementById('btn-mode-sentences-nav');
+
+            if (btnWordsNav) btnWordsNav.style.display = mode === 'words' ? 'none' : 'flex';
+            if (btnTextbookNav) btnTextbookNav.style.display = mode === 'textbook' ? 'none' : 'flex';
+            if (btnSentencesNav) btnSentencesNav.style.display = mode === 'sentences' ? 'none' : 'flex';
+
             if (mode === 'words') {
-                if (toggleIcon) toggleIcon.textContent = '💬';
-                if (toggleLabel) toggleLabel.innerHTML = '暗唱例文に<br>切り替え';
                 if (titleEl) titleEl.textContent = 'ターゲット1200クイズメーカー';
-                
+
                 if (wordsRange) wordsRange.style.display = 'flex';
+                if (textbookRange) textbookRange.style.display = 'none';
                 if (sentencesRange) sentencesRange.style.display = 'none';
                 if (wordsFormat) wordsFormat.style.display = 'block';
                 if (sentencesFormat) sentencesFormat.style.display = 'none';
                 if (btnStartWords) btnStartWords.style.display = 'block';
                 if (btnStartSentences) btnStartSentences.style.display = 'none';
-                
+
                 if (btnBottomLeft) {
                     btnBottomLeft.textContent = '📖 単語リスト';
-                    btnBottomLeft.setAttribute('onclick', "showScreen('screen-wordbook')");
+                    btnBottomLeft.setAttribute('onclick', "switchWordbookSource('words'); showScreen('screen-wordbook');");
+                }
+            } else if (mode === 'textbook') {
+                if (titleEl) titleEl.textContent = '教科書単語クイズメーカー';
+                initTextbookLessonSelector();
+
+                if (wordsRange) wordsRange.style.display = 'none';
+                if (textbookRange) textbookRange.style.display = 'block';
+                if (sentencesRange) sentencesRange.style.display = 'none';
+                if (wordsFormat) wordsFormat.style.display = 'block';
+                if (sentencesFormat) sentencesFormat.style.display = 'none';
+                if (btnStartWords) btnStartWords.style.display = 'block';
+                if (btnStartSentences) btnStartSentences.style.display = 'none';
+
+                if (btnBottomLeft) {
+                    btnBottomLeft.textContent = '📖 教科書単語リスト';
+                    btnBottomLeft.setAttribute('onclick', "switchWordbookSource('textbook'); showScreen('screen-wordbook');");
                 }
             } else {
-                if (toggleIcon) toggleIcon.textContent = '🔤';
-                if (toggleLabel) toggleLabel.innerHTML = '英単語に<br>切り替え';
                 if (titleEl) titleEl.textContent = '暗唱例文クイズメーカー';
-                
+
                 if (wordsRange) wordsRange.style.display = 'none';
+                if (textbookRange) textbookRange.style.display = 'none';
                 if (sentencesRange) sentencesRange.style.display = 'block';
                 if (wordsFormat) wordsFormat.style.display = 'none';
                 if (sentencesFormat) sentencesFormat.style.display = 'block';
                 if (btnStartWords) btnStartWords.style.display = 'none';
                 if (btnStartSentences) btnStartSentences.style.display = 'block';
-                
+
                 if (btnBottomLeft) {
                     btnBottomLeft.textContent = '📖 例文リスト';
                     btnBottomLeft.setAttribute('onclick', "showScreen('screen-sentencebook')");
                 }
-                
+
                 updateSentenceDummyVisibility();
             }
+            updateSettingLabels();
         }
 
         // ダミー単語選択スライダーの表示/非表示制御
