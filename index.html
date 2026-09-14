@@ -1353,9 +1353,9 @@
 
         /* Feedback Area */
         .answer-feedback {
-            margin-bottom: 24px;
-            padding: 20px;
-            border-radius: 20px;
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            border-radius: 14px;
             text-align: center;
             display: none;
             animation: fadeIn 0.3s ease-out;
@@ -1384,10 +1384,13 @@
             font-weight: 700;
             margin-bottom: 10px;
         }
+        #quiz-feedback-title {
+            display: none !important;
+        }
         #quiz-feedback-desc {
-            font-size: 1.35rem !important;
-            line-height: 1.7;
-            margin-top: 10px;
+            font-size: 1.25rem !important;
+            line-height: 1.5;
+            margin-top: 0 !important;
         }
         #quiz-feedback-desc b {
             font-size: 1.55rem !important;
@@ -2481,6 +2484,28 @@
         #quiz-note-wrapper {
             position: relative;
             z-index: 65;
+            text-align: left !important;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .quiz-memo-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            text-align: left !important;
+            box-sizing: border-box;
+            align-items: stretch;
+        }
+        .feedback-teacher-note-card,
+        .feedback-student-note-card {
+            text-align: left !important;
+            padding: 8px 8px;
+            box-sizing: border-box;
+        }
+        .feedback-teacher-note-card *,
+        .feedback-student-note-card * {
+            text-align: left !important;
         }
 
         /* Ranking screen custom styles */
@@ -4871,6 +4896,8 @@
         let studentNickname = "";
         let rankingQuizType = "en-ja";
         let rankingPeriod = "daily";
+        const rankingDataCache = {};
+        const RANKING_CACHE_TTL_MS = 60 * 1000; // 60秒キャッシュ
         let isLandscapeManualOverride = false; // 横画面設定の手動上書きフラグ
         let isCompleteRandom = false; // 完全ランダム（重複あり）モードフラグ
         let isSpellingHint = true;    // スペリングヒント（頭文字表示）フラグ
@@ -9100,19 +9127,14 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             });
         }
 
-        function loadRankingDataFromServer() {
+        function loadRankingDataFromServer(forceRefresh = false) {
             if (!GAS_WEBAPP_URL) {
                 alert("スプレッドシートのWeb App URLが設定されていません。「先生用ポータル」または設定で設定してください。");
                 return;
             }
-            
-            document.getElementById('ranking-loading').style.display = 'block';
-            document.getElementById('ranking-error').style.display = 'none';
-            document.getElementById('ranking-table-wrapper').style.display = 'none';
-            document.getElementById('my-rank-summary').style.display = 'none';
-            
+
             const currentStudentKey = `${studentGrade}-${studentClass}.${studentNumber}`;
-            
+
             let quizTypeJp = rankingQuizType;
             if (rankingQuizType === 'en-ja') {
                 quizTypeJp = '英単語 → 日本語';
@@ -9121,9 +9143,35 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             } else if (rankingQuizType === 'ja-en-spelling') {
                 quizTypeJp = '日本語 → 英語スペル';
             }
-            
+
+            const cacheKey = `${quizTypeJp}_${rankingPeriod}_${currentStudentKey}`;
+            const cachedEntry = rankingDataCache[cacheKey];
+            const now = Date.now();
+
+            // 1. キャッシュが存在し有効期限内であれば、一瞬で即時表示 (0ms)
+            if (!forceRefresh && cachedEntry && (now - cachedEntry.timestamp < RANKING_CACHE_TTL_MS)) {
+                document.getElementById('ranking-loading').style.display = 'none';
+                document.getElementById('ranking-error').style.display = 'none';
+                renderRankingTable(cachedEntry.top50, cachedEntry.myRanking);
+                return;
+            }
+
+            // 2. キャッシュが期限切れでも古いデータを仮表示して裏で更新 (SWRパターン)
+            let isBgFetch = false;
+            if (!forceRefresh && cachedEntry) {
+                document.getElementById('ranking-loading').style.display = 'none';
+                document.getElementById('ranking-error').style.display = 'none';
+                renderRankingTable(cachedEntry.top50, cachedEntry.myRanking);
+                isBgFetch = true;
+            } else {
+                document.getElementById('ranking-loading').style.display = 'block';
+                document.getElementById('ranking-error').style.display = 'none';
+                document.getElementById('ranking-table-wrapper').style.display = 'none';
+                document.getElementById('my-rank-summary').style.display = 'none';
+            }
+
             const url = `${GAS_WEBAPP_URL}?action=get_ranking&quizType=${encodeURIComponent(quizTypeJp)}&period=${rankingPeriod}&studentKey=${encodeURIComponent(currentStudentKey)}`;
-            
+
             fetch(url, {
                 method: 'GET',
                 mode: 'cors',
@@ -9132,18 +9180,24 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             .then(response => response.json())
             .then(res => {
                 document.getElementById('ranking-loading').style.display = 'none';
-                
+
                 if (res.status === 'success') {
+                    // キャッシュ更新
+                    rankingDataCache[cacheKey] = {
+                        timestamp: Date.now(),
+                        top50: res.top50,
+                        myRanking: res.myRanking
+                    };
                     renderRankingTable(res.top50, res.myRanking);
                 } else {
                     console.error("GAS ranking error:", res.message);
-                    document.getElementById('ranking-error').style.display = 'block';
+                    if (!isBgFetch) document.getElementById('ranking-error').style.display = 'block';
                 }
             })
             .catch(err => {
                 console.error("Fetch ranking failed:", err);
                 document.getElementById('ranking-loading').style.display = 'none';
-                document.getElementById('ranking-error').style.display = 'block';
+                if (!isBgFetch) document.getElementById('ranking-error').style.display = 'block';
             });
         }
 
@@ -9618,35 +9672,35 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             const hasTeacherMemo = teacherMemoText !== '';
             const isTeacherMemoVisible = (typeof showTeacherMemo !== 'undefined' ? showTeacherMemo : true) && hasTeacherMemo;
 
-            let html = '<div id="quiz-note-wrapper" style="margin-top: 10px; width: 100%; box-sizing: border-box;">';
+            let html = '<div id="quiz-note-wrapper" style="margin-top: 10px; width: 100%; text-align: left; box-sizing: border-box; padding: 0;">';
 
             // 1行配置（2カラムグリッド: 左＝先生のメモ / 右＝自分のメモ）
-            html += '<div class="quiz-memo-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; width: 100%; box-sizing: border-box; align-items: stretch;">';
+            html += '<div class="quiz-memo-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; text-align: left; width: 100%; box-sizing: border-box; align-items: stretch;">';
 
-            // 【左】📌 先生からのメモ
+            // 【左】📌 先生からのメモ (余白を詰めた左詰め)
             html += `
-                <div class="feedback-teacher-note-card" style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 8px 10px; font-size: 0.82rem; color: var(--text-main); display: flex; flex-direction: column; justify-content: flex-start; box-sizing: border-box; min-height: 70px;">
-                    <div style="font-weight: 700; color: #818cf8; font-size: 0.78rem; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                <div class="feedback-teacher-note-card" style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 8px 8px; font-size: 0.82rem; color: var(--text-main); display: flex; flex-direction: column; justify-content: flex-start; text-align: left; box-sizing: border-box; min-height: 64px;">
+                    <div style="font-weight: 700; color: #818cf8; font-size: 0.78rem; margin-bottom: 3px; display: flex; align-items: center; gap: 3px; text-align: left;">
                         <span>📌 先生からのメモ</span>
                     </div>
-                    <div style="line-height: 1.35; white-space: pre-wrap; word-break: break-word; flex: 1;">
+                    <div style="line-height: 1.35; white-space: pre-wrap; word-break: break-word; flex: 1; text-align: left; padding: 0;">
                         ${isTeacherMemoVisible ? escapeHtml(teacherMemoText) : '<span style="opacity: 0.45; font-size: 0.78rem;">' + (hasTeacherMemo ? '(非表示中)' : '(メモなし)') + '</span>'}
                     </div>
                 </div>
             `;
 
-            // 【右】📝 自分用メモ
+            // 【右】📝 自分用メモ (余白を詰めた左詰め)
             html += `
-                <div class="feedback-student-note-card" style="background: rgba(129, 140, 248, 0.08); border: 1px dashed rgba(129, 140, 248, 0.3); border-radius: 8px; padding: 8px 10px; font-size: 0.82rem; color: var(--text-main); display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; min-height: 70px;">
-                    <div>
-                        <div style="font-weight: 700; color: #a5b4fc; font-size: 0.78rem; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                <div class="feedback-student-note-card" style="background: rgba(129, 140, 248, 0.08); border: 1px dashed rgba(129, 140, 248, 0.3); border-radius: 8px; padding: 8px 8px; font-size: 0.82rem; color: var(--text-main); display: flex; flex-direction: column; justify-content: space-between; text-align: left; box-sizing: border-box; min-height: 64px;">
+                    <div style="text-align: left;">
+                        <div style="font-weight: 700; color: #a5b4fc; font-size: 0.78rem; margin-bottom: 3px; display: flex; align-items: center; gap: 3px; text-align: left;">
                             <span>📝 自分用メモ</span>
                         </div>
-                        <div id="quiz-note-display-${wordId}" style="line-height: 1.35; white-space: pre-wrap; word-break: break-word;">
+                        <div id="quiz-note-display-${wordId}" style="line-height: 1.35; white-space: pre-wrap; word-break: break-word; text-align: left; padding: 0;">
                             ${hasNote ? escapeHtml(note) : '<span style="opacity: 0.45; font-size: 0.78rem;">(未入力)</span>'}
                         </div>
                     </div>
-                    <button class="btn-note-toggle-edit" onclick="showQuizNoteInlineEdit(${wordId})" style="margin-top: 6px; width: 100%; padding: 4px 6px; font-size: 0.72rem; border-radius: 6px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--primary); cursor: pointer; transition: all 0.2s ease;">
+                    <button class="btn-note-toggle-edit" onclick="showQuizNoteInlineEdit(${wordId})" style="margin-top: 6px; width: 100%; padding: 3px 4px; font-size: 0.72rem; border-radius: 6px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--primary); cursor: pointer; transition: all 0.2s ease;">
                         ${hasNote ? '📝 編集する' : '➕ メモを追加'}
                     </button>
                 </div>
@@ -9656,8 +9710,8 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
 
             // Inline edit form container
             html += `
-                <div class="feedback-note-edit-container" id="quiz-note-edit-container-${wordId}" style="display: none; margin-top: 8px; width: 100%; box-sizing: border-box;">
-                    <textarea class="feedback-note-edit-textarea" id="quiz-note-textarea-${wordId}" rows="2" placeholder="この単語に関する覚え方やメモを入力..." onfocus="isQuizNoteEditing = true;" onblur="setTimeout(() => { isQuizNoteEditing = false; }, 150);">${escapeHtml(note)}</textarea>
+                <div class="feedback-note-edit-container" id="quiz-note-edit-container-${wordId}" style="display: none; margin-top: 8px; width: 100%; box-sizing: border-box; text-align: left;">
+                    <textarea class="feedback-note-edit-textarea" id="quiz-note-textarea-${wordId}" rows="2" placeholder="この単語に関する覚え方やメモを入力..." onfocus="isQuizNoteEditing = true;" onblur="setTimeout(() => { isQuizNoteEditing = false; }, 150);" style="text-align: left; padding: 6px 8px;"></textarea>
                     <div class="feedback-note-edit-actions">
                         <button class="btn-inline-action btn-cancel" onclick="hideQuizNoteInlineEdit(${wordId})">キャンセル</button>
                         <button class="btn-inline-action btn-save" onclick="saveQuizNoteInline(${wordId})">保存</button>
