@@ -3843,15 +3843,18 @@
                     <div class="fc-card-side fc-card-back" id="fc-card-back-content" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 16px; max-height: 250px; overflow-y: auto; width: 100%;">
                         <div class="fc-card-label" id="fc-card-back-label">MEANING</div>
                         <div class="fc-card-word" id="fc-card-back-text" style="margin-bottom: 12px;">日本語</div>
-                        <!-- 📌 先生からのメモ (独立枠) -->
-                        <div id="fc-card-back-teacher-note" style="margin-top: 6px; padding: 8px 12px; border-radius: 8px; background: rgba(99, 102, 241, 0.12); font-size: 0.82rem; color: var(--primary); width: 92%; text-align: left; border-left: 3.5px solid var(--primary); border: 1px solid rgba(99, 102, 241, 0.25); display: none; word-break: break-word; line-height: 1.4;">
-                            <div style="font-weight: 700; margin-bottom: 2px;">📌 先生からのメモ <span style="font-size: 0.65rem; background: rgba(99,102,241,0.2); padding: 1px 4px; border-radius: 3px; margin-left: 4px;">公式解説</span></div>
-                            <span id="fc-card-back-teacher-note-text"></span>
-                        </div>
-                        <!-- ✍️ 自分用メモ (独立枠) -->
-                        <div id="fc-card-back-note" style="margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: rgba(245, 158, 11, 0.08); font-size: 0.82rem; color: var(--text-main); width: 92%; text-align: left; border-left: 3.5px solid #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); display: none; word-break: break-word; line-height: 1.4;">
-                            <div style="font-weight: 700; color: #f59e0b; margin-bottom: 2px;">✍️ 自分用メモ</div>
-                            <span id="fc-card-back-note-text"></span>
+                        <!-- 1行配置メモコンテナ (左: 先生メモ / 右: 自分用メモ) -->
+                        <div class="fc-card-memo-row" style="display: flex; gap: 8px; margin-top: 6px; width: 100%; text-align: left;">
+                            <!-- 📌 先生からのメモ (左側) -->
+                            <div id="fc-card-back-teacher-note" style="flex: 1; padding: 8px 10px; border-radius: 8px; background: rgba(99, 102, 241, 0.12); font-size: 0.82rem; color: var(--primary); border-left: 3.5px solid var(--primary); border: 1px solid rgba(99, 102, 241, 0.25); display: none; word-break: break-word; line-height: 1.4;">
+                                <div style="font-weight: 700; margin-bottom: 2px;">📌 先生からのメモ <span style="font-size: 0.65rem; background: rgba(99,102,241,0.2); padding: 1px 4px; border-radius: 3px; margin-left: 4px;">公式解説</span></div>
+                                <span id="fc-card-back-teacher-note-text"></span>
+                            </div>
+                            <!-- ✍️ 自分用メモ (右側) -->
+                            <div id="fc-card-back-note" style="flex: 1; padding: 8px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.08); font-size: 0.82rem; color: var(--text-main); border-left: 3.5px solid #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); display: none; word-break: break-word; line-height: 1.4;">
+                                <div style="font-weight: 700; color: #f59e0b; margin-bottom: 2px;">✍️ 自分用メモ</div>
+                                <span id="fc-card-back-note-text"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -9604,40 +9607,56 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             const note = wordNotes[wordId] || '';
             const hasNote = !!note;
 
-            let html = '<div id="quiz-note-wrapper">';
-
-            // 📌 先生からのメモ (showTeacherMemoがONの場合にクイズ回答後表示)
-            if (typeof showTeacherMemo !== 'undefined' && showTeacherMemo) {
-                let w = null;
-                if (typeof wordData !== 'undefined' && Array.isArray(wordData)) {
-                    w = wordData.find(item => item.id == wordId);
-                }
-                if (!w && typeof textbookWordsData !== 'undefined' && Array.isArray(textbookWordsData)) {
-                    w = textbookWordsData.find(item => item.id == wordId);
-                }
-                if (w && w.teacherMemo && w.teacherMemo.trim() !== '') {
-                    html += `
-                        <div class="feedback-teacher-note-inline" style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 8px 12px; margin-top: 8px; margin-bottom: 8px; font-size: 0.85rem; color: var(--text-main); text-align: left;">
-                            <div style="font-weight: 700; color: #818cf8; margin-bottom: 2px; display: flex; align-items: center; gap: 4px;">
-                                <span>📌 先生からのメモ</span>
-                            </div>
-                            <div style="line-height: 1.4; white-space: pre-wrap;">${escapeHtml(w.teacherMemo)}</div>
-                        </div>
-                    `;
-                }
+            let w = null;
+            if (typeof wordData !== 'undefined' && Array.isArray(wordData)) {
+                w = wordData.find(item => item.id == wordId);
             }
-
-            if (hasNote) {
-                html += `<div class="feedback-note-inline" id="quiz-note-display-${wordId}">📝 自分用メモ:<br>${escapeHtml(note)}</div>`;
-                html += `<button class="btn-note-toggle-edit" onclick="showQuizNoteInlineEdit(${wordId})">📝 メモを編集する</button>`;
-            } else {
-                html += `<div class="feedback-note-inline" id="quiz-note-display-${wordId}" style="display:none;"></div>`;
-                html += `<button class="btn-note-toggle-edit" onclick="showQuizNoteInlineEdit(${wordId})">➕ メモを追加する</button>`;
+            if (!w && typeof textbookWordsData !== 'undefined' && Array.isArray(textbookWordsData)) {
+                w = textbookWordsData.find(item => item.id == wordId);
             }
+            const teacherMemoText = (w && w.teacherMemo) ? w.teacherMemo.trim() : '';
+            const hasTeacherMemo = teacherMemoText !== '';
+            const isTeacherMemoVisible = (typeof showTeacherMemo !== 'undefined' ? showTeacherMemo : true) && hasTeacherMemo;
 
-            // Inline edit form
+            let html = '<div id="quiz-note-wrapper" style="margin-top: 10px; width: 100%; box-sizing: border-box;">';
+
+            // 1行配置（2カラムグリッド: 左＝先生のメモ / 右＝自分のメモ）
+            html += '<div class="quiz-memo-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; width: 100%; box-sizing: border-box; align-items: stretch;">';
+
+            // 【左】📌 先生からのメモ
             html += `
-                <div class="feedback-note-edit-container" id="quiz-note-edit-container-${wordId}" style="display: none;">
+                <div class="feedback-teacher-note-card" style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 8px 10px; font-size: 0.82rem; color: var(--text-main); display: flex; flex-direction: column; justify-content: flex-start; box-sizing: border-box; min-height: 70px;">
+                    <div style="font-weight: 700; color: #818cf8; font-size: 0.78rem; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                        <span>📌 先生からのメモ</span>
+                    </div>
+                    <div style="line-height: 1.35; white-space: pre-wrap; word-break: break-word; flex: 1;">
+                        ${isTeacherMemoVisible ? escapeHtml(teacherMemoText) : '<span style="opacity: 0.45; font-size: 0.78rem;">' + (hasTeacherMemo ? '(非表示中)' : '(メモなし)') + '</span>'}
+                    </div>
+                </div>
+            `;
+
+            // 【右】📝 自分用メモ
+            html += `
+                <div class="feedback-student-note-card" style="background: rgba(129, 140, 248, 0.08); border: 1px dashed rgba(129, 140, 248, 0.3); border-radius: 8px; padding: 8px 10px; font-size: 0.82rem; color: var(--text-main); display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; min-height: 70px;">
+                    <div>
+                        <div style="font-weight: 700; color: #a5b4fc; font-size: 0.78rem; margin-bottom: 3px; display: flex; align-items: center; gap: 4px;">
+                            <span>📝 自分用メモ</span>
+                        </div>
+                        <div id="quiz-note-display-${wordId}" style="line-height: 1.35; white-space: pre-wrap; word-break: break-word;">
+                            ${hasNote ? escapeHtml(note) : '<span style="opacity: 0.45; font-size: 0.78rem;">(未入力)</span>'}
+                        </div>
+                    </div>
+                    <button class="btn-note-toggle-edit" onclick="showQuizNoteInlineEdit(${wordId})" style="margin-top: 6px; width: 100%; padding: 4px 6px; font-size: 0.72rem; border-radius: 6px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: var(--primary); cursor: pointer; transition: all 0.2s ease;">
+                        ${hasNote ? '📝 編集する' : '➕ メモを追加'}
+                    </button>
+                </div>
+            `;
+
+            html += '</div>'; // end quiz-memo-row
+
+            // Inline edit form container
+            html += `
+                <div class="feedback-note-edit-container" id="quiz-note-edit-container-${wordId}" style="display: none; margin-top: 8px; width: 100%; box-sizing: border-box;">
                     <textarea class="feedback-note-edit-textarea" id="quiz-note-textarea-${wordId}" rows="2" placeholder="この単語に関する覚え方やメモを入力..." onfocus="isQuizNoteEditing = true;" onblur="setTimeout(() => { isQuizNoteEditing = false; }, 150);">${escapeHtml(note)}</textarea>
                     <div class="feedback-note-edit-actions">
                         <button class="btn-inline-action btn-cancel" onclick="hideQuizNoteInlineEdit(${wordId})">キャンセル</button>
@@ -12970,12 +12989,21 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
                         </div>
                     </div>
                     <div class="item-expand-detail" id="expand-detail-${w.id}" style="display: none;" onclick="event.stopPropagation();">
-                        <div class="note-container" style="background: rgba(15, 23, 42, 0.4); padding: 10px; border-radius: 10px; border: 1px solid var(--border);">
-                            <div class="student-note-section-title">✍️ 自分用メモ</div>
-                            <div class="note-label">自分用メモ</div>
-                            <textarea class="note-textarea" id="note-textarea-${w.id}" rows="3" placeholder="この単語に関するメモや類義語などを自由に入力してください..." onblur="setTimeout(() => saveWordNoteFromUI(${w.id}), 150)">${wordNotes[w.id] || ''}</textarea>
-                            <div class="note-actions">
-                                <button class="btn btn-primary btn-note-save" onclick="saveWordNoteFromUI(${w.id})">保存する</button>
+                        <div class="wordbook-memo-row" style="display: flex; gap: 8px; width: 100%; text-align: left; margin-top: 4px;">
+                            ${w.teacherMemo && showTeacherMemo ? `
+                            <!-- 左側: 📌 先生からのメモ -->
+                            <div class="teacher-note-box-wb" style="flex: 1; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; padding: 10px;">
+                                <div style="font-weight: 700; color: #818cf8; font-size: 0.82rem; margin-bottom: 4px;">📌 先生からのメモ</div>
+                                <div style="font-size: 0.82rem; line-height: 1.4; color: var(--text-main); white-space: pre-wrap;">${escapeHtml(w.teacherMemo)}</div>
+                            </div>
+                            ` : ''}
+                            <!-- 右側: ✍️ 自分用メモ -->
+                            <div class="note-container" style="flex: 1; background: rgba(15, 23, 42, 0.4); padding: 10px; border-radius: 10px; border: 1px solid var(--border);">
+                                <div class="student-note-section-title" style="font-weight: 700; color: #f59e0b; font-size: 0.82rem; margin-bottom: 4px;">✍️ 自分用メモ</div>
+                                <textarea class="note-textarea" id="note-textarea-${w.id}" rows="2" placeholder="この単語に関するメモや類義語などを自由に入力..." onblur="setTimeout(() => saveWordNoteFromUI(${w.id}), 150)">${wordNotes[w.id] || ''}</textarea>
+                                <div class="note-actions" style="margin-top: 6px;">
+                                    <button class="btn btn-primary btn-note-save" onclick="saveWordNoteFromUI(${w.id})" style="padding: 4px 12px; font-size: 0.75rem;">保存する</button>
+                                </div>
                             </div>
                         </div>
                     </div>
