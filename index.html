@@ -4459,6 +4459,15 @@
             
             <p class="subtitle" id="bookmarks-info">手動でブックマークした単語リスト</p>
 
+            <!-- 全選択・個別チェック操作バー -->
+            <div id="bookmark-select-all-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 600; font-size: 0.9rem; user-select: none;">
+                    <input type="checkbox" id="bookmark-select-all-checkbox" checked onchange="toggleSelectAllBookmarks(this.checked)" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);">
+                    <span>すべてチェック (全選択)</span>
+                </label>
+                <span id="bookmark-selected-count-label" style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">選択中: 0 語</span>
+            </div>
+
             <div class="list-scroll-area" id="bookmarks-container">
                 <!-- Bookmarked words items -->
             </div>
@@ -11682,9 +11691,9 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             let pool = [];
             
             if (type === 'weak') {
-                pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 4);
+                pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 1);
             } else if (type === 'bookmark') {
-                pool = wordData.filter(w => bookmarks.has(w.id));
+                pool = wordData.filter(w => bookmarks.has(w.id) && selectedBookmarkIds.has(w.id));
             }
 
             pool = filterPhrasesIfNeeded(pool);
@@ -11712,10 +11721,10 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             let pool = [];
             
             if (type === 'weak') {
-                pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 4);
+                pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 1);
                 sourceListType = 'weak';
             } else if (type === 'bookmark') {
-                pool = wordData.filter(w => bookmarks.has(w.id));
+                pool = wordData.filter(w => bookmarks.has(w.id) && selectedBookmarkIds.has(w.id));
                 sourceListType = 'bookmark';
             }
 
@@ -11900,9 +11909,9 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
                 if (sourceListType === 'range') {
                     pool = wordData.filter(w => w.id >= sessionRange.from && w.id <= sessionRange.to);
                 } else if (sourceListType === 'weak') {
-                    pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 4);
+                    pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 1);
                 } else if (sourceListType === 'bookmark') {
-                    pool = wordData.filter(w => bookmarks.has(w.id));
+                    pool = wordData.filter(w => bookmarks.has(w.id) && selectedBookmarkIds.has(w.id));
                 } else {
                     pool = wordData;
                 }
@@ -12062,9 +12071,9 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             if (sourceListType === 'range') {
                 pool = wordData.filter(w => w.id >= sessionRange.from && w.id <= sessionRange.to);
             } else if (sourceListType === 'weak') {
-                pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 4);
+                pool = wordData.filter(w => (wrongCounts[w.id] || 0) >= 1);
             } else if (sourceListType === 'bookmark') {
-                pool = wordData.filter(w => bookmarks.has(w.id));
+                pool = wordData.filter(w => bookmarks.has(w.id) && selectedBookmarkIds.has(w.id));
             } else {
                 pool = wordData;
             }
@@ -12708,7 +12717,7 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             wordbookFilteredList = wordData.filter(w => {
                 if (activeWordbookFilters.bookmark && !bookmarks.has(w.id)) return false;
                 if (activeWordbookFilters.note && !wordNotes[w.id]) return false;
-                if (activeWordbookFilters.weak && (wrongCounts[w.id] || 0) < 4) return false;
+                if (activeWordbookFilters.weak && (wrongCounts[w.id] || 0) < 1) return false;
                 
                 if (query !== '') {
                     const matchEn = w.en.toLowerCase().includes(query);
@@ -13027,7 +13036,7 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
                             <div class="item-row-top">
                                 <span class="item-id">No. ${w.id}</span>
                                 <span class="item-en">${w.en}</span>
-                                ${wrongCounts[w.id] >= 4 ? `<span class="wrong-badge">間違えやすい</span>` : ''}
+                                ${wrongCounts[w.id] >= 1 ? `<span class="wrong-badge">間違えやすい</span>` : ''}
                                 <span class="note-badge" id="note-badge-${w.id}" style="${hasNote ? '' : 'display:none;'}">📝 メモ有</span>
                             </div>
                             <div class="item-ja">${w.ja}</div>
@@ -13194,7 +13203,7 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             const container = document.getElementById('weak-words-container');
             container.innerHTML = '';
 
-            const weakWords = wordData.filter(w => (wrongCounts[w.id] || 0) >= 4)
+            const weakWords = wordData.filter(w => (wrongCounts[w.id] || 0) >= 1)
                                       .sort((a,b) => wrongCounts[b.id] - wrongCounts[a.id]);
 
             const infoEl = document.getElementById('weak-words-info');
@@ -13277,6 +13286,8 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
         }
 
         // --- Bookmarks Screen (Manual Star) ---
+        let selectedBookmarkIds = new Set();
+
         function renderBookmarks() {
             const container = document.getElementById('bookmarks-container');
             container.innerHTML = '';
@@ -13285,47 +13296,123 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
             const infoEl = document.getElementById('bookmarks-info');
             if (infoEl) infoEl.innerText = `ブックマークに登録された単語リスト (${bookmarkedWords.length} 語)`;
 
-            const startQuizBtn = document.getElementById('btn-start-bookmark-quiz');
-            if (bookmarkedWords.length < 1) {
-                startQuizBtn.disabled = true;
-                if (startQuizBtn) startQuizBtn.innerText = "テスト開始には最低1語必要です";
-            } else {
-                startQuizBtn.disabled = false;
-                if (startQuizBtn) startQuizBtn.innerText = "このリストで復習テストを開始";
+            // 初期化: bookmarkに存在する単語IDで未設定のものを初期化
+            const bookmarkedIds = new Set(bookmarkedWords.map(w => w.id));
+
+            // 削除された単語を selectedBookmarkIds から除外
+            selectedBookmarkIds.forEach(id => {
+                if (!bookmarkedIds.has(id)) selectedBookmarkIds.delete(id);
+            });
+
+            // 初回表示時などは全選択状態にする
+            if (selectedBookmarkIds.size === 0 && bookmarkedWords.length > 0) {
+                bookmarkedWords.forEach(w => selectedBookmarkIds.add(w.id));
             }
 
             if (bookmarkedWords.length === 0) {
+                const selectAllBar = document.getElementById('bookmark-select-all-bar');
+                if (selectAllBar) selectAllBar.style.display = 'none';
                 container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:30px;">登録されたブックマーク単語はありません。</p>';
+                updateBookmarkQuizButton(0, 0);
                 return;
+            } else {
+                const selectAllBar = document.getElementById('bookmark-select-all-bar');
+                if (selectAllBar) selectAllBar.style.display = 'flex';
             }
 
             bookmarkedWords.forEach(w => {
+                const isChecked = selectedBookmarkIds.has(w.id);
                 const itemEl = document.createElement('div');
                 itemEl.className = 'word-list-item';
+                itemEl.style.display = 'flex';
+                itemEl.style.alignItems = 'center';
+                itemEl.style.gap = '12px';
                 itemEl.innerHTML = `
-                    <div class="item-info">
+                    <input type="checkbox" class="bookmark-item-checkbox" value="${w.id}" ${isChecked ? 'checked' : ''} onchange="toggleBookmarkSelection(${w.id}, this.checked)" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); flex-shrink: 0;">
+                    <div class="item-info" style="flex: 1;">
                         <div class="item-row-top">
                             <span class="item-id">No. ${w.id}</span>
                             <span class="item-en">${w.en}</span>
-                            ${wrongCounts[w.id] >= 4 ? `<span class="wrong-badge">間違えやすい</span>` : ''}
+                            ${(wrongCounts[w.id] || 0) >= 1 ? `<span class="wrong-badge">間違えやすい</span>` : ''}
                         </div>
                         <div class="item-ja">${w.ja}</div>
                     </div>
-                    <div class="item-actions">
+                    <div class="item-actions" style="flex-shrink: 0;">
                         <button class="btn-item-action" onclick="speak('${w.en}')" title="音声を再生">
                             <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
                         </button>
-                        <button class="btn-item-action bookmark-active" id="btn-list-bm-${w.id}" onclick="removeBookmarkFromList(${w.id})">
+                        <button class="btn-item-action bookmark-active" id="btn-list-bm-${w.id}" onclick="removeBookmarkFromList(${w.id})" title="ブックマーク解除">
                             <svg style="width:18px;height:18px;" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
                         </button>
                     </div>
                 `;
                 container.appendChild(itemEl);
             });
+
+            updateBookmarkSelectAllStatus(bookmarkedWords);
+        }
+
+        function toggleSelectAllBookmarks(isChecked) {
+            const bookmarkedWords = wordData.filter(w => bookmarks.has(w.id));
+            if (isChecked) {
+                bookmarkedWords.forEach(w => selectedBookmarkIds.add(w.id));
+            } else {
+                selectedBookmarkIds.clear();
+            }
+
+            const checkboxes = document.querySelectorAll('.bookmark-item-checkbox');
+            checkboxes.forEach(cb => { cb.checked = isChecked; });
+
+            updateBookmarkSelectAllStatus(bookmarkedWords);
+        }
+
+        function toggleBookmarkSelection(wordId, isChecked) {
+            if (isChecked) {
+                selectedBookmarkIds.add(wordId);
+            } else {
+                selectedBookmarkIds.delete(wordId);
+            }
+
+            const bookmarkedWords = wordData.filter(w => bookmarks.has(w.id));
+            updateBookmarkSelectAllStatus(bookmarkedWords);
+        }
+
+        function updateBookmarkSelectAllStatus(bookmarkedWords) {
+            const totalCount = bookmarkedWords.length;
+            const selectedCount = selectedBookmarkIds.size;
+
+            const selectAllCb = document.getElementById('bookmark-select-all-checkbox');
+            if (selectAllCb) {
+                selectAllCb.checked = (totalCount > 0 && selectedCount === totalCount);
+            }
+
+            const countLabel = document.getElementById('bookmark-selected-count-label');
+            if (countLabel) {
+                countLabel.innerText = `選択中: ${selectedCount} / ${totalCount} 語`;
+            }
+
+            updateBookmarkQuizButton(selectedCount, totalCount);
+        }
+
+        function updateBookmarkQuizButton(selectedCount, totalCount) {
+            const startQuizBtn = document.getElementById('btn-start-bookmark-quiz');
+            if (!startQuizBtn) return;
+
+            if (totalCount === 0) {
+                startQuizBtn.disabled = true;
+                startQuizBtn.innerText = "ブックマークに単語がありません";
+            } else if (selectedCount < 1) {
+                startQuizBtn.disabled = true;
+                startQuizBtn.innerText = "出題する単語を1語以上チェックしてください";
+            } else {
+                startQuizBtn.disabled = false;
+                startQuizBtn.innerText = `選択した ${selectedCount} 語で復習テストを開始`;
+            }
         }
 
         function removeBookmarkFromList(wordId) {
             bookmarks.delete(wordId);
+            selectedBookmarkIds.delete(wordId);
             saveBookmarks();
             showToast("ブックマーク解除", false);
             renderBookmarks();
