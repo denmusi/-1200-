@@ -1,0 +1,24 @@
+{
+  "name": "ターゲット1200 クイズメカ",
+  "short_name": "ターゲット1200",
+  "description": "東福岡学園 ターゲット1200 英単語学習クイズ＆課題配信システム",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
