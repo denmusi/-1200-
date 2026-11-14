@@ -5009,6 +5009,10 @@
     <script>
         // グローバルエラーキャッチャー（開発・デバッグ用）
         window.addEventListener('error', function(e) {
+            // Safariなどの外部CDNスクリプトや拡張機能による詳細不明の無害な Script error. は非表示にする
+            if (!e.filename && (!e.message || e.message === 'Script error.')) {
+                return;
+            }
             const errorDiv = document.createElement('div');
             errorDiv.style.position = 'fixed';
             errorDiv.style.bottom = '0';
@@ -16371,8 +16375,9 @@ let isFetchingActiveTests = false; // テスト情報取得中フラグ
 
             if (!banner) return;
 
-            // すでに許可済みかつ購読中の場合はバナー非表示
-            if (Notification.permission === 'granted' && isPushSubscribed) {
+            // 通知APIが未サポート（通常のSafari等）またはホーム画面追加前の場合は安全に扱う
+            const hasNotificationApi = ('Notification' in window);
+            if (hasNotificationApi && Notification.permission === 'granted' && isPushSubscribed) {
                 banner.style.display = 'none';
                 return;
             }
